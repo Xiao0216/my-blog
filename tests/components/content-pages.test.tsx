@@ -9,6 +9,24 @@ import { ProjectCard } from "@/components/site/project-card"
 import type { NoteEntry, ProfileData, ProjectEntry } from "@/lib/content"
 import { getProfile, getProjects } from "@/lib/content"
 
+vi.mock("@/components/site/page-intro", () => ({
+  PageIntro: ({
+    eyebrow,
+    title,
+    description,
+  }: {
+    eyebrow: string
+    title: string
+    description: string
+  }) => (
+    <div data-testid="page-intro-sentinel">
+      <span>{`eyebrow:${eyebrow}`}</span>
+      <span>{`title:${title}`}</span>
+      <span>{`description:${description}`}</span>
+    </div>
+  ),
+}))
+
 vi.mock("@/lib/content", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/content")>()
 
@@ -110,10 +128,12 @@ describe("secondary page components", () => {
   it("renders the about page intro and body from the route layer", () => {
     render(<AboutPage />)
 
+    expect(screen.getByTestId("page-intro-sentinel")).toBeInTheDocument()
+    expect(screen.getByText("eyebrow:About")).toBeInTheDocument()
+    expect(screen.getByText(`title:${profileFixture.name}`)).toBeInTheDocument()
     expect(
-      screen.getByRole("heading", { name: profileFixture.name })
+      screen.getByText(`description:${profileFixture.aboutSummary}`)
     ).toBeInTheDocument()
-    expect(screen.getByText(profileFixture.aboutSummary)).toBeInTheDocument()
     expect(screen.getByText(profileFixture.longBio[0])).toBeInTheDocument()
   })
 })
