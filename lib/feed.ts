@@ -1,5 +1,6 @@
 import { siteConfig } from "@/data/site"
 import { getEssaySummaries } from "@/lib/content"
+import { toAbsoluteSiteUrl } from "@/lib/site-url"
 
 function escapeXml(value: string): string {
   return value
@@ -10,8 +11,14 @@ function escapeXml(value: string): string {
     .replaceAll("'", "&apos;")
 }
 
-function toAbsoluteUrl(path: string): string {
-  return new URL(path, siteConfig.siteUrl).toString()
+function toRssPubDate(dateText: string): string {
+  const publishedDate = new Date(dateText)
+
+  if (Number.isNaN(publishedDate.getTime())) {
+    return new Date().toUTCString()
+  }
+
+  return publishedDate.toUTCString()
 }
 
 export function buildRssXml(): string {
@@ -22,7 +29,7 @@ export function buildRssXml(): string {
 
   const items = essays
     .map((essay) => {
-      const link = toAbsoluteUrl(`/essays/${essay.slug}`)
+      const link = toAbsoluteSiteUrl(`/essays/${essay.slug}`, siteConfig.siteUrl)
       const escapedLink = escapeXml(link)
 
       return [
@@ -30,7 +37,7 @@ export function buildRssXml(): string {
         `<title>${escapeXml(essay.title)}</title>`,
         `<link>${escapedLink}</link>`,
         `<guid>${escapedLink}</guid>`,
-        `<pubDate>${new Date(essay.publishedAt).toUTCString()}</pubDate>`,
+        `<pubDate>${toRssPubDate(essay.publishedAt)}</pubDate>`,
         `<description>${escapeXml(essay.description)}</description>`,
         "</item>",
       ].join("")

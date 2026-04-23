@@ -6,9 +6,8 @@ import "./globals.css"
 import { SiteShell } from "@/components/site/site-shell"
 import { ThemeProvider } from "@/components/theme-provider"
 import { siteConfig } from "@/data/site"
+import { normalizeSiteUrl } from "@/lib/site-url"
 import { cn } from "@/lib/utils"
-
-const fallbackMetadataBase = new URL("http://localhost:3000")
 
 const headingFont = Cormorant_Garamond({
   subsets: ["latin"],
@@ -27,36 +26,8 @@ const monoFont = IBM_Plex_Mono({
   weight: ["400", "500"],
 })
 
-function resolveMetadataBase(siteUrl: string) {
-  const trimmedSiteUrl = siteUrl.trim()
-
-  if (!trimmedSiteUrl) {
-    return fallbackMetadataBase
-  }
-
-  if (trimmedSiteUrl.includes("://")) {
-    try {
-      return new URL(trimmedSiteUrl)
-    } catch {
-      return fallbackMetadataBase
-    }
-  }
-
-  const normalizedSiteUrl =
-    trimmedSiteUrl.startsWith("localhost") ||
-    trimmedSiteUrl.startsWith("127.0.0.1")
-      ? `http://${trimmedSiteUrl}`
-      : `https://${trimmedSiteUrl}`
-
-  try {
-    return new URL(normalizedSiteUrl)
-  } catch {
-    return fallbackMetadataBase
-  }
-}
-
 export const metadata: Metadata = {
-  metadataBase: resolveMetadataBase(siteConfig.siteUrl),
+  metadataBase: new URL(normalizeSiteUrl(siteConfig.siteUrl)),
   title: {
     default: siteConfig.title,
     template: `%s | ${siteConfig.title}`,

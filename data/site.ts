@@ -1,3 +1,5 @@
+import { normalizeSiteUrl } from "@/lib/site-url"
+
 export type NavigationLink = {
   readonly href: string
   readonly label: string
@@ -24,7 +26,7 @@ export type ProfileData = {
 export const siteConfig: SiteConfig = {
   title: "Quiet Chapters",
   description: "一个把代码、写作与生活观察慢慢展开的个人空间。",
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  siteUrl: normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL ?? ""),
   email: "hello@localhost.test",
   navigation: [
     { href: "/", label: "Home" },
