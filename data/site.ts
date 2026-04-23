@@ -1,24 +1,24 @@
 export type NavigationLink = {
-  href: string
-  label: string
+  readonly href: string
+  readonly label: string
 }
 
 export type SiteConfig = {
-  title: string
-  description: string
-  siteUrl: string
-  email: string
-  navigation: NavigationLink[]
-  footerLinks: NavigationLink[]
+  readonly title: string
+  readonly description: string
+  readonly siteUrl: string
+  readonly email: string
+  readonly navigation: ReadonlyArray<NavigationLink>
+  readonly footerLinks: ReadonlyArray<NavigationLink>
 }
 
 export type ProfileData = {
-  name: string
-  roleLine: string
-  heroTitle: string
-  heroIntro: string
-  aboutSummary: string
-  longBio: string[]
+  readonly name: string
+  readonly roleLine: string
+  readonly heroTitle: string
+  readonly heroIntro: string
+  readonly aboutSummary: string
+  readonly longBio: ReadonlyArray<string>
 }
 
 export const siteConfig: SiteConfig = {

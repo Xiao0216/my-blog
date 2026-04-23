@@ -1,13 +1,13 @@
 export type ProjectEntry = {
-  slug: string
-  title: string
-  description: string
-  stack: string[]
-  href: string
-  note: string
+  readonly slug: string
+  readonly title: string
+  readonly description: string
+  readonly stack: ReadonlyArray<string>
+  readonly href: string
+  readonly note: string
 }
 
-export const projects: ProjectEntry[] = [
+export const projects: ReadonlyArray<ProjectEntry> = [
   {
     slug: "rain-map",
     title: "Rain Map",

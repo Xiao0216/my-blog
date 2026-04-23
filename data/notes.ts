@@ -1,11 +1,11 @@
 export type NoteEntry = {
-  slug: string
-  title: string
-  body: string
-  publishedAt: string
+  readonly slug: string
+  readonly title: string
+  readonly body: string
+  readonly publishedAt: string
 }
 
-export const notes: NoteEntry[] = [
+export const notes: ReadonlyArray<NoteEntry> = [
   {
     slug: "the-window-seat",
     title: "靠窗的位置",

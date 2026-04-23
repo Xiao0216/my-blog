@@ -9,28 +9,53 @@ import type { ProfileData } from "@/data/site"
 
 export type { EssaySummary, NoteEntry, ProjectEntry, ProfileData }
 
-export function getProfile(): ProfileData {
-  return profile
+function cloneProfileData(data: ProfileData): ProfileData {
+  return {
+    ...data,
+    longBio: [...data.longBio],
+  }
 }
 
-export function getEssaySummaries(): EssaySummary[] {
+function cloneEssaySummary(essay: EssaySummary): EssaySummary {
+  return {
+    ...essay,
+    tags: [...essay.tags],
+  }
+}
+
+function cloneNoteEntry(note: NoteEntry): NoteEntry {
+  return {
+    ...note,
+  }
+}
+
+function cloneProjectEntry(project: ProjectEntry): ProjectEntry {
+  return {
+    ...project,
+    stack: [...project.stack],
+  }
+}
+
+export function getProfile(): ProfileData {
+  return cloneProfileData(profile)
+}
+
+export function getEssaySummaries(): ReadonlyArray<EssaySummary> {
   return [...essaySummaries].sort((left, right) =>
     right.publishedAt.localeCompare(left.publishedAt)
-  )
+  ).map(cloneEssaySummary)
 }
 
-export function getFeaturedNotes(limit = 3): NoteEntry[] {
-  return [...notes]
-    .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt))
-    .slice(0, limit)
+export function getFeaturedNotes(limit = 3): ReadonlyArray<NoteEntry> {
+  return getAllNotes().slice(0, limit)
 }
 
-export function getAllNotes(): NoteEntry[] {
+export function getAllNotes(): ReadonlyArray<NoteEntry> {
   return [...notes].sort((left, right) =>
     right.publishedAt.localeCompare(left.publishedAt)
-  )
+  ).map(cloneNoteEntry)
 }
 
-export function getProjects(): ProjectEntry[] {
-  return [...projects]
+export function getProjects(): ReadonlyArray<ProjectEntry> {
+  return projects.map(cloneProjectEntry)
 }

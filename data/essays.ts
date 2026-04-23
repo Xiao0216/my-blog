@@ -1,13 +1,13 @@
 export type EssaySummary = {
-  slug: string
-  title: string
-  description: string
-  publishedAt: string
-  readingTime: string
-  tags: string[]
+  readonly slug: string
+  readonly title: string
+  readonly description: string
+  readonly publishedAt: string
+  readonly readingTime: string
+  readonly tags: ReadonlyArray<string>
 }
 
-export const essaySummaries: EssaySummary[] = [
+export const essaySummaries: ReadonlyArray<EssaySummary> = [
   {
     slug: "making-space-for-thought",
     title: "Making Space for Thought",
