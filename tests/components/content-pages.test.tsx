@@ -56,6 +56,13 @@ const projectFixture: ProjectEntry = {
   note: "A short project note",
 }
 
+const protocolRelativeProjectFixture: ProjectEntry = {
+  ...projectFixture,
+  slug: "protocol-relative-project",
+  title: "Protocol Relative Project",
+  href: "//example.com/protocol-relative-project",
+}
+
 const profileFixture: ProfileData = {
   name: "Fixture Name",
   roleLine: "Fixture role line",
@@ -100,6 +107,21 @@ describe("secondary page components", () => {
     })
 
     expect(projectLink).toHaveAttribute("href", projectFixture.href)
+    expect(projectLink).toHaveAttribute("target", "_blank")
+    expect(projectLink).toHaveAttribute("rel", "noopener noreferrer")
+  })
+
+  it("treats protocol-relative project urls as safe external links", () => {
+    render(<ProjectCard project={protocolRelativeProjectFixture} />)
+
+    const projectLink = screen.getByRole("link", {
+      name: `查看项目：${protocolRelativeProjectFixture.title}`,
+    })
+
+    expect(projectLink).toHaveAttribute(
+      "href",
+      protocolRelativeProjectFixture.href
+    )
     expect(projectLink).toHaveAttribute("target", "_blank")
     expect(projectLink).toHaveAttribute("rel", "noopener noreferrer")
   })

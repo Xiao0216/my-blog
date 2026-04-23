@@ -9,6 +9,7 @@ type ProjectCardProps = {
 export function ProjectCard({ project }: ProjectCardProps) {
   const className =
     "mt-6 inline-flex text-sm text-primary underline-offset-4 hover:underline"
+  const isExternalHref = /^(https?:)?\/\//i.test(project.href)
 
   return (
     <article className="paper-card p-6">
@@ -27,7 +28,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </span>
         ))}
       </div>
-      {/^https?:\/\//i.test(project.href) ? (
+      {isExternalHref ? (
         <a
           href={project.href}
           aria-label={`查看项目：${project.title}`}

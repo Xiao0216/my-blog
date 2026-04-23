@@ -6,8 +6,8 @@ function hasProtocol(href: string) {
   return /^[a-z][a-z\d+.-]*:/i.test(href)
 }
 
-function isHttpHref(href: string) {
-  return /^https?:\/\//i.test(href)
+function isExternalHref(href: string) {
+  return /^(https?:)?\/\//i.test(href)
 }
 
 function isDirectHref(href: string) {
@@ -31,7 +31,7 @@ export function SiteFooter() {
           {siteConfig.footerLinks.map((item) => {
             const className = "transition-colors hover:text-foreground"
 
-            if (isHttpHref(item.href)) {
+            if (isExternalHref(item.href)) {
               return (
                 <a
                   key={item.href}

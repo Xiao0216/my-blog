@@ -8,6 +8,7 @@ vi.mock("@/data/site", () => ({
   siteConfig: {
     footerLinks: [
       { href: "https://example.com", label: "External" },
+      { href: "//cdn.example.com", label: "Protocol Relative" },
       { href: "mailto:test@example.com", label: "Email" },
       { href: "javascript:alert(1)", label: "Unsafe" },
       { href: "/rss.xml", label: "RSS" },
@@ -33,6 +34,12 @@ describe("SiteFooter", () => {
       "href",
       "mailto:test@example.com"
     )
+    expect(
+      screen.getByRole("link", { name: "Protocol Relative" })
+    ).toHaveAttribute("target", "_blank")
+    expect(
+      screen.getByRole("link", { name: "Protocol Relative" })
+    ).toHaveAttribute("rel", "noopener noreferrer")
     expect(screen.queryByRole("link", { name: "Unsafe" })).not.toBeInTheDocument()
     expect(screen.getByText("Unsafe")).toBeInTheDocument()
   })
