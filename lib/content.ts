@@ -1,3 +1,4 @@
+import { essayDocuments } from "@/content/essays"
 import { essaySummaries } from "@/data/essays"
 import type { EssaySummary } from "@/data/essays"
 import { notes } from "@/data/notes"
@@ -8,6 +9,9 @@ import { profile } from "@/data/site"
 import type { ProfileData } from "@/data/site"
 
 export type { EssaySummary, NoteEntry, ProjectEntry, ProfileData }
+export type EssayDocument = NonNullable<
+  ReturnType<typeof getEssayDocumentBySlug>
+>
 
 function cloneProfileData(data: ProfileData): ProfileData {
   return {
@@ -44,6 +48,23 @@ export function getEssaySummaries(): ReadonlyArray<EssaySummary> {
   return [...essaySummaries].sort((left, right) =>
     right.publishedAt.localeCompare(left.publishedAt)
   ).map(cloneEssaySummary)
+}
+
+export function getAllEssaySlugs(): ReadonlyArray<string> {
+  return getEssaySummaries().map((essay) => essay.slug)
+}
+
+export function getEssayDocumentBySlug(slug: string) {
+  if (!(slug in essayDocuments)) {
+    return null
+  }
+
+  const essay = essayDocuments[slug as keyof typeof essayDocuments]
+
+  return {
+    meta: cloneEssaySummary(essay.meta),
+    load: essay.load,
+  }
 }
 
 export function getFeaturedNotes(limit = 3): ReadonlyArray<NoteEntry> {
