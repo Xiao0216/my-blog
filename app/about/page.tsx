@@ -1,4 +1,5 @@
 import { AboutPageView } from "@/components/site/about-page-view"
+import { PageIntro } from "@/components/site/page-intro"
 import { getProfile } from "@/lib/content"
 
 export const metadata = {
@@ -6,9 +7,16 @@ export const metadata = {
 }
 
 export default function AboutPage() {
+  const profile = getProfile()
+
   return (
-    <div className="page-frame story-section">
-      <AboutPageView profile={getProfile()} />
+    <div className="page-frame story-section space-y-10">
+      <PageIntro
+        eyebrow="About"
+        title={profile.name}
+        description={profile.aboutSummary}
+      />
+      <AboutPageView profile={profile} />
     </div>
   )
 }

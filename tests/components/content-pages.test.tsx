@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
+import AboutPage from "@/app/about/page"
 import { AboutPageView } from "@/components/site/about-page-view"
 import { NoteTimeline } from "@/components/site/note-timeline"
 import { ProjectCard } from "@/components/site/project-card"
@@ -17,15 +18,32 @@ describe("secondary page components", () => {
     expect(screen.getByText("碎片正在路上。")).toBeInTheDocument()
   })
 
-  it("renders project and about content", () => {
+  it("renders project content and keeps about body content separate", () => {
+    const profile = getProfile()
+
     render(
       <>
         <ProjectCard project={getProjects()[0]} />
-        <AboutPageView profile={getProfile()} />
+        <AboutPageView profile={profile} />
       </>
     )
 
     expect(screen.getByText("Rain Map")).toBeInTheDocument()
-    expect(screen.getByText("Quiet Chapters")).toBeInTheDocument()
+    expect(screen.getByText(profile.longBio[0])).toBeInTheDocument()
+    expect(screen.queryByText(profile.name)).not.toBeInTheDocument()
+    expect(screen.queryByText(profile.aboutSummary)).not.toBeInTheDocument()
+  })
+
+  it("renders the about page with the shared page intro", () => {
+    const profile = getProfile()
+
+    render(<AboutPage />)
+
+    expect(screen.getByText("About")).toBeInTheDocument()
+    expect(
+      screen.getByRole("heading", { name: profile.name })
+    ).toBeInTheDocument()
+    expect(screen.getByText(profile.aboutSummary)).toBeInTheDocument()
+    expect(screen.getByText(profile.longBio[0])).toBeInTheDocument()
   })
 })
