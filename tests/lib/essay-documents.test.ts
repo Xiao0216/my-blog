@@ -1,3 +1,4 @@
+import * as essayContent from "@/content/essays"
 import {
   getAllEssaySlugs,
   getEssayDocumentBySlug,
@@ -6,9 +7,24 @@ import {
 import { describe, expect, it } from "vitest"
 
 describe("essay documents", () => {
-  it("exposes the same slugs for list and detail routes", () => {
-    expect(getAllEssaySlugs()).toEqual(
-      getEssaySummaries().map((essay) => essay.slug)
+  it("uses the essay registry as the source of truth for detail slugs", () => {
+    expect(essayContent.essayDocumentSlugs).toEqual(getAllEssaySlugs())
+  })
+
+  it("returns a document for every registered essay slug", () => {
+    expect(essayContent.essayDocumentSlugs.length).toBeGreaterThan(0)
+
+    for (const slug of essayContent.essayDocumentSlugs) {
+      const document = getEssayDocumentBySlug(slug)
+
+      expect(document).not.toBeNull()
+      expect(document?.meta.slug).toBe(slug)
+    }
+  })
+
+  it("keeps essay list slugs aligned with the document registry", () => {
+    expect(new Set(getEssaySummaries().map((essay) => essay.slug))).toEqual(
+      new Set(essayContent.essayDocumentSlugs)
     )
   })
 

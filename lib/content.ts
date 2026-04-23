@@ -1,4 +1,8 @@
-import { essayDocuments } from "@/content/essays"
+import {
+  essayDocumentSlugs,
+  essayDocuments,
+  isEssayDocumentSlug,
+} from "@/content/essays"
 import { essaySummaries } from "@/data/essays"
 import type { EssaySummary } from "@/data/essays"
 import { notes } from "@/data/notes"
@@ -51,15 +55,15 @@ export function getEssaySummaries(): ReadonlyArray<EssaySummary> {
 }
 
 export function getAllEssaySlugs(): ReadonlyArray<string> {
-  return getEssaySummaries().map((essay) => essay.slug)
+  return [...essayDocumentSlugs]
 }
 
 export function getEssayDocumentBySlug(slug: string) {
-  if (!(slug in essayDocuments)) {
+  if (!isEssayDocumentSlug(slug)) {
     return null
   }
 
-  const essay = essayDocuments[slug as keyof typeof essayDocuments]
+  const essay = essayDocuments[slug]
 
   return {
     meta: cloneEssaySummary(essay.meta),
