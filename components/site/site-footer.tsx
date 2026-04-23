@@ -2,12 +2,16 @@ import Link from "next/link"
 
 import { profile, siteConfig } from "@/data/site"
 
-function isProtocolHref(href: string) {
+function hasProtocol(href: string) {
   return /^[a-z][a-z\d+.-]*:/i.test(href)
 }
 
 function isHttpHref(href: string) {
   return /^https?:\/\//i.test(href)
+}
+
+function isDirectHref(href: string) {
+  return /^(mailto:|tel:)/i.test(href)
 }
 
 export function SiteFooter() {
@@ -27,17 +31,33 @@ export function SiteFooter() {
           {siteConfig.footerLinks.map((item) => {
             const className = "transition-colors hover:text-foreground"
 
-            if (isProtocolHref(item.href)) {
+            if (isHttpHref(item.href)) {
               return (
                 <a
                   key={item.href}
                   href={item.href}
                   className={className}
-                  rel={isHttpHref(item.href) ? "noreferrer" : undefined}
-                  target={isHttpHref(item.href) ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  target="_blank"
                 >
                   {item.label}
                 </a>
+              )
+            }
+
+            if (isDirectHref(item.href)) {
+              return (
+                <a key={item.href} href={item.href} className={className}>
+                  {item.label}
+                </a>
+              )
+            }
+
+            if (hasProtocol(item.href)) {
+              return (
+                <span key={item.href} className={className}>
+                  {item.label}
+                </span>
               )
             }
 

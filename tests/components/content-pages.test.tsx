@@ -95,9 +95,13 @@ describe("secondary page components", () => {
   it("renders project links with an accessible name and href", () => {
     render(<ProjectCard project={projectFixture} />)
 
-    expect(
-      screen.getByRole("link", { name: `查看项目：${projectFixture.title}` })
-    ).toHaveAttribute("href", projectFixture.href)
+    const projectLink = screen.getByRole("link", {
+      name: `查看项目：${projectFixture.title}`,
+    })
+
+    expect(projectLink).toHaveAttribute("href", projectFixture.href)
+    expect(projectLink).toHaveAttribute("target", "_blank")
+    expect(projectLink).toHaveAttribute("rel", "noopener noreferrer")
   })
 
   it("renders a projects page empty state when there are no projects", () => {

@@ -1,4 +1,4 @@
-const FALLBACK_SITE_URL = "http://localhost:3000"
+const FALLBACK_SITE_URL = "http://localhost:3000/"
 
 function withDefaultScheme(value: string): string {
   if (value.includes("://")) {
@@ -20,7 +20,13 @@ export function normalizeSiteUrl(rawSiteUrl: string): string {
   }
 
   try {
-    return new URL(withDefaultScheme(trimmedSiteUrl)).toString()
+    const url = new URL(withDefaultScheme(trimmedSiteUrl))
+
+    url.pathname = "/"
+    url.search = ""
+    url.hash = ""
+
+    return url.toString()
   } catch {
     return FALLBACK_SITE_URL
   }

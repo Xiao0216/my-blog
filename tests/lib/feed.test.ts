@@ -52,4 +52,16 @@ describe("feed helpers", () => {
       ])
     )
   })
+
+  it("strips path, search, and hash from the configured site url", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://example.com/blog?foo=1#bar")
+    const { buildRssXml } = await loadFeedHelpers()
+    const sitemapModule = await loadSitemapModule()
+
+    const rssXml = buildRssXml()
+    const entries = sitemapModule.default()
+
+    expect(rssXml).toContain("<link>https://example.com/</link>")
+    expect(entries[0]?.url).toBe("https://example.com/")
+  })
 })

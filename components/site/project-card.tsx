@@ -7,6 +7,9 @@ type ProjectCardProps = {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const className =
+    "mt-6 inline-flex text-sm text-primary underline-offset-4 hover:underline"
+
   return (
     <article className="paper-card p-6">
       <h2 className="font-heading text-4xl text-foreground">{project.title}</h2>
@@ -24,13 +27,25 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </span>
         ))}
       </div>
-      <Link
-        href={project.href}
-        aria-label={`查看项目：${project.title}`}
-        className="mt-6 inline-flex text-sm text-primary underline-offset-4 hover:underline"
-      >
-        查看项目
-      </Link>
+      {/^https?:\/\//i.test(project.href) ? (
+        <a
+          href={project.href}
+          aria-label={`查看项目：${project.title}`}
+          className={className}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          查看项目
+        </a>
+      ) : (
+        <Link
+          href={project.href}
+          aria-label={`查看项目：${project.title}`}
+          className={className}
+        >
+          查看项目
+        </Link>
+      )}
     </article>
   )
 }
