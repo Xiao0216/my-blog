@@ -26,6 +26,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
       </div>
       <Link
         href={project.href}
+        aria-label={`查看项目：${project.title}`}
         className="mt-6 inline-flex text-sm text-primary underline-offset-4 hover:underline"
       >
         查看项目

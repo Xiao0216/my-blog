@@ -16,7 +16,9 @@ export function NoteTimeline({ notes }: NoteTimelineProps) {
           key={note.slug}
           className="paper-card grid gap-4 p-6 md:grid-cols-[140px_1fr]"
         >
-          <p className="story-label">{note.publishedAt}</p>
+          <time className="story-label" dateTime={note.publishedAt}>
+            {note.publishedAt}
+          </time>
           <div className="space-y-3">
             <h2 className="font-heading text-3xl text-foreground">
               {note.title}
