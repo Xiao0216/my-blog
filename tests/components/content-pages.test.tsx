@@ -1,22 +1,25 @@
 import { render, screen } from "@testing-library/react"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
+import AboutPage from "@/app/about/page"
 import ProjectsPage from "@/app/projects/page"
 import { AboutPageView } from "@/components/site/about-page-view"
 import { NoteTimeline } from "@/components/site/note-timeline"
 import { ProjectCard } from "@/components/site/project-card"
 import type { NoteEntry, ProfileData, ProjectEntry } from "@/lib/content"
-import { getProjects } from "@/lib/content"
+import { getProfile, getProjects } from "@/lib/content"
 
 vi.mock("@/lib/content", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/content")>()
 
   return {
     ...actual,
+    getProfile: vi.fn(),
     getProjects: vi.fn(),
   }
 })
 
+const mockedGetProfile = vi.mocked(getProfile)
 const mockedGetProjects = vi.mocked(getProjects)
 
 const noteFixture: NoteEntry = {
@@ -44,7 +47,13 @@ const profileFixture: ProfileData = {
   longBio: ["Fixture bio paragraph one.", "Fixture bio paragraph two."],
 }
 
+beforeEach(() => {
+  mockedGetProfile.mockReturnValue(profileFixture)
+  mockedGetProjects.mockReturnValue([projectFixture])
+})
+
 afterEach(() => {
+  mockedGetProfile.mockReset()
   mockedGetProjects.mockReset()
 })
 
@@ -81,6 +90,14 @@ describe("secondary page components", () => {
     expect(screen.getByText("正在整理值得被展开讲述的项目。")).toBeInTheDocument()
   })
 
+  it("renders a projects page from the default project fixture", () => {
+    render(<ProjectsPage />)
+
+    expect(
+      screen.getByRole("heading", { name: projectFixture.title })
+    ).toBeInTheDocument()
+  })
+
   it("renders about body content without duplicating intro content", () => {
     render(<AboutPageView profile={profileFixture} />)
 
@@ -88,5 +105,15 @@ describe("secondary page components", () => {
     expect(screen.getByText(profileFixture.longBio[1])).toBeInTheDocument()
     expect(screen.queryByText(profileFixture.name)).not.toBeInTheDocument()
     expect(screen.queryByText(profileFixture.aboutSummary)).not.toBeInTheDocument()
+  })
+
+  it("renders the about page intro and body from the route layer", () => {
+    render(<AboutPage />)
+
+    expect(
+      screen.getByRole("heading", { name: profileFixture.name })
+    ).toBeInTheDocument()
+    expect(screen.getByText(profileFixture.aboutSummary)).toBeInTheDocument()
+    expect(screen.getByText(profileFixture.longBio[0])).toBeInTheDocument()
   })
 })
