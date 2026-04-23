@@ -1,4 +1,13 @@
-export const projects = [
+export type ProjectEntry = {
+  slug: string
+  title: string
+  description: string
+  stack: string[]
+  href: string
+  note: string
+}
+
+export const projects: ProjectEntry[] = [
   {
     slug: "rain-map",
     title: "Rain Map",
@@ -23,4 +32,4 @@ export const projects = [
     href: "https://example.invalid/still-frame",
     note: "这是我把“观察生活”具体落到产品形态上的一次尝试。",
   },
-] as const
+]

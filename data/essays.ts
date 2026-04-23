@@ -1,4 +1,13 @@
-export const essaySummaries = [
+export type EssaySummary = {
+  slug: string
+  title: string
+  description: string
+  publishedAt: string
+  readingTime: string
+  tags: string[]
+}
+
+export const essaySummaries: EssaySummary[] = [
   {
     slug: "making-space-for-thought",
     title: "Making Space for Thought",
@@ -15,4 +24,4 @@ export const essaySummaries = [
     readingTime: "5 min read",
     tags: ["Code", "Craft"],
   },
-] as const
+]

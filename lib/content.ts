@@ -1,12 +1,13 @@
 import { essaySummaries } from "@/data/essays"
+import type { EssaySummary } from "@/data/essays"
 import { notes } from "@/data/notes"
+import type { NoteEntry } from "@/data/notes"
 import { projects } from "@/data/projects"
+import type { ProjectEntry } from "@/data/projects"
 import { profile } from "@/data/site"
+import type { ProfileData } from "@/data/site"
 
-export type EssaySummary = (typeof essaySummaries)[number]
-export type NoteEntry = (typeof notes)[number]
-export type ProjectEntry = (typeof projects)[number]
-export type ProfileData = typeof profile
+export type { EssaySummary, NoteEntry, ProjectEntry, ProfileData }
 
 export function getProfile(): ProfileData {
   return profile

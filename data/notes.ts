@@ -1,4 +1,11 @@
-export const notes = [
+export type NoteEntry = {
+  slug: string
+  title: string
+  body: string
+  publishedAt: string
+}
+
+export const notes: NoteEntry[] = [
   {
     slug: "the-window-seat",
     title: "靠窗的位置",
@@ -17,4 +24,4 @@ export const notes = [
     body: "通勤时遇到的阵雨，不会改变目的地，但会改变抵达时的心情。",
     publishedAt: "2026-04-09",
   },
-] as const
+]
