@@ -3,18 +3,39 @@ import Link from "next/link"
 import { HeroIllustration } from "@/components/site/hero-illustration"
 import { Reveal } from "@/components/site/reveal"
 import { SectionHeading } from "@/components/site/section-heading"
-import type {
-  EssaySummary,
-  NoteEntry,
-  ProfileData,
-  ProjectEntry,
-} from "@/lib/content"
 
-type HomePageViewProps = {
-  profile: ProfileData
-  essays: ReadonlyArray<EssaySummary>
-  notes: ReadonlyArray<NoteEntry>
-  projects: ReadonlyArray<ProjectEntry>
+type HomePageProfile = {
+  heroTitle: string
+  heroIntro: string
+  aboutSummary: string
+}
+
+type HomePageNote = {
+  slug: string
+  title: string
+  body: string
+  publishedAt: string
+}
+
+type HomePageEssay = {
+  slug: string
+  title: string
+  description: string
+  publishedAt: string
+}
+
+type HomePageProject = {
+  slug: string
+  title: string
+  description: string
+  note: string
+}
+
+export type HomePageViewProps = {
+  profile: HomePageProfile
+  essays: ReadonlyArray<HomePageEssay>
+  notes: ReadonlyArray<HomePageNote>
+  projects: ReadonlyArray<HomePageProject>
 }
 
 export function HomePageView({
@@ -75,7 +96,9 @@ export function HomePageView({
             notes.map((note, index) => (
               <Reveal key={note.slug} delay={index * 80}>
                 <article className="paper-card p-6">
-                  <p className="story-label">{note.publishedAt}</p>
+                  <time className="story-label" dateTime={note.publishedAt}>
+                    {note.publishedAt}
+                  </time>
                   <h3 className="mt-3 font-heading text-3xl">{note.title}</h3>
                   <p className="mt-4 text-sm leading-7 text-muted-foreground">
                     {note.body}
@@ -104,7 +127,9 @@ export function HomePageView({
             essays.map((essay, index) => (
               <Reveal key={essay.slug} delay={index * 80}>
                 <article className="paper-card p-6">
-                  <p className="story-label">{essay.publishedAt}</p>
+                  <time className="story-label" dateTime={essay.publishedAt}>
+                    {essay.publishedAt}
+                  </time>
                   <h3 className="mt-3 font-heading text-3xl">{essay.title}</h3>
                   <p className="mt-4 text-sm leading-7 text-muted-foreground">
                     {essay.description}

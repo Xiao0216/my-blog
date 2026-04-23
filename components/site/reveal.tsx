@@ -13,15 +13,40 @@ type RevealProps = {
 
 export function Reveal({ children, className, delay = 0 }: RevealProps) {
   const ref = useRef<HTMLDivElement | null>(null)
-  const [visible, setVisible] = useState(false)
+  const [shouldAnimate, setShouldAnimate] = useState(false)
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     const node = ref.current
 
-    if (!node || typeof IntersectionObserver === "undefined") {
-      setVisible(true)
+    if (!node) {
       return
     }
+
+    if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+
+      if (mediaQuery.matches) {
+        return
+      }
+    }
+
+    if (
+      typeof IntersectionObserver === "undefined" ||
+      typeof window === "undefined"
+    ) {
+      return
+    }
+
+    const rect = node.getBoundingClientRect()
+    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0
+
+    if (isInViewport) {
+      return
+    }
+
+    setShouldAnimate(true)
+    setVisible(false)
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -42,11 +67,11 @@ export function Reveal({ children, className, delay = 0 }: RevealProps) {
     <div
       ref={ref}
       className={cn(
-        "transition-all duration-700 ease-out",
+        shouldAnimate && "transition-all duration-700 ease-out",
         visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
         className
       )}
-      style={{ transitionDelay: `${delay}ms` }}
+      style={shouldAnimate ? { transitionDelay: `${delay}ms` } : undefined}
     >
       {children}
     </div>

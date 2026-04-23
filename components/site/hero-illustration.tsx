@@ -1,6 +1,9 @@
 export function HeroIllustration() {
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-border/60 bg-[linear-gradient(160deg,rgba(255,255,255,0.65),rgba(235,228,219,0.75))] p-8">
+    <div
+      aria-hidden="true"
+      className="relative overflow-hidden rounded-[2rem] border border-border/60 bg-[linear-gradient(160deg,rgba(255,255,255,0.65),rgba(235,228,219,0.75))] p-8"
+    >
       <div className="absolute inset-6 rounded-full border border-border/60" />
       <div className="absolute left-[12%] top-[15%] h-28 w-28 rounded-full bg-primary/20 blur-2xl" />
       <div className="absolute right-[12%] top-[24%] h-32 w-32 rounded-[2rem] bg-accent/30 blur-2xl" />
