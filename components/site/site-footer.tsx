@@ -2,6 +2,14 @@ import Link from "next/link"
 
 import { profile, siteConfig } from "@/data/site"
 
+function isProtocolHref(href: string) {
+  return /^[a-z][a-z\d+.-]*:/i.test(href)
+}
+
+function isHttpHref(href: string) {
+  return /^https?:\/\//i.test(href)
+}
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-border/60">
@@ -16,15 +24,29 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col gap-3 text-sm text-muted-foreground">
-          {siteConfig.footerLinks.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="transition-colors hover:text-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {siteConfig.footerLinks.map((item) => {
+            const className = "transition-colors hover:text-foreground"
+
+            if (isProtocolHref(item.href)) {
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={className}
+                  rel={isHttpHref(item.href) ? "noreferrer" : undefined}
+                  target={isHttpHref(item.href) ? "_blank" : undefined}
+                >
+                  {item.label}
+                </a>
+              )
+            }
+
+            return (
+              <Link key={item.href} href={item.href} className={className}>
+                {item.label}
+              </Link>
+            )
+          })}
         </div>
       </div>
     </footer>

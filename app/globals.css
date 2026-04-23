@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: var(--font-heading);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  --font-heading: var(--font-heading-display);
+  --font-sans: var(--font-sans-body);
+  --font-mono: var(--font-mono-code);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
@@ -92,7 +92,7 @@
   }
 
   a {
-    @apply outline-none;
+    @apply rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 }
 

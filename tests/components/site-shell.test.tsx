@@ -1,24 +1,35 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { SiteShell } from "@/components/site/site-shell"
+import { siteConfig } from "@/data/site"
 
 describe("SiteShell", () => {
-  it("renders the global navigation, content slot, and footer links", () => {
+  it("renders the shell landmarks and configured navigation links", () => {
     render(
       <SiteShell>
         <div>Page body</div>
       </SiteShell>
     )
 
-    expect(screen.getByRole("link", { name: "Essays" })).toHaveAttribute(
-      "href",
-      "/essays"
-    )
-    expect(screen.getByText("Page body")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "RSS" })).toHaveAttribute(
-      "href",
-      "/rss.xml"
-    )
+    const banner = screen.getByRole("banner")
+    const main = screen.getByRole("main")
+    const footer = screen.getByRole("contentinfo")
+    const navigation = within(banner).getByRole("navigation")
+
+    expect(main).toHaveAttribute("id", "content")
+    expect(within(main).getByText("Page body")).toBeInTheDocument()
+
+    for (const item of siteConfig.navigation) {
+      expect(
+        within(navigation).getByRole("link", { name: item.label })
+      ).toHaveAttribute("href", item.href)
+    }
+
+    for (const item of siteConfig.footerLinks) {
+      expect(
+        within(footer).getByRole("link", { name: item.label })
+      ).toHaveAttribute("href", item.href)
+    }
   })
 })

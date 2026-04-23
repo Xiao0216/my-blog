@@ -9,9 +9,9 @@ type SiteShellProps = {
 
 export function SiteShell({ children }: SiteShellProps) {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen">
       <SiteHeader />
-      <main>{children}</main>
+      <main id="content">{children}</main>
       <SiteFooter />
     </div>
   )
