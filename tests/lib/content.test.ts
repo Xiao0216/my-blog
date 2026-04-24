@@ -6,8 +6,12 @@ import {
   type ProjectEntry,
   getEssaySummaries,
   getFeaturedNotes,
+  getLifeMemories,
+  getLifePlanets,
   getProfile,
   getProjects,
+  getPublicTwinIdentity,
+  getTwinContextMemories,
 } from "@/lib/content"
 import { describe, expect, expectTypeOf, it } from "vitest"
 
@@ -139,5 +143,26 @@ describe("content helpers", () => {
     expect(getProfile().longBio).not.toContain("mutated-bio")
     expect(getProjects()[0].slug).not.toBe("mutated-project")
     expect(getProjects()[0].stack).not.toContain("mutated-stack")
+  })
+
+  it("exposes life universe planets, memories, and twin identity", () => {
+    const planets = getLifePlanets()
+    const publicMemories = getLifeMemories()
+    const twinMemories = getTwinContextMemories()
+    const identity = getPublicTwinIdentity()
+
+    expect(planets.map((planet) => planet.slug)).toEqual([
+      "life",
+      "work",
+      "diary",
+      "technology",
+      "health",
+    ])
+    expect(publicMemories.every((memory) => memory.visibility === "public")).toBe(true)
+    expect(twinMemories.map((memory) => memory.visibility)).toEqual(
+      expect.arrayContaining(["public", "assistant"])
+    )
+    expect(identity.displayName).toBe("縉紳 AI")
+    expect(identity.communicationRules).toContain("Be direct")
   })
 })

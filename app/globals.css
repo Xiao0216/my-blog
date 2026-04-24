@@ -118,6 +118,30 @@
     background-image: radial-gradient(rgba(255, 255, 255, 0.28) 0.7px, transparent 0.7px);
     background-size: 5px 5px;
   }
+
+  .life-universe-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      radial-gradient(rgba(45, 212, 191, 0.18) 1px, transparent 1px);
+    background-size:
+      56px 56px,
+      56px 56px,
+      9px 9px;
+    mask-image: radial-gradient(circle at center, black 0%, black 64%, transparent 96%);
+  }
+
+  .life-universe-vignette {
+    background:
+      radial-gradient(circle at 24% 20%, rgba(45, 212, 191, 0.13), transparent 28%),
+      radial-gradient(circle at 72% 28%, rgba(167, 139, 250, 0.12), transparent 26%),
+      radial-gradient(circle at 80% 78%, rgba(148, 163, 184, 0.1), transparent 24%),
+      linear-gradient(180deg, rgba(3, 7, 18, 0.12), rgba(3, 7, 18, 0.96));
+  }
+
+  .life-universe-glass {
+    @apply border border-white/10 bg-white/[0.055] shadow-2xl shadow-black/30 backdrop-blur-xl;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
