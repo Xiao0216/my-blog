@@ -422,6 +422,118 @@
     animation: planet-detail-enter 220ms ease;
   }
 
+  .twin-orb-shell {
+    right: clamp(1rem, 4vw, 3rem);
+    bottom: clamp(5rem, 11vh, 7rem);
+    z-index: 170;
+  }
+
+  .twin-orb-avatar {
+    display: grid;
+    height: 4.5rem;
+    width: 4.5rem;
+    place-items: center;
+    border: 1px solid var(--ns-glass-border);
+    border-radius: 9999px;
+    background: var(--ns-accent-gradient);
+    color: white;
+    box-shadow:
+      0 0 44px var(--ns-particle-glow),
+      0 16px 36px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(18px);
+    animation: twin-orb-breathe 3.8s ease-in-out infinite;
+  }
+
+  .twin-orb-panel {
+    width: min(24rem, calc(100vw - 2rem));
+    max-height: min(34rem, calc(100vh - 7.5rem));
+    display: grid;
+    gap: 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--ns-accent-primary) 18%, var(--ns-glass-border));
+    border-radius: 1.25rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 26%),
+      color-mix(in srgb, var(--ns-bg-secondary) 90%, transparent);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.36),
+      0 0 0 1px rgba(255, 255, 255, 0.03),
+      var(--ns-glass-shadow);
+    padding: 0.95rem;
+    backdrop-filter: blur(26px) saturate(180%);
+    animation: planet-detail-enter 220ms ease;
+  }
+
+  .twin-orb-panel-header,
+  .twin-orb-form {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .twin-orb-panel-header {
+    justify-content: space-between;
+  }
+
+  .twin-orb-close,
+  .twin-orb-send {
+    display: inline-flex;
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--ns-glass-border);
+    border-radius: 9999px;
+    background: var(--ns-control-bg);
+    color: var(--ns-text-secondary);
+    transition:
+      background 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .twin-orb-close:hover,
+  .twin-orb-send:hover {
+    background: color-mix(in srgb, var(--ns-control-bg) 88%, white 12%);
+    color: var(--ns-text-primary);
+    transform: translateY(-1px);
+  }
+
+  .twin-orb-send:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    transform: none;
+  }
+
+  .twin-orb-messages {
+    min-height: 0;
+    max-height: min(18rem, 40vh);
+    display: grid;
+    gap: 0.75rem;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+  }
+
+  .twin-orb-textarea {
+    min-height: 5.5rem;
+    min-width: 0;
+    flex: 1 1 auto;
+    resize: none;
+    border: 1px solid var(--ns-glass-border);
+    border-radius: 1rem;
+    background: var(--ns-input-bg);
+    padding: 0.85rem 1rem;
+    color: var(--ns-text-primary);
+    outline: none;
+  }
+
+  .twin-orb-textarea::placeholder {
+    color: var(--ns-text-muted);
+  }
+
+  .twin-orb-textarea:focus {
+    box-shadow: 0 0 0 2px var(--ns-accent-primary);
+  }
+
   .planet-detail-header,
   .planet-detail-actions,
   .planet-detail-counts {
@@ -660,6 +772,23 @@
     }
   }
 
+  @keyframes twin-orb-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow:
+        0 0 32px var(--ns-particle-glow),
+        0 16px 36px rgba(0, 0, 0, 0.3);
+    }
+
+    50% {
+      transform: scale(1.04);
+      box-shadow:
+        0 0 54px color-mix(in srgb, var(--ns-particle-glow) 85%, white 15%),
+        0 18px 42px rgba(0, 0, 0, 0.34);
+    }
+  }
+
   @keyframes planet-detail-enter {
     from {
       opacity: 0;
@@ -682,7 +811,9 @@
   .connection-line.animated,
   .message-ai.thinking .message-bubble::after,
   .null-ai-avatar[data-state="thinking"],
-  .planet-detail-overlay {
+  .planet-detail-overlay,
+  .twin-orb-avatar,
+  .twin-orb-panel {
     animation: none;
     transition: none;
   }
@@ -716,5 +847,19 @@
   .planet-detail-secondary-action {
     flex: 1 1 100%;
     justify-content: center;
+  }
+
+  .twin-orb-shell {
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .twin-orb-panel {
+    max-height: min(30rem, calc(100vh - 5rem));
+    padding: 0.85rem;
+  }
+
+  .twin-orb-form {
+    align-items: stretch;
   }
 }

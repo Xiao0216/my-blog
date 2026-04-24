@@ -107,7 +107,7 @@ export function UniverseCanvas({
       onMouseMove={handleMouseMove}
       onMouseUp={stopDrag}
       onMouseLeave={stopDrag}
-      className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 cursor-grab overflow-hidden active:cursor-grabbing md:left-20 md:right-[23rem] md:top-20 md:bottom-20"
+      className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 cursor-grab overflow-hidden active:cursor-grabbing md:left-20 md:right-6 md:top-20 md:bottom-20"
     >
       <div className="absolute inset-0 rounded-[2rem] border border-[var(--ns-glass-border)] bg-[var(--ns-canvas-wash)]" />
       <svg

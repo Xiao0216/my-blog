@@ -16,7 +16,7 @@ import type {
   UniverseViewState,
 } from "@/components/site/life-universe/types"
 import { layoutUniverseCards } from "@/components/site/life-universe/universe-layout"
-import { TwinConsole } from "@/components/site/life-universe/twin-console"
+import { TwinOrb } from "@/components/site/life-universe/twin-orb"
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
 import { UniverseSidebar } from "@/components/site/life-universe/universe-sidebar"
 import { UniverseToolbar } from "@/components/site/life-universe/universe-toolbar"
@@ -72,6 +72,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   const [pan, setPan] = useState<CanvasPan>(DEFAULT_PAN)
   const [theme, setTheme] = useState<NullSpaceTheme>("dark")
   const [draftMessage, setDraftMessage] = useState("")
+  const [isTwinExpanded, setIsTwinExpanded] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [messages, setMessages] = useState<ReadonlyArray<ChatMessage>>([
     {
@@ -84,6 +85,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   ])
   const selectedCard = cards.find((card) => card.id === selectedCardId) ?? cards[0]
   const enteredCard = cards.find((card) => card.id === enteredCardId)
+  const contextCard = enteredCard ?? selectedCard
   const detail = enteredCard ? buildPlanetDetail(enteredCard, props) : undefined
 
   function zoomIn() {
@@ -129,6 +131,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
 
   function askTwin(cardId: string) {
     setSelectedCardId(cardId)
+    setIsTwinExpanded(true)
   }
 
   function showRelated(cardId: string) {
@@ -159,8 +162,15 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          message,
+          contextCard: contextCard
+            ? {
+                category: contextCard.category,
+                id: contextCard.id,
+                title: contextCard.title,
+              }
+            : undefined,
           history,
+          message,
         }),
       })
 
@@ -231,16 +241,20 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         onZoomOut={zoomOut}
         onReset={resetCanvas}
       />
-      <TwinConsole
+      <TwinOrb
         identity={props.twinIdentity}
-        selectedCard={selectedCard}
-        memoriesCount={props.memories.length}
+        contextCard={contextCard}
         draftMessage={draftMessage}
+        isExpanded={isTwinExpanded}
         isSending={isSending}
         messages={messages}
         onDraftChange={setDraftMessage}
         onSubmit={submitMessage}
+        onToggle={() => setIsTwinExpanded((current) => !current)}
       />
+      {props.memories.length === 0 ? (
+        <span className="sr-only">No public memories attached yet</span>
+      ) : null}
 
       <div className="pointer-events-none absolute right-9 bottom-5 z-20 hidden items-center gap-5 font-mono text-xs text-[var(--ns-text-muted)] md:flex">
         <span>{props.essays.length} 文章</span>

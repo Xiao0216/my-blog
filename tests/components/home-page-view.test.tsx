@@ -202,7 +202,7 @@ function cardsOverlap(first: LayoutRect, second: LayoutRect, margin = LAYOUT_MAR
 }
 
 describe("HomePageView", () => {
-  it("renders the Null Space workbench and digital twin console", () => {
+  it("renders the Null Space workbench and embedded twin orb", () => {
     const { container } = render(<HomePageView {...buildProps()} />)
 
     expect(screen.getByText("Null Space")).toBeInTheDocument()
@@ -211,11 +211,11 @@ describe("HomePageView", () => {
       screen.getByRole("region", { name: "Null Space universe canvas" })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("complementary", { name: "Null AI digital twin" })
-    ).toHaveTextContent("Fixture Twin")
+      screen.queryByRole("complementary", { name: "Null AI digital twin" })
+    ).not.toBeInTheDocument()
     expect(screen.getByRole("button", { name: "聚焦 Work" })).toBeInTheDocument()
     expect(screen.getAllByText("构建你的数字花园").length).toBeGreaterThan(0)
-    expect(screen.getByRole("button", { name: "发送给 Null AI" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "展开 Null AI" })).toBeInTheDocument()
     expect(container.querySelector('[data-universe-lines="true"]')).toHaveAttribute(
       "aria-hidden",
       "true"
@@ -534,7 +534,8 @@ describe("HomePageView", () => {
     vi.stubGlobal("fetch", fetchMock)
     render(<HomePageView {...buildProps()} />)
 
-    fireEvent.change(screen.getByPlaceholderText("和 Null AI 聊聊..."), {
+    fireEvent.click(screen.getByRole("button", { name: "展开 Null AI" }))
+    fireEvent.change(screen.getByPlaceholderText("搜索或和 Null AI 聊聊..."), {
       target: { value: "你好" },
     })
     fireEvent.click(screen.getByRole("button", { name: "发送给 Null AI" }))
@@ -549,5 +550,37 @@ describe("HomePageView", () => {
     })
     expect(await screen.findByText("AI fixture reply")).toBeInTheDocument()
     expect(screen.getByText("Memory fixture")).toBeInTheDocument()
+  })
+
+  it("expands the embedded twin orb and sends chat in the selected card context", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ answer: "Contextual AI reply", mode: "fallback", references: [] }),
+    })
+    vi.stubGlobal("fetch", fetchMock)
+    render(<HomePageView {...buildProps()} />)
+
+    fireEvent.click(screen.getByRole("button", { name: "聚焦 Work" }))
+    fireEvent.click(screen.getByRole("button", { name: "展开 Null AI" }))
+
+    expect(screen.getByRole("dialog", { name: "Null AI 对话" })).toHaveTextContent(
+      "当前上下文：Work"
+    )
+
+    fireEvent.change(screen.getByPlaceholderText("搜索或和 Null AI 聊聊..."), {
+      target: { value: "总结这个行星" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "发送给 Null AI" }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/twin/chat",
+        expect.objectContaining({ body: expect.stringContaining("总结这个行星") })
+      )
+    })
+    expect(await screen.findByText("Contextual AI reply")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "收起 Null AI" }))
+    expect(screen.queryByRole("dialog", { name: "Null AI 对话" })).not.toBeInTheDocument()
   })
 })
