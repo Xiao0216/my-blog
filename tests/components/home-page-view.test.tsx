@@ -454,7 +454,7 @@ describe("HomePageView", () => {
     )
   })
 
-  it("supports wheel zoom and drag panning on the universe canvas", () => {
+  it("supports wheel zoom and drag panning on the universe canvas", async () => {
     render(<HomePageView {...buildProps()} />)
 
     const canvas = screen.getByRole("region", {
@@ -469,8 +469,11 @@ describe("HomePageView", () => {
     fireEvent.mouseMove(canvas, { clientX: 136, clientY: 158 })
     fireEvent.mouseUp(canvas)
 
-    expect(viewport).toHaveStyle({
-      transform: "translate(calc(-50% + 36px), calc(-50% + 38px)) scale(1.1025641025641026)",
+    await waitFor(() => {
+      expect(viewport).toHaveStyle({
+        transform:
+          "translate(calc(-50% + 36px), calc(-50% + 38px)) scale(1.1025641025641026)",
+      })
     })
 
     fireEvent.click(screen.getByRole("button", { name: "重置画布视角" }))
@@ -548,6 +551,25 @@ describe("HomePageView", () => {
     expect(screen.getByText("1 文章")).toBeInTheDocument()
     expect(screen.getByText("6 连接")).toBeInTheDocument()
     expect(screen.getByText("无限可能")).toBeInTheDocument()
+  })
+
+  it("keeps card layout stable while typing in the twin panel", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const before = screen
+      .getAllByTestId("universe-card")
+      .map((card) => `${card.getAttribute("data-layout-x")}:${card.getAttribute("data-layout-y")}`)
+
+    fireEvent.click(screen.getByRole("button", { name: "展开 Null AI" }))
+    fireEvent.change(screen.getByPlaceholderText("搜索或和 Null AI 聊聊..."), {
+      target: { value: "typing should not move cards" },
+    })
+
+    const after = screen
+      .getAllByTestId("universe-card")
+      .map((card) => `${card.getAttribute("data-layout-x")}:${card.getAttribute("data-layout-y")}`)
+
+    expect(after).toEqual(before)
   })
 
   it("sends twin chat messages and renders references", async () => {

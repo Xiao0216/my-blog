@@ -1,7 +1,7 @@
 "use client"
 
 import type { CSSProperties, MouseEvent } from "react"
-import { useState } from "react"
+import { memo, useState } from "react"
 
 import type { UniverseCardModel } from "@/components/site/life-universe/types"
 
@@ -21,19 +21,21 @@ const statusLabel = {
   seedling: "SEED",
 } satisfies Record<UniverseCardModel["status"], string>
 
-export function UniverseCard({
-  card,
-  isEntered,
-  isSelected,
-  onEnter,
-  onSelect,
-}: {
+type UniverseCardProps = {
   readonly card: UniverseCardModel
   readonly isEntered?: boolean
   readonly isSelected: boolean
   readonly onEnter: () => void
   readonly onSelect: () => void
-}) {
+}
+
+export const UniverseCard = memo(function UniverseCard({
+  card,
+  isEntered,
+  isSelected,
+  onEnter,
+  onSelect,
+}: UniverseCardProps) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
 
   function handleMouseMove(event: MouseEvent<HTMLButtonElement>) {
@@ -120,7 +122,7 @@ export function UniverseCard({
       </span>
     </button>
   )
-}
+})
 
 function clampTilt(value: number) {
   return Math.max(-8, Math.min(8, value))

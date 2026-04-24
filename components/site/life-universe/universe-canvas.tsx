@@ -1,5 +1,5 @@
 import type { MouseEvent, WheelEvent } from "react"
-import { useRef } from "react"
+import { useEffect, useRef } from "react"
 
 import type {
   CanvasPan,
@@ -65,6 +65,34 @@ export function UniverseCanvas({
       }
     | undefined
   >(undefined)
+  const frameRef = useRef<number | undefined>(undefined)
+
+  useEffect(() => {
+    return () => {
+      if (
+        frameRef.current !== undefined &&
+        typeof cancelAnimationFrame !== "undefined"
+      ) {
+        cancelAnimationFrame(frameRef.current)
+      }
+    }
+  }, [])
+
+  function schedulePan(nextPan: CanvasPan) {
+    if (typeof requestAnimationFrame === "undefined") {
+      onPanChange(nextPan)
+      return
+    }
+
+    if (frameRef.current !== undefined) {
+      cancelAnimationFrame(frameRef.current)
+    }
+
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = undefined
+      onPanChange(nextPan)
+    })
+  }
 
   function handleWheel(event: WheelEvent<HTMLElement>) {
     event.preventDefault()
@@ -90,7 +118,7 @@ export function UniverseCanvas({
       return
     }
 
-    onPanChange({
+    schedulePan({
       x: dragStart.pan.x + event.clientX - dragStart.clientX,
       y: dragStart.pan.y + event.clientY - dragStart.clientY,
     })
@@ -160,7 +188,7 @@ export function UniverseCanvas({
       <div
         data-testid="universe-viewport"
         data-camera-mode={viewState === "inside" ? "inside" : "overview"}
-        className="universe-scene-3d absolute left-1/2 top-1/2 h-[660px] w-[960px] origin-center transition-transform duration-200"
+        className="universe-scene-3d absolute left-1/2 top-1/2 h-[660px] w-[960px] origin-center"
         style={{
           transform: cameraTransform,
         }}

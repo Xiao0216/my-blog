@@ -83,10 +83,19 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
       mode: "fallback",
     },
   ])
-  const selectedCard = cards.find((card) => card.id === selectedCardId) ?? cards[0]
-  const enteredCard = cards.find((card) => card.id === enteredCardId)
+  const selectedCard = useMemo(
+    () => cards.find((card) => card.id === selectedCardId) ?? cards[0],
+    [cards, selectedCardId]
+  )
+  const enteredCard = useMemo(
+    () => cards.find((card) => card.id === enteredCardId),
+    [cards, enteredCardId]
+  )
   const contextCard = enteredCard ?? selectedCard
-  const detail = enteredCard ? buildPlanetDetail(enteredCard, props) : undefined
+  const detail = useMemo(
+    () => (enteredCard ? buildPlanetDetail(enteredCard, props) : undefined),
+    [enteredCard, props]
+  )
 
   function zoomIn() {
     setZoom((current) => clampZoom(current + 10))
