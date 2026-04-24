@@ -14,7 +14,10 @@ export function UniverseCanvas({
   pan,
   hasPlanets,
   onSelectCard,
+  onAskTwin,
+  onEnterCard,
   onPanChange,
+  onShowRelated,
   onWheelZoom,
 }: {
   readonly cards: ReadonlyArray<UniverseCardModel>
@@ -23,9 +26,13 @@ export function UniverseCanvas({
   readonly pan: CanvasPan
   readonly hasPlanets: boolean
   readonly onSelectCard: (cardId: string) => void
+  readonly onAskTwin: (cardId: string) => void
+  readonly onEnterCard: (cardId: string) => void
   readonly onPanChange: (pan: CanvasPan) => void
+  readonly onShowRelated: (cardId: string) => void
   readonly onWheelZoom: (deltaY: number) => void
 }) {
+  const selectedCard = cards.find((card) => card.id === selectedCardId)
   const dragStartRef = useRef<
     | {
         readonly clientX: number
@@ -127,7 +134,7 @@ export function UniverseCanvas({
 
       <div
         data-testid="universe-viewport"
-        className="absolute left-1/2 top-1/2 h-[660px] w-[960px] origin-center transition-transform duration-200"
+        className="universe-scene-3d absolute left-1/2 top-1/2 h-[660px] w-[960px] origin-center transition-transform duration-200"
         style={{
           transform: `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) scale(${
             zoom / 78
@@ -142,6 +149,38 @@ export function UniverseCanvas({
             onSelect={() => onSelectCard(card.id)}
           />
         ))}
+
+        {selectedCard ? (
+          <div
+            className="planet-action-group"
+            style={{
+              left: selectedCard.x + selectedCard.width + 14,
+              top: selectedCard.y + 8,
+            }}
+          >
+            <button
+              type="button"
+              aria-label={`进入 ${selectedCard.title}`}
+              onClick={() => onEnterCard(selectedCard.id)}
+            >
+              进入
+            </button>
+            <button
+              type="button"
+              aria-label={`询问 ${selectedCard.title}`}
+              onClick={() => onAskTwin(selectedCard.id)}
+            >
+              问 AI
+            </button>
+            <button
+              type="button"
+              aria-label={`查看 ${selectedCard.title} 关联`}
+              onClick={() => onShowRelated(selectedCard.id)}
+            >
+              关联
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-3 md:hidden">

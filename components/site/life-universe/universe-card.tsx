@@ -72,7 +72,12 @@ export function UniverseCard({
         toneClass[card.tone]
       } ${card.featured ? "z-20" : "z-10"}`}
       style={{
-        "--card-rotate": `${card.posture.rotateZ}deg`,
+        "--card-rotate-x": `${card.posture.rotateX}deg`,
+        "--card-rotate-y": `${card.posture.rotateY}deg`,
+        "--card-rotate-z": `${card.posture.rotateZ}deg`,
+        "--card-depth": `${card.posture.translateZ}px`,
+        "--hover-tilt-x": `${tilt.x}deg`,
+        "--hover-tilt-y": `${tilt.y}deg`,
         "--selected-scale": isSelected ? "1.06" : "1",
         "--tilt-x": `${tilt.x}deg`,
         "--tilt-y": `${tilt.y}deg`,
@@ -80,7 +85,7 @@ export function UniverseCard({
         left: card.x,
         top: card.y,
         transform:
-          "perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) rotate(var(--card-rotate)) scale(var(--selected-scale))",
+          "perspective(1100px) translateZ(var(--card-depth)) rotateX(calc(var(--card-rotate-x) + var(--hover-tilt-x))) rotateY(calc(var(--card-rotate-y) + var(--hover-tilt-y))) rotateZ(var(--card-rotate-z)) scale(var(--selected-scale))",
         width: card.width,
       } as CSSProperties}
     >

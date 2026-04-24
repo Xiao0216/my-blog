@@ -358,6 +358,41 @@
     filter: grayscale(100%);
   }
 
+  .universe-scene-3d {
+    perspective: 1200px;
+    transform-style: preserve-3d;
+  }
+
+  .planet-action-group {
+    position: absolute;
+    z-index: 130;
+    display: inline-flex;
+    gap: 0.35rem;
+    border: 1px solid var(--ns-glass-border);
+    border-radius: 9999px;
+    background: var(--ns-glass-bg);
+    box-shadow: var(--ns-glass-shadow);
+    padding: 0.35rem;
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  .planet-action-group button {
+    border-radius: 9999px;
+    padding: 0.4rem 0.65rem;
+    color: var(--ns-text-secondary);
+    font-size: 0.68rem;
+    transition:
+      background 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .planet-action-group button:hover {
+    background: var(--ns-control-bg);
+    color: var(--ns-text-primary);
+    transform: translateY(-1px);
+  }
+
   .message-ai,
   .message-user {
     display: flex;

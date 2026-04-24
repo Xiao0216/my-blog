@@ -238,6 +238,22 @@ describe("HomePageView", () => {
     )
   })
 
+  it("shows persistent 3D posture and focus actions for the selected card", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const workCard = screen.getByRole("button", { name: "聚焦 Work" })
+
+    expect(workCard.getAttribute("style")).toContain("--card-rotate-x")
+    expect(workCard.getAttribute("style")).toContain("--card-rotate-y")
+    expect(workCard.getAttribute("style")).toContain("--card-depth")
+
+    fireEvent.click(workCard)
+
+    expect(screen.getByRole("button", { name: "进入 Work" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "询问 Work" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "查看 Work 关联" })).toBeInTheDocument()
+  })
+
   it("zooms and resets the universe canvas", () => {
     render(<HomePageView {...buildProps()} />)
 

@@ -104,6 +104,22 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setTheme((current) => (current === "dark" ? "light" : "dark"))
   }
 
+  function selectCard(cardId: string) {
+    setSelectedCardId(cardId)
+  }
+
+  function enterCard(cardId: string) {
+    setSelectedCardId(cardId)
+  }
+
+  function askTwin(cardId: string) {
+    setSelectedCardId(cardId)
+  }
+
+  function showRelated(cardId: string) {
+    setSelectedCardId(cardId)
+  }
+
   async function submitMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const message = draftMessage.trim()
@@ -182,8 +198,11 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         zoom={zoom}
         pan={pan}
         hasPlanets={props.planets.length > 0}
-        onSelectCard={setSelectedCardId}
+        onSelectCard={selectCard}
+        onAskTwin={askTwin}
+        onEnterCard={enterCard}
         onPanChange={setPan}
+        onShowRelated={showRelated}
         onWheelZoom={zoomFromWheel}
       />
       <UniverseToolbar
