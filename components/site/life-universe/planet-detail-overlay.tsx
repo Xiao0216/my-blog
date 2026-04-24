@@ -27,6 +27,10 @@ export function PlanetDetailOverlay({
       aria-modal="true"
       aria-label={`${detail.card.title} 行星详情`}
       className="planet-detail-overlay"
+      onWheel={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onMouseMove={(event) => event.stopPropagation()}
+      onMouseUp={(event) => event.stopPropagation()}
     >
       <header className="planet-detail-header">
         <div className="flex items-start gap-3">

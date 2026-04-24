@@ -336,6 +336,26 @@ describe("HomePageView", () => {
     expect(screen.queryByText("Work memory")).not.toBeInTheDocument()
   })
 
+  it("keeps overlay wheel and drag interactions from mutating the canvas state", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
+
+    const dialog = screen.getByRole("dialog", { name: "Work 行星详情" })
+    const viewport = screen.getByTestId("universe-viewport")
+    const zoomValue = screen.getByTestId("zoom-value")
+    const initialZoom = zoomValue.textContent
+    const initialTransform = viewport.getAttribute("style")
+
+    fireEvent.wheel(dialog, { deltaY: -120 })
+    fireEvent.mouseDown(dialog, { clientX: 100, clientY: 120 })
+    fireEvent.mouseMove(dialog, { clientX: 136, clientY: 158 })
+    fireEvent.mouseUp(dialog)
+
+    expect(zoomValue).toHaveTextContent(initialZoom ?? "")
+    expect(viewport.getAttribute("style")).toBe(initialTransform)
+  })
+
   it("keeps the selected card action group inside the viewport for right-edge cards", () => {
     render(<HomePageView {...buildProps()} />)
 
