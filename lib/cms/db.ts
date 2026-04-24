@@ -1186,6 +1186,41 @@ export function saveMemory(input: MemoryInput) {
   })
 }
 
+export function saveMemoryById(id: number, input: MemoryInput) {
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    run(
+      database,
+      `UPDATE memories SET
+        planet_id = ?,
+        title = ?,
+        content = ?,
+        type = ?,
+        occurred_at = ?,
+        visibility = ?,
+        importance = ?,
+        tags_json = ?,
+        source = ?,
+        updated_at = ?
+      WHERE id = ?`,
+      [
+        input.planetId,
+        input.title,
+        input.content,
+        input.type,
+        input.occurredAt,
+        input.visibility,
+        input.importance,
+        stringifyArray(input.tags),
+        input.source,
+        nowText(),
+        id,
+      ]
+    )
+  })
+}
+
 export function saveTwinIdentity(input: TwinIdentityInput) {
   initializeCmsDatabase()
 

@@ -6,8 +6,11 @@ import { ADMIN_SESSION_COOKIE, adminCookieOptions } from "@/lib/admin-auth"
 import {
   getAdminContentSummary,
   getAdminEssays,
+  getAdminMemories,
   getAdminNotes,
+  getAdminPlanets,
   getAdminProjects,
+  getTwinIdentity,
 } from "@/lib/cms/db"
 
 export const metadata = {
@@ -16,7 +19,18 @@ export const metadata = {
 
 export default function AdminDashboardPage() {
   const summary = getAdminContentSummary()
+  const twinIdentity = getTwinIdentity()
   const latest = [
+    ...getAdminPlanets().slice(0, 3).map((item) => ({
+      type: "Planet",
+      title: item.name,
+      status: item.status,
+    })),
+    ...getAdminMemories().slice(0, 3).map((item) => ({
+      type: "Memory",
+      title: item.title,
+      status: item.visibility,
+    })),
     ...getAdminEssays().slice(0, 3).map((item) => ({
       type: "Essay",
       title: item.title,
@@ -47,7 +61,14 @@ export default function AdminDashboardPage() {
           </form>
         }
       />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-5">
+        <Metric label="Planets" published={summary.publishedPlanets} draft={summary.draftPlanets} />
+        <MemoryMetric
+          label="Memories"
+          publicCount={summary.publicMemories}
+          assistantCount={summary.assistantMemories}
+          privateCount={summary.privateMemories}
+        />
         <Metric label="Essays" published={summary.publishedEssays} draft={summary.draftEssays} />
         <Metric
           label="Projects"
@@ -56,6 +77,13 @@ export default function AdminDashboardPage() {
         />
         <Metric label="Notes" published={summary.publishedNotes} draft={summary.draftNotes} />
       </div>
+      <AdminPanel>
+        <div className="mt-6 p-4">
+          <p className="text-sm text-zinc-500">Twin Identity</p>
+          <p className="mt-2 text-lg font-semibold">{twinIdentity.displayName}</p>
+          <p className="mt-1 text-sm text-zinc-500">{twinIdentity.subtitle}</p>
+        </div>
+      </AdminPanel>
       <AdminPanel>
         <div className="mt-6 divide-y divide-zinc-200/70 dark:divide-zinc-800/70">
           {latest.map((item) => (
@@ -72,6 +100,32 @@ export default function AdminDashboardPage() {
         </div>
       </AdminPanel>
     </>
+  )
+}
+
+function MemoryMetric({
+  label,
+  publicCount,
+  assistantCount,
+  privateCount,
+}: {
+  readonly label: string
+  readonly publicCount: number
+  readonly assistantCount: number
+  readonly privateCount: number
+}) {
+  return (
+    <AdminPanel>
+      <div className="p-4">
+        <p className="text-sm text-zinc-500">{label}</p>
+        <p className="mt-2 text-2xl font-semibold">
+          {publicCount + assistantCount + privateCount}
+        </p>
+        <p className="mt-1 text-xs text-zinc-500">
+          {publicCount} public / {assistantCount} assistant / {privateCount} private
+        </p>
+      </div>
+    </AdminPanel>
   )
 }
 

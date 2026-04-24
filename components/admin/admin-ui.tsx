@@ -4,6 +4,9 @@ import type { ReactNode } from "react"
 const navItems = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/profile", label: "Profile" },
+  { href: "/admin/planets", label: "Planets" },
+  { href: "/admin/memories", label: "Memories" },
+  { href: "/admin/twin", label: "Twin" },
   { href: "/admin/essays", label: "Essays" },
   { href: "/admin/projects", label: "Projects" },
   { href: "/admin/notes", label: "Notes" },
