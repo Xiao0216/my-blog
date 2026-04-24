@@ -322,6 +322,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
       {detail ? (
         <PlanetDetailOverlay
           detail={detail}
+          isModal={!isTwinExpanded}
           onAskTwin={() => askTwin(detail.card.id)}
           onLeave={leaveCard}
           onShowRelated={() => showRelated(detail.card.id)}

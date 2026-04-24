@@ -9,11 +9,13 @@ import type { PlanetDetailModel } from "@/components/site/life-universe/types"
 
 export function PlanetDetailOverlay({
   detail,
+  isModal,
   onAskTwin,
   onLeave,
   onShowRelated,
 }: {
   readonly detail: PlanetDetailModel
+  readonly isModal: boolean
   readonly onAskTwin: () => void
   readonly onLeave: () => void
   readonly onShowRelated: () => void
@@ -27,7 +29,7 @@ export function PlanetDetailOverlay({
   return (
     <section
       role="dialog"
-      aria-modal="true"
+      aria-modal={isModal ? "true" : undefined}
       aria-label={`${detail.card.title} 行星详情`}
       className="planet-detail-overlay"
       onWheel={(event) => event.stopPropagation()}

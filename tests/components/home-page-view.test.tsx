@@ -306,12 +306,18 @@ describe("HomePageView", () => {
     fireEvent.click(screen.getByRole("button", { name: "问 AI" }))
 
     expect(screen.getByRole("dialog", { name: "Null AI 对话" })).toBeInTheDocument()
-    expect(screen.getByRole("dialog", { name: "Work 行星详情" })).toBeInTheDocument()
+    expect(screen.getByRole("dialog", { name: "Work 行星详情" })).not.toHaveAttribute(
+      "aria-modal",
+      "true"
+    )
 
     fireEvent.keyDown(window, { key: "Escape" })
 
     expect(screen.queryByRole("dialog", { name: "Null AI 对话" })).not.toBeInTheDocument()
-    expect(screen.getByRole("dialog", { name: "Work 行星详情" })).toBeInTheDocument()
+    expect(screen.getByRole("dialog", { name: "Work 行星详情" })).toHaveAttribute(
+      "aria-modal",
+      "true"
+    )
 
     fireEvent.keyDown(window, { key: "Escape" })
 
