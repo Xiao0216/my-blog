@@ -104,6 +104,7 @@ export type UniverseCardModel = {
   readonly title: string
   readonly excerpt: string
   readonly date: string
+  readonly href?: string
   readonly tone: UniverseCardTone
   readonly status: UniverseCardStatus
   readonly featured?: boolean

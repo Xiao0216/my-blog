@@ -337,6 +337,11 @@
     filter: brightness(1.08);
   }
 
+  .null-space-shell[data-related-scope="true"] .null-space-card[data-related="false"] {
+    opacity: 0.24;
+    filter: grayscale(70%) blur(1px);
+  }
+
   .null-space-card[data-status="seedling"] {
     border-style: dashed;
     opacity: 0.44;
@@ -405,6 +410,39 @@
 
   .planet-action-group button:hover {
     background: var(--ns-control-bg);
+    color: var(--ns-text-primary);
+    transform: translateY(-1px);
+  }
+
+  [data-testid="mobile-universe-card"] {
+    transition:
+      opacity 180ms ease,
+      filter 180ms ease;
+  }
+
+  .null-space-shell[data-related-scope="true"] [data-testid="mobile-universe-card"][data-related="false"] {
+    display: none;
+  }
+
+  [data-testid="mobile-universe-card"] button {
+    display: inline-flex;
+    min-height: 2.4rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--ns-glass-border);
+    border-radius: 9999px;
+    background: var(--ns-control-bg);
+    padding: 0.5rem 0.85rem;
+    color: var(--ns-text-secondary);
+    font-size: 0.78rem;
+    transition:
+      background 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  [data-testid="mobile-universe-card"] button:hover {
+    background: color-mix(in srgb, var(--ns-control-bg) 88%, white 12%);
     color: var(--ns-text-primary);
     transform: translateY(-1px);
   }

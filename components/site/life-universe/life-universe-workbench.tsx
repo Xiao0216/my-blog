@@ -1,7 +1,7 @@
 "use client"
 
 import type { FormEvent } from "react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import type {
   CanvasPan,
@@ -16,6 +16,7 @@ import type {
   UniverseViewState,
 } from "@/components/site/life-universe/types"
 import { layoutUniverseCards } from "@/components/site/life-universe/universe-layout"
+import { PlanetDetailOverlay } from "@/components/site/life-universe/planet-detail-overlay"
 import { TwinOrb } from "@/components/site/life-universe/twin-orb"
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
 import { UniverseSidebar } from "@/components/site/life-universe/universe-sidebar"
@@ -57,6 +58,7 @@ type BaseUniverseCard = UniverseLayoutInputCard & {
   readonly date: string
   readonly excerpt: string
   readonly featured?: boolean
+  readonly href?: string
   readonly planetId?: number
   readonly status: UniverseCardStatus
   readonly title: string
@@ -66,6 +68,7 @@ type BaseUniverseCard = UniverseLayoutInputCard & {
 export function LifeUniverseWorkbench(props: HomePageViewProps) {
   const cards = useMemo(() => buildUniverseCards(props), [props])
   const [selectedCardId, setSelectedCardId] = useState(cards[0]?.id ?? "garden")
+  const [relatedScopeCardId, setRelatedScopeCardId] = useState<string | undefined>(undefined)
   const [viewState, setViewState] = useState<UniverseViewState>("overview")
   const [enteredCardId, setEnteredCardId] = useState<string | undefined>(undefined)
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
@@ -83,6 +86,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
       mode: "fallback",
     },
   ])
+  const interactiveShellRef = useRef<HTMLDivElement | null>(null)
   const selectedCard = useMemo(
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0],
     [cards, selectedCardId]
@@ -115,6 +119,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setZoom(DEFAULT_ZOOM)
     setPan(DEFAULT_PAN)
     setSelectedCardId(cards[0]?.id ?? "garden")
+    setRelatedScopeCardId(undefined)
     setEnteredCardId(undefined)
     setViewState("overview")
   }
@@ -125,10 +130,12 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
 
   function selectCard(cardId: string) {
     setSelectedCardId(cardId)
+    setRelatedScopeCardId(undefined)
   }
 
   function enterCard(cardId: string) {
     setSelectedCardId(cardId)
+    setRelatedScopeCardId(undefined)
     setEnteredCardId(cardId)
     setViewState("inside")
   }
@@ -137,6 +144,21 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setEnteredCardId(undefined)
     setViewState("overview")
   }
+
+  useEffect(() => {
+    const interactiveShell = interactiveShellRef.current
+
+    if (!interactiveShell) {
+      return
+    }
+
+    if (detail) {
+      interactiveShell.setAttribute("inert", "")
+      return
+    }
+
+    interactiveShell.removeAttribute("inert")
+  }, [detail])
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -162,6 +184,9 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
 
   function showRelated(cardId: string) {
     setSelectedCardId(cardId)
+    setRelatedScopeCardId(cardId)
+    setEnteredCardId(undefined)
+    setViewState("overview")
   }
 
   async function submitMessage(event: FormEvent<HTMLFormElement>) {
@@ -236,6 +261,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   return (
     <div
       data-testid="null-space-shell"
+      data-related-scope={relatedScopeCardId ? "true" : "false"}
       data-theme={theme}
       data-view-state={viewState}
       className="null-space-shell relative isolate min-h-screen overflow-hidden"
@@ -243,50 +269,64 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
       <div className="null-space-grid absolute inset-0" aria-hidden="true" />
       <div className="null-space-noise absolute inset-0" aria-hidden="true" />
       <div className="null-space-vignette absolute inset-0" aria-hidden="true" />
-
-      <UniverseSidebar />
-      <UniverseTopbar theme={theme} onToggleTheme={toggleTheme} />
-      <UniverseCanvas
-        cards={cards}
-        selectedCardId={selectedCardId}
-        detail={detail}
-        enteredCardId={enteredCardId}
-        zoom={zoom}
-        pan={pan}
-        hasPlanets={props.planets.length > 0}
-        viewState={viewState}
-        onSelectCard={selectCard}
-        onAskTwin={askTwin}
-        onEnterCard={enterCard}
-        onLeaveCard={leaveCard}
-        onPanChange={setPan}
-        onShowRelated={showRelated}
-        onWheelZoom={zoomFromWheel}
-      />
-      <UniverseToolbar
-        zoom={zoom}
-        onZoomIn={zoomIn}
-        onZoomOut={zoomOut}
-        onReset={resetCanvas}
-      />
-      <TwinOrb
-        identity={props.twinIdentity}
-        contextCard={contextCard}
-        memoriesCount={props.memories.length}
-        draftMessage={draftMessage}
-        isExpanded={isTwinExpanded}
-        isSending={isSending}
-        messages={messages}
-        onDraftChange={setDraftMessage}
-        onSubmit={submitMessage}
-        onToggle={() => setIsTwinExpanded((current) => !current)}
-      />
-
-      <div className="pointer-events-none absolute right-9 bottom-5 z-20 hidden items-center gap-5 font-mono text-xs text-[var(--ns-text-muted)] md:flex">
-        <span>{props.essays.length} 文章</span>
-        <span>{props.planets.length} 连接</span>
-        <span>无限可能</span>
+      <div
+        ref={interactiveShellRef}
+        data-testid="universe-interactive-shell"
+        aria-hidden={detail ? "true" : undefined}
+      >
+        <UniverseSidebar />
+        <UniverseTopbar theme={theme} onToggleTheme={toggleTheme} />
+        <UniverseCanvas
+          cards={cards}
+          selectedCardId={selectedCardId}
+          relatedScopeCardId={relatedScopeCardId}
+          detail={detail}
+          enteredCardId={enteredCardId}
+          zoom={zoom}
+          pan={pan}
+          hasPlanets={props.planets.length > 0}
+          viewState={viewState}
+          onSelectCard={selectCard}
+          onAskTwin={askTwin}
+          onEnterCard={enterCard}
+          onPanChange={setPan}
+          onShowRelated={showRelated}
+          onWheelZoom={zoomFromWheel}
+        />
+        <UniverseToolbar
+          zoom={zoom}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onReset={resetCanvas}
+        />
+        <div className="pointer-events-none absolute right-9 bottom-5 z-20 hidden items-center gap-5 font-mono text-xs text-[var(--ns-text-muted)] md:flex">
+          <span>{props.essays.length} 文章</span>
+          <span>{props.planets.length} 连接</span>
+          <span>无限可能</span>
+        </div>
       </div>
+      {!detail || isTwinExpanded ? (
+        <TwinOrb
+          identity={props.twinIdentity}
+          contextCard={contextCard}
+          memoriesCount={props.memories.length}
+          draftMessage={draftMessage}
+          isExpanded={isTwinExpanded}
+          isSending={isSending}
+          messages={messages}
+          onDraftChange={setDraftMessage}
+          onSubmit={submitMessage}
+          onToggle={() => setIsTwinExpanded((current) => !current)}
+        />
+      ) : null}
+      {detail ? (
+        <PlanetDetailOverlay
+          detail={detail}
+          onAskTwin={() => askTwin(detail.card.id)}
+          onLeave={leaveCard}
+          onShowRelated={() => showRelated(detail.card.id)}
+        />
+      ) : null}
     </div>
   )
 }
@@ -314,6 +354,7 @@ function buildUniverseCards({
       title: "构建你的数字花园",
       excerpt: profile.heroTitle || profile.heroIntro,
       date: "2024.05.12",
+      href: "/about",
       tone: "teal" as const,
       status: "mature" as const,
       featured: true,
@@ -344,6 +385,7 @@ function buildUniverseCards({
             title: essays[0].title,
             excerpt: essays[0].description,
             date: essays[0].publishedAt.replaceAll("-", "."),
+            href: `/essays/${essays[0].slug}`,
             tone: "violet" as const,
             status: "growing" as const,
           },
@@ -361,6 +403,7 @@ function buildUniverseCards({
             title: projects[0].title,
             excerpt: projects[0].description,
             date: "2024.04.26",
+            href: "/projects",
             tone: "violet" as const,
             status: "archived" as const,
           },
@@ -376,6 +419,7 @@ function buildUniverseCards({
       title: note.title,
       excerpt: note.body,
       date: note.publishedAt.replaceAll("-", "."),
+      href: "/notes",
       tone: index === 0 ? ("cyan" as const) : ("neutral" as const),
       status: "seedling" as const,
     })),

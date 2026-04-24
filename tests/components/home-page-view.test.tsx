@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react"
 
+import { within } from "@testing-library/dom"
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
@@ -327,6 +328,53 @@ describe("HomePageView", () => {
     ).toBeInTheDocument()
   })
 
+  it("exposes an enabled full-page link for detail cards with real routes", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Essay fixture" }))
+
+    expect(screen.getByRole("link", { name: "打开完整页" })).toHaveAttribute(
+      "href",
+      "/essays/essay-1"
+    )
+  })
+
+  it("applies a related-only state when the detail overlay requests related content", async () => {
+    const { container } = render(<HomePageView {...buildProps()} />)
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
+    fireEvent.click(screen.getByRole("button", { name: "只看关联" }))
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("dialog", { name: "Work 行星详情" })
+      ).not.toBeInTheDocument()
+    })
+
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
+      "data-related-scope",
+      "true"
+    )
+    expect(screen.getByTestId("universe-viewport")).toHaveAttribute(
+      "data-related-scope",
+      "true"
+    )
+    expect(screen.getByRole("button", { name: "聚焦 Work" })).toHaveAttribute(
+      "data-related",
+      "true"
+    )
+    expect(screen.getByRole("button", { name: "聚焦 Life" })).toHaveAttribute(
+      "data-related",
+      "false"
+    )
+    expect(
+      container.querySelector('[data-testid="mobile-universe-card"][data-card-id="planet-1"]')
+    ).toHaveAttribute("data-related", "true")
+    expect(
+      container.querySelector('[data-testid="mobile-universe-card"][data-card-id="planet-2"]')
+    ).toHaveAttribute("data-related", "false")
+  })
+
   it("shows only public memories for the entered planet", () => {
     render(
       <HomePageView
@@ -389,6 +437,20 @@ describe("HomePageView", () => {
 
     expect(zoomValue).toHaveTextContent(initialZoom ?? "")
     expect(viewport.getAttribute("style")).toBe(initialTransform)
+  })
+
+  it("isolates background controls while the detail overlay is open", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
+
+    const interactiveShell = screen.getByTestId("universe-interactive-shell")
+
+    expect(screen.getByRole("button", { name: "返回宇宙" })).toHaveFocus()
+    expect(interactiveShell).toHaveAttribute("aria-hidden", "true")
+    expect(interactiveShell).toHaveAttribute("inert")
+    expect(within(interactiveShell).queryByRole("button", { name: "展开 Null AI" })).toBeNull()
+    expect(within(interactiveShell).queryByRole("button", { name: "放大画布" })).toBeNull()
   })
 
   it("keeps the selected card action group inside the viewport for right-edge cards", () => {
@@ -635,6 +697,18 @@ describe("HomePageView", () => {
     })
     expect(await screen.findByText("AI fixture reply")).toBeInTheDocument()
     expect(screen.getByText("Memory fixture")).toBeInTheDocument()
+  })
+
+  it("renders explicit mobile card actions and mobile enter opens detail", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    expect(screen.getByRole("button", { name: "移动端进入 Work" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "移动端询问 Work" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "移动端查看 Work 关联" })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "移动端进入 Work" }))
+
+    expect(screen.getByRole("dialog", { name: "Work 行星详情" })).toBeInTheDocument()
   })
 
   it("expands the embedded twin orb and sends chat in the selected card context", async () => {

@@ -24,6 +24,7 @@ const statusLabel = {
 type UniverseCardProps = {
   readonly card: UniverseCardModel
   readonly isEntered?: boolean
+  readonly isRelated?: boolean
   readonly isSelected: boolean
   readonly onEnter: (cardId: string) => void
   readonly onSelect: (cardId: string) => void
@@ -32,6 +33,7 @@ type UniverseCardProps = {
 export const UniverseCard = memo(function UniverseCard({
   card,
   isEntered,
+  isRelated = true,
   isSelected,
   onEnter,
   onSelect,
@@ -70,6 +72,7 @@ export const UniverseCard = memo(function UniverseCard({
       data-layout-status={card.layoutStatus}
       data-ring={card.ring}
       data-entered={isEntered ? "true" : "false"}
+      data-related={isRelated ? "true" : "false"}
       data-status={card.status}
       data-selected={isSelected ? "true" : "false"}
       onClick={() => onSelect(card.id)}

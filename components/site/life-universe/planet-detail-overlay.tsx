@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useRef } from "react"
 
 import { ArrowLeft, ExternalLink, Link2, MessageCircle } from "lucide-react"
@@ -10,10 +11,12 @@ export function PlanetDetailOverlay({
   detail,
   onAskTwin,
   onLeave,
+  onShowRelated,
 }: {
   readonly detail: PlanetDetailModel
   readonly onAskTwin: () => void
   readonly onLeave: () => void
+  readonly onShowRelated: () => void
 }) {
   const leaveButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -115,19 +118,30 @@ export function PlanetDetailOverlay({
           <MessageCircle className="h-4 w-4" />
           <span>问 AI</span>
         </button>
-        <button type="button" className="planet-detail-secondary-action">
+        <button
+          type="button"
+          onClick={onShowRelated}
+          className="planet-detail-secondary-action"
+        >
           <Link2 className="h-4 w-4" />
           <span>只看关联</span>
         </button>
-        <button
-          type="button"
-          disabled
-          title="这个行星暂时没有独立详情页"
-          className="planet-detail-secondary-action"
-        >
-          <ExternalLink className="h-4 w-4" />
-          <span>打开完整页</span>
-        </button>
+        {detail.card.href ? (
+          <Link href={detail.card.href} className="planet-detail-secondary-action">
+            <ExternalLink className="h-4 w-4" />
+            <span>打开完整页</span>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            title="这个行星暂时没有独立详情页"
+            className="planet-detail-secondary-action"
+          >
+            <ExternalLink className="h-4 w-4" />
+            <span>打开完整页</span>
+          </button>
+        )}
       </footer>
     </section>
   )

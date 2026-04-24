@@ -13,16 +13,22 @@ const { renderCounts } = vi.hoisted(() => ({
 vi.mock("@/components/site/life-universe/universe-card", () => ({
   UniverseCard: memo(function MockUniverseCard({
     card,
+    isRelated,
   }: {
     readonly card: UniverseCardModel
     readonly isEntered?: boolean
+    readonly isRelated?: boolean
     readonly isSelected: boolean
     readonly onEnter: (cardId: string) => void
     readonly onSelect: (cardId: string) => void
   }) {
     renderCounts.set(card.id, (renderCounts.get(card.id) ?? 0) + 1)
 
-    return <button type="button">{card.title}</button>
+    return (
+      <button type="button" data-related={isRelated ? "true" : "false"}>
+        {card.title}
+      </button>
+    )
   }),
 }))
 
@@ -77,6 +83,7 @@ function buildProps(
   return {
     cards,
     selectedCardId: "card-1",
+    relatedScopeCardId: undefined,
     detail: undefined,
     enteredCardId: undefined,
     zoom: 78,
@@ -86,7 +93,6 @@ function buildProps(
     onSelectCard: () => {},
     onAskTwin: () => {},
     onEnterCard: () => {},
-    onLeaveCard: () => {},
     onPanChange: () => {},
     onShowRelated: () => {},
     onWheelZoom: () => {},
@@ -119,5 +125,15 @@ describe("UniverseCanvas", () => {
 
     expect(renderCounts.get("card-1")).toBe(1)
     expect(renderCounts.get("card-2")).toBe(1)
+  })
+
+  it("marks related scope state on the viewport and cards", () => {
+    const { container, getByTestId } = render(
+      <UniverseCanvas {...buildProps({ relatedScopeCardId: "card-1" })} />
+    )
+
+    expect(getByTestId("universe-viewport")).toHaveAttribute("data-related-scope", "true")
+    expect(container.querySelector('[data-related="true"]')).toBeTruthy()
+    expect(container.querySelector('[data-related="false"]')).toBeTruthy()
   })
 })

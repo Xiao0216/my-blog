@@ -7,7 +7,6 @@ import type {
   UniverseCardModel,
   UniverseViewState,
 } from "@/components/site/life-universe/types"
-import { PlanetDetailOverlay } from "@/components/site/life-universe/planet-detail-overlay"
 import { UniverseCard } from "@/components/site/life-universe/universe-card"
 
 const VIEWPORT_WIDTH = 960
@@ -20,6 +19,7 @@ const ACTION_GROUP_TOP_MARGIN = 8
 export function UniverseCanvas({
   cards,
   selectedCardId,
+  relatedScopeCardId,
   detail,
   enteredCardId,
   zoom,
@@ -29,13 +29,13 @@ export function UniverseCanvas({
   onSelectCard,
   onAskTwin,
   onEnterCard,
-  onLeaveCard,
   onPanChange,
   onShowRelated,
   onWheelZoom,
 }: {
   readonly cards: ReadonlyArray<UniverseCardModel>
   readonly selectedCardId: string
+  readonly relatedScopeCardId?: string
   readonly detail?: PlanetDetailModel
   readonly enteredCardId?: string
   readonly zoom: number
@@ -45,7 +45,6 @@ export function UniverseCanvas({
   readonly onSelectCard: (cardId: string) => void
   readonly onAskTwin: (cardId: string) => void
   readonly onEnterCard: (cardId: string) => void
-  readonly onLeaveCard: () => void
   readonly onPanChange: (pan: CanvasPan) => void
   readonly onShowRelated: (cardId: string) => void
   readonly onWheelZoom: (deltaY: number) => void
@@ -71,6 +70,7 @@ export function UniverseCanvas({
   const onWheelZoomRef = useRef(onWheelZoom)
   const onEnterCardRef = useRef(onEnterCard)
   const onSelectCardRef = useRef(onSelectCard)
+  const isRelatedScopeActive = Boolean(relatedScopeCardId)
 
   useEffect(() => {
     onPanChangeRef.current = onPanChange
@@ -183,6 +183,7 @@ export function UniverseCanvas({
     <section
       role="region"
       aria-label="Null Space universe canvas"
+      data-related-scope={isRelatedScopeActive ? "true" : "false"}
       data-view-state={viewState}
       onWheel={handleWheel}
       onMouseDown={handleMouseDown}
@@ -239,6 +240,7 @@ export function UniverseCanvas({
       <div
         data-testid="universe-viewport"
         data-camera-mode={viewState === "inside" ? "inside" : "overview"}
+        data-related-scope={isRelatedScopeActive ? "true" : "false"}
         className="universe-scene-3d absolute left-1/2 top-1/2 h-[660px] w-[960px] origin-center"
         style={{
           transform: cameraTransform,
@@ -249,6 +251,7 @@ export function UniverseCanvas({
             key={card.id}
             card={card}
             isEntered={card.id === enteredCardId}
+            isRelated={!relatedScopeCardId || card.id === relatedScopeCardId}
             isSelected={card.id === selectedCardId}
             onEnter={handleCardEnter}
             onSelect={handleCardSelect}
@@ -293,22 +296,14 @@ export function UniverseCanvas({
 
       </div>
 
-      {detail ? (
-        <PlanetDetailOverlay
-          detail={detail}
-          onAskTwin={() => onAskTwin(detail.card.id)}
-          onLeave={onLeaveCard}
-        />
-      ) : null}
-
       <div className="grid gap-3 md:hidden">
         {cards.map((card) => (
-          <button
+          <article
             key={card.id}
-            type="button"
-            aria-label={`移动聚焦 ${card.title}`}
+            data-testid="mobile-universe-card"
+            data-card-id={card.id}
+            data-related={!relatedScopeCardId || card.id === relatedScopeCardId ? "true" : "false"}
             data-selected={card.id === selectedCardId ? "true" : "false"}
-            onClick={() => onSelectCard(card.id)}
             className="null-space-panel p-4 text-left data-[selected=true]:border-[var(--ns-accent-primary)]"
           >
             <span className="font-mono text-[0.68rem] text-[var(--ns-text-tertiary)]">
@@ -320,7 +315,30 @@ export function UniverseCanvas({
             <span className="mt-2 block text-sm leading-6 text-[var(--ns-text-tertiary)]">
               {card.excerpt}
             </span>
-          </button>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                aria-label={`移动端进入 ${card.title}`}
+                onClick={() => onEnterCard(card.id)}
+              >
+                进入
+              </button>
+              <button
+                type="button"
+                aria-label={`移动端询问 ${card.title}`}
+                onClick={() => onAskTwin(card.id)}
+              >
+                问 AI
+              </button>
+              <button
+                type="button"
+                aria-label={`移动端查看 ${card.title} 关联`}
+                onClick={() => onShowRelated(card.id)}
+              >
+                关联
+              </button>
+            </div>
+          </article>
         ))}
       </div>
     </section>
