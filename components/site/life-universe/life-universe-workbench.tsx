@@ -9,6 +9,7 @@ import type {
   HomePageViewProps,
   NullSpaceTheme,
   UniverseCardModel,
+  UniverseCardStatus,
   UniverseLayoutInputCard,
   UniverseCardTone,
 } from "@/components/site/life-universe/types"
@@ -48,8 +49,16 @@ const toneByTheme: Record<string, UniverseCardTone> = {
   violet: "violet",
 }
 
-type BaseUniverseCard = Omit<UniverseCardModel, keyof UniverseLayoutInputCard> &
-  UniverseLayoutInputCard
+type BaseUniverseCard = UniverseLayoutInputCard & {
+  readonly category: string
+  readonly date: string
+  readonly excerpt: string
+  readonly featured?: boolean
+  readonly planetId?: number
+  readonly status: UniverseCardStatus
+  readonly title: string
+  readonly tone: UniverseCardTone
+}
 
 export function LifeUniverseWorkbench(props: HomePageViewProps) {
   const cards = useMemo(() => buildUniverseCards(props), [props])
