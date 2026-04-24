@@ -7,6 +7,13 @@ import type {
 } from "@/components/site/life-universe/types"
 import { UniverseCard } from "@/components/site/life-universe/universe-card"
 
+const VIEWPORT_WIDTH = 960
+const VIEWPORT_HEIGHT = 660
+const ACTION_GROUP_WIDTH = 180
+const ACTION_GROUP_HEIGHT = 48
+const ACTION_GROUP_GAP = 14
+const ACTION_GROUP_TOP_MARGIN = 8
+
 export function UniverseCanvas({
   cards,
   selectedCardId,
@@ -33,6 +40,9 @@ export function UniverseCanvas({
   readonly onWheelZoom: (deltaY: number) => void
 }) {
   const selectedCard = cards.find((card) => card.id === selectedCardId)
+  const actionGroupPosition = selectedCard
+    ? getActionGroupPosition(selectedCard)
+    : undefined
   const dragStartRef = useRef<
     | {
         readonly clientX: number
@@ -152,10 +162,14 @@ export function UniverseCanvas({
 
         {selectedCard ? (
           <div
+            data-testid="planet-action-group"
+            data-layout-x={actionGroupPosition?.x}
+            data-layout-y={actionGroupPosition?.y}
             className="planet-action-group"
             style={{
-              left: selectedCard.x + selectedCard.width + 14,
-              top: selectedCard.y + 8,
+              left: actionGroupPosition?.x,
+              top: actionGroupPosition?.y,
+              width: ACTION_GROUP_WIDTH,
             }}
           >
             <button
@@ -213,4 +227,24 @@ function isInteractiveTarget(target: EventTarget) {
   return target instanceof HTMLElement
     ? Boolean(target.closest("button,input,textarea,a"))
     : false
+}
+
+function getActionGroupPosition(selectedCard: UniverseCardModel) {
+  const preferredRightX =
+    selectedCard.x + selectedCard.width + ACTION_GROUP_GAP
+  const shouldFlipLeft =
+    preferredRightX + ACTION_GROUP_WIDTH > VIEWPORT_WIDTH
+  const x = shouldFlipLeft
+    ? selectedCard.x - ACTION_GROUP_WIDTH - ACTION_GROUP_GAP
+    : preferredRightX
+  const y = selectedCard.y + ACTION_GROUP_TOP_MARGIN
+
+  return {
+    x: clamp(x, 0, VIEWPORT_WIDTH - ACTION_GROUP_WIDTH),
+    y: clamp(y, 0, VIEWPORT_HEIGHT - ACTION_GROUP_HEIGHT),
+  }
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
 }

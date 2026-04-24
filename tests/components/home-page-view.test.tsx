@@ -254,6 +254,31 @@ describe("HomePageView", () => {
     expect(screen.getByRole("button", { name: "查看 Work 关联" })).toBeInTheDocument()
   })
 
+  it("keeps the selected card action group inside the viewport for right-edge cards", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const cards = screen.getAllByTestId("universe-card")
+    const rightMostCard = cards.reduce((currentRightMost, card) => {
+      const currentRightEdge =
+        Number(currentRightMost.getAttribute("data-layout-x")) +
+        Number(currentRightMost.getAttribute("data-layout-width"))
+      const nextRightEdge =
+        Number(card.getAttribute("data-layout-x")) + Number(card.getAttribute("data-layout-width"))
+
+      return nextRightEdge > currentRightEdge ? card : currentRightMost
+    })
+
+    fireEvent.click(rightMostCard)
+
+    const actionGroup = screen.getByTestId("planet-action-group")
+    const actionGroupX = Number(actionGroup.getAttribute("data-layout-x"))
+    const actionGroupWidth = 180
+
+    expect(actionGroupX).toBeGreaterThanOrEqual(0)
+    expect(actionGroupX).toBeLessThanOrEqual(960 - actionGroupWidth)
+    expect(actionGroupX + actionGroupWidth).toBeLessThanOrEqual(960)
+  })
+
   it("zooms and resets the universe canvas", () => {
     render(<HomePageView {...buildProps()} />)
 
