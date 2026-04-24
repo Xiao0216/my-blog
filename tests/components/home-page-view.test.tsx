@@ -300,12 +300,17 @@ describe("HomePageView", () => {
   it("uses Escape to collapse Null AI before leaving planet detail", () => {
     render(<HomePageView {...buildProps()} />)
 
-    fireEvent.click(screen.getByRole("button", { name: "展开 Null AI" }))
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
+    fireEvent.click(screen.getByRole("button", { name: "问 AI" }))
+
+    expect(screen.getByRole("dialog", { name: "Null AI 对话" })).toBeInTheDocument()
+    expect(screen.getByRole("dialog", { name: "Work 行星详情" })).toBeInTheDocument()
+
     fireEvent.keyDown(window, { key: "Escape" })
 
     expect(screen.queryByRole("dialog", { name: "Null AI 对话" })).not.toBeInTheDocument()
+    expect(screen.getByRole("dialog", { name: "Work 行星详情" })).toBeInTheDocument()
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
     fireEvent.keyDown(window, { key: "Escape" })
 
     expect(screen.queryByRole("dialog", { name: "Work 行星详情" })).not.toBeInTheDocument()

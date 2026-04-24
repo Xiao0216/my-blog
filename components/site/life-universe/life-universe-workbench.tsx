@@ -137,13 +137,14 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         return
       }
       if (viewState === "inside") {
-        leaveCard()
+        setEnteredCardId(undefined)
+        setViewState("overview")
       }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [isTwinExpanded, leaveCard, viewState])
+  }, [isTwinExpanded, viewState])
 
   function askTwin(cardId: string) {
     setSelectedCardId(cardId)
