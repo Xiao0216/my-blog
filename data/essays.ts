@@ -9,19 +9,21 @@ export type EssaySummary = {
 
 export const essaySummaries: ReadonlyArray<EssaySummary> = [
   {
-    slug: "making-space-for-thought",
-    title: "Making Space for Thought",
-    description: "给注意力留出空地，写作和开发才会重新有呼吸感。",
-    publishedAt: "2026-04-18",
-    readingTime: "6 min read",
-    tags: ["Writing", "Focus"],
+    slug: "healthcare-frontend-engineering",
+    title: "医疗系统前端工程化实践",
+    description:
+      "从需求澄清、权限控制、水印脱敏、组件复用到接口联调，梳理医疗系统前端交付中的工程化重点。",
+    publishedAt: "2026-04-24",
+    readingTime: "7 min read",
+    tags: ["Healthcare", "Vue", "Engineering"],
   },
   {
-    slug: "quiet-loops-at-night",
-    title: "Quiet Loops at Night",
-    description: "那些在深夜里反复调试的循环，常常也在悄悄改变人。",
-    publishedAt: "2026-04-12",
-    readingTime: "5 min read",
-    tags: ["Code", "Craft"],
+    slug: "large-data-frontend-performance",
+    title: "大数据场景下的前端性能优化",
+    description:
+      "围绕虚拟列表、懒加载、缓存、WebSocket 实时更新和表格渲染，记录数据平台与医疗系统里的性能优化方法。",
+    publishedAt: "2026-04-23",
+    readingTime: "6 min read",
+    tags: ["Performance", "Data", "Frontend"],
   },
 ]

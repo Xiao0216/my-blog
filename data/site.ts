@@ -24,10 +24,11 @@ export type ProfileData = {
 }
 
 export const siteConfig: SiteConfig = {
-  title: "Quiet Chapters",
-  description: "一个把代码、写作与生活观察慢慢展开的个人空间。",
+  title: "縉紳",
+  description:
+    "Web 前端开发工程师，关注医疗系统、数据平台、小程序、工程化与性能优化。",
   siteUrl: normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL ?? ""),
-  email: "hello@localhost.test",
+  email: "jinshen0216@gmail.com",
   navigation: [
     { href: "/", label: "Home" },
     { href: "/essays", label: "Essays" },
@@ -36,21 +37,23 @@ export const siteConfig: SiteConfig = {
     { href: "/about", label: "About" },
   ],
   footerLinks: [
-    { href: "mailto:hello@localhost.test", label: "Email" },
+    { href: "mailto:jinshen0216@gmail.com", label: "Email" },
     { href: "/rss.xml", label: "RSS" },
   ],
 }
 
 export const profile: ProfileData = {
-  name: "Quiet Chapters",
-  roleLine: "开发者 / 写作者 / 观察生活的人",
-  heroTitle: "把代码、文字与日常感受，慢慢写成自己的空间。",
+  name: "縉紳",
+  roleLine: "Web 前端开发工程师",
+  heroTitle: "面向医疗与数据场景，交付稳定、可维护的前端产品。",
   heroIntro:
-    "这里记录长期思考、生活碎片，以及那些愿意反复打磨的作品。",
+    "2020 年开始从事前端开发，长期参与医疗系统、数据平台、H5 与小程序建设，熟悉 Vue 技术栈、工程化体系、ECharts 可视化、WebSocket 实时通信与性能优化。",
   aboutSummary:
-    "我习惯在技术、写作和日常观察之间来回穿梭，把真正重要的东西一点点写清楚。",
+    "2020 年开始从事前端开发，具备从需求梳理、组件封装、接口协作到上线交付的完整经验，关注稳定交付、可维护架构和业务效率提升。",
   longBio: [
-    "写代码的时候，我关心结构、节奏和长期维护；写文字的时候，我关心那些被匆忙生活忽略掉的小波动。",
-    "这个网站会同时容纳正式文章、短碎片和正在生长的项目，让它们像同一本私人刊物里的不同章节。",
+    "我从 2020 年开始从事 Web 前端开发，主要参与医疗信息化系统、数据基础平台、H5 页面、小程序和企业级业务产品建设。工作中既关注界面体验，也重视需求理解、流程合规、稳定交付和后续维护。",
+    "技术上主要使用 Vue、JavaScript、HTML、CSS、Ajax、Node.js 等前端技术，结合 Pinia、Naive UI、ECharts、WebGL、WebSocket、虚拟列表、图片懒加载和缓存策略解决复杂业务场景中的性能与交互问题。",
+    "项目协作中，我习惯先和项目经理、后端工程师、UI 设计师明确边界，再推进组件封装、接口联调、权限控制、文档沉淀和上线交付。过去的项目覆盖临床研究、云切片、查房、数据资产、医疗论坛等场景。",
+    "我毕业于太原科技大学通信工程专业，本科学历，2020 年 6 月毕业。持有锐捷 RCNA 网络工程师认证、锐捷 RCNP 高级网络工程师认证和网络工程师职业资格证书。邮箱：jinshen0216@gmail.com。",
   ],
 }

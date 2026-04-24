@@ -20,9 +20,9 @@ describe("feed helpers", () => {
     const { buildRssXml } = await loadFeedHelpers()
     const rssXml = buildRssXml()
 
-    expect(rssXml).toContain("<title>Quiet Chapters</title>")
-    expect(rssXml).toContain("<title>Making Space for Thought</title>")
-    expect(rssXml).toContain("/essays/making-space-for-thought")
+    expect(rssXml).toContain("<title>縉紳</title>")
+    expect(rssXml).toContain("<title>医疗系统前端工程化实践</title>")
+    expect(rssXml).toContain("/essays/healthcare-frontend-engineering")
   })
 
   it("normalizes a scheme-less site url for RSS links", async () => {
@@ -33,7 +33,7 @@ describe("feed helpers", () => {
 
     expect(rssXml).toContain("<link>https://example.com/</link>")
     expect(rssXml).toContain(
-      "<link>https://example.com/essays/making-space-for-thought</link>"
+      "<link>https://example.com/essays/healthcare-frontend-engineering</link>"
     )
   })
 
@@ -47,7 +47,7 @@ describe("feed helpers", () => {
     expect(entries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          url: "https://example.com/essays/making-space-for-thought",
+          url: "https://example.com/essays/healthcare-frontend-engineering",
         }),
       ])
     )

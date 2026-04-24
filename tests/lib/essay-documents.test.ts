@@ -28,6 +28,13 @@ describe("essay documents", () => {
     )
   })
 
+  it("registers professional technical article slugs", () => {
+    expect(essayContent.essayDocumentSlugs).toEqual([
+      "healthcare-frontend-engineering",
+      "large-data-frontend-performance",
+    ])
+  })
+
   it("returns null for an unknown essay slug", () => {
     expect(getEssayDocumentBySlug("missing-slug")).toBeNull()
   })

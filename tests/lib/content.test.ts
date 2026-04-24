@@ -71,6 +71,42 @@ describe("content helpers", () => {
     expect(projects[0].stack.length).toBeGreaterThan(0)
   })
 
+  it("exposes the public professional profile content", () => {
+    const profile = getProfile()
+    const projects = getProjects()
+    const notes = getAllNotes()
+    const essays = getEssaySummaries()
+
+    expect(profile.name).toBe("縉紳")
+    expect(profile.roleLine).toBe("Web 前端开发工程师")
+    expect(profile.heroIntro).toContain("Vue")
+    expect(profile.aboutSummary).toContain("2020")
+    expect(profile.longBio.join("\n")).toContain("太原科技大学")
+    expect(profile.longBio.join("\n")).toContain("RCNP")
+
+    expect(projects.map((project) => project.title)).toEqual([
+      "临研系统",
+      "某医院云切片小程序",
+      "查房系统",
+      "数据基础平台",
+      "某医院论坛",
+    ])
+    expect(projects.every((project) => project.href === "/projects")).toBe(true)
+    expect(projects[0].stack).toContain("Pinia")
+    expect(projects[1].stack).toContain("WebGL")
+
+    expect(notes.map((note) => note.title)).toEqual([
+      "医疗系统里的前端工程化",
+      "大数据表格性能优化",
+      "AI 工具进入日常开发",
+    ])
+
+    expect(essays.map((essay) => essay.slug)).toEqual([
+      "healthcare-frontend-engineering",
+      "large-data-frontend-performance",
+    ])
+  })
+
   it("does not leak mutations across helper calls", () => {
     const essays = getEssaySummaries()
     const mutableEssay = essays[0] as Mutable<EssaySummary>

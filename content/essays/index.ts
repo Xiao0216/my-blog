@@ -33,8 +33,8 @@ function createEssayDocument(
 }
 
 export const essayDocumentSlugs = [
-  "making-space-for-thought",
-  "quiet-loops-at-night",
+  "healthcare-frontend-engineering",
+  "large-data-frontend-performance",
 ] as const satisfies ReadonlyArray<EssaySummary["slug"]>
 
 export type EssayDocumentSlug = (typeof essayDocumentSlugs)[number]
@@ -44,12 +44,12 @@ export function isEssayDocumentSlug(slug: string): slug is EssayDocumentSlug {
 }
 
 export const essayDocuments = {
-  "making-space-for-thought": createEssayDocument(
-    "making-space-for-thought",
-    () => import("./making-space-for-thought.mdx")
+  "healthcare-frontend-engineering": createEssayDocument(
+    "healthcare-frontend-engineering",
+    () => import("./healthcare-frontend-engineering.mdx")
   ),
-  "quiet-loops-at-night": createEssayDocument(
-    "quiet-loops-at-night",
-    () => import("./quiet-loops-at-night.mdx")
+  "large-data-frontend-performance": createEssayDocument(
+    "large-data-frontend-performance",
+    () => import("./large-data-frontend-performance.mdx")
   ),
 } satisfies Record<EssayDocumentSlug, EssayDocumentEntry>
