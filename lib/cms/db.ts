@@ -13,7 +13,11 @@ import type { ProfileData } from "@/data/site"
 import {
   type EssayInput,
   type NoteInput,
+  type ProfileInput,
   type ProjectInput,
+  type StoredNote,
+  type StoredProfile,
+  type StoredProject,
   type StoredEssay,
   parseStatus,
   parseStringArray,
@@ -60,6 +64,18 @@ type ProfileRow = {
   hero_intro: string
   about_summary: string
   long_bio_json: string
+  skills_json: string
+  certifications_json: string
+  updated_at: string
+}
+
+export type AdminContentSummary = {
+  readonly publishedEssays: number
+  readonly draftEssays: number
+  readonly publishedProjects: number
+  readonly draftProjects: number
+  readonly publishedNotes: number
+  readonly draftNotes: number
 }
 
 const initializedDatabasePaths = new Set<string>()
@@ -273,9 +289,7 @@ function mapEssayRow(row: EssayRow): StoredEssay {
   }
 }
 
-function mapProjectRow(
-  row: ProjectRow
-): ProjectEntry & { sortOrder: number; status: string } {
+function mapProjectRow(row: ProjectRow): StoredProject {
   return {
     slug: row.slug,
     title: row.title,
@@ -284,28 +298,31 @@ function mapProjectRow(
     stack: parseStringArray(row.stack_json),
     href: row.href,
     sortOrder: row.sort_order,
-    status: row.status,
+    status: parseStatus(row.status),
   }
 }
 
-function mapNoteRow(row: NoteRow): NoteEntry & { status: string } {
+function mapNoteRow(row: NoteRow): StoredNote {
   return {
     slug: row.slug,
     title: row.title,
     body: row.body,
     publishedAt: row.published_at,
-    status: row.status,
+    status: parseStatus(row.status),
   }
 }
 
-function mapProfileRow(row: ProfileRow): ProfileData {
+function mapProfileRow(row: ProfileRow): StoredProfile {
   return {
     name: row.name,
     roleLine: row.role_line,
+    email: row.email,
     heroTitle: row.hero_title,
     heroIntro: row.hero_intro,
     aboutSummary: row.about_summary,
     longBio: parseStringArray(row.long_bio_json),
+    skills: parseStringArray(row.skills_json),
+    certifications: parseStringArray(row.certifications_json),
   }
 }
 
@@ -440,6 +457,103 @@ export function getPublicNotes(): ReadonlyArray<NoteEntry> {
   })
 }
 
+export function getAdminProfile(): StoredProfile {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const row = database
+      .prepare("SELECT * FROM profile WHERE id = 1")
+      .get() as ProfileRow | undefined
+
+    return row ? mapProfileRow(row) : { ...profile, email: siteConfig.email, skills: [], certifications: [] }
+  })
+}
+
+export function getAdminEssays(): ReadonlyArray<StoredEssay> {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const rows = database
+      .prepare("SELECT * FROM essays ORDER BY published_at DESC, id DESC")
+      .all() as EssayRow[]
+
+    return rows.map(mapEssayRow)
+  })
+}
+
+export function getAdminProjects(): ReadonlyArray<StoredProject> {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const rows = database
+      .prepare("SELECT * FROM projects ORDER BY sort_order ASC, id ASC")
+      .all() as ProjectRow[]
+
+    return rows.map(mapProjectRow)
+  })
+}
+
+export function getAdminNotes(): ReadonlyArray<StoredNote> {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const rows = database
+      .prepare("SELECT * FROM notes ORDER BY published_at DESC, id DESC")
+      .all() as NoteRow[]
+
+    return rows.map(mapNoteRow)
+  })
+}
+
+export function getAdminContentSummary(): AdminContentSummary {
+  const essays = getAdminEssays()
+  const projects = getAdminProjects()
+  const notes = getAdminNotes()
+
+  return {
+    publishedEssays: essays.filter((essay) => essay.status === "published").length,
+    draftEssays: essays.filter((essay) => essay.status === "draft").length,
+    publishedProjects: projects.filter((project) => project.status === "published").length,
+    draftProjects: projects.filter((project) => project.status === "draft").length,
+    publishedNotes: notes.filter((note) => note.status === "published").length,
+    draftNotes: notes.filter((note) => note.status === "draft").length,
+  }
+}
+
+export function saveProfile(input: ProfileInput) {
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    run(
+      database,
+      `UPDATE profile SET
+        name = ?,
+        role_line = ?,
+        email = ?,
+        hero_title = ?,
+        hero_intro = ?,
+        about_summary = ?,
+        long_bio_json = ?,
+        skills_json = ?,
+        certifications_json = ?,
+        updated_at = ?
+      WHERE id = 1`,
+      [
+        input.name,
+        input.roleLine,
+        input.email,
+        input.heroTitle,
+        input.heroIntro,
+        input.aboutSummary,
+        stringifyArray(input.longBio),
+        stringifyArray(input.skills),
+        stringifyArray(input.certifications),
+        nowText(),
+      ]
+    )
+  })
+}
+
 export function saveEssay(input: EssayInput) {
   initializeCmsDatabase()
 
@@ -540,6 +654,53 @@ export function saveNote(input: NoteInput) {
         timestamp,
         timestamp,
       ]
+    )
+  })
+}
+
+export function deleteEssay(slug: string) {
+  deleteBySlug("essays", slug)
+}
+
+export function deleteProject(slug: string) {
+  deleteBySlug("projects", slug)
+}
+
+export function deleteNote(slug: string) {
+  deleteBySlug("notes", slug)
+}
+
+export function toggleEssayStatus(slug: string) {
+  toggleStatus("essays", slug)
+}
+
+export function toggleProjectStatus(slug: string) {
+  toggleStatus("projects", slug)
+}
+
+export function toggleNoteStatus(slug: string) {
+  toggleStatus("notes", slug)
+}
+
+function deleteBySlug(table: "essays" | "projects" | "notes", slug: string) {
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    run(database, `DELETE FROM ${table} WHERE slug = ?`, [slug])
+  })
+}
+
+function toggleStatus(table: "essays" | "projects" | "notes", slug: string) {
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    run(
+      database,
+      `UPDATE ${table}
+       SET status = CASE status WHEN 'published' THEN 'draft' ELSE 'published' END,
+           updated_at = ?
+       WHERE slug = ?`,
+      [nowText(), slug]
     )
   })
 }
