@@ -25,8 +25,8 @@ type UniverseCardProps = {
   readonly card: UniverseCardModel
   readonly isEntered?: boolean
   readonly isSelected: boolean
-  readonly onEnter: () => void
-  readonly onSelect: () => void
+  readonly onEnter: (cardId: string) => void
+  readonly onSelect: (cardId: string) => void
 }
 
 export const UniverseCard = memo(function UniverseCard({
@@ -72,8 +72,8 @@ export const UniverseCard = memo(function UniverseCard({
       data-entered={isEntered ? "true" : "false"}
       data-status={card.status}
       data-selected={isSelected ? "true" : "false"}
-      onClick={onSelect}
-      onDoubleClick={onEnter}
+      onClick={() => onSelect(card.id)}
+      onDoubleClick={() => onEnter(card.id)}
       onMouseMove={handleMouseMove}
       onMouseLeave={resetTilt}
       className={`null-space-card group absolute hidden text-left outline-none before:absolute before:right-7 before:bottom-6 before:h-2 before:w-2 before:rounded-full before:shadow-[0_0_24px_currentColor] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)] md:block ${

@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { HomePageView } from "@/components/site/home-page-view"
@@ -180,6 +180,7 @@ function buildProps(
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 function parseLayoutRect(card: HTMLElement): LayoutRect {
@@ -430,6 +431,31 @@ describe("HomePageView", () => {
     expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
   })
 
+  it("applies wheel zoom on animation frame instead of synchronously", async () => {
+    const frameQueue: FrameRequestCallback[] = []
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      frameQueue.push(callback)
+      return frameQueue.length
+    })
+    vi.stubGlobal("cancelAnimationFrame", vi.fn())
+
+    render(<HomePageView {...buildProps()} />)
+
+    fireEvent.wheel(screen.getByRole("region", { name: "Null Space universe canvas" }), {
+      deltaY: -120,
+    })
+
+    expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
+
+    await act(async () => {
+      frameQueue.shift()?.(16.7)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
+    })
+  })
+
   it("switches between dark and light Null Space themes", () => {
     render(<HomePageView {...buildProps()} />)
 
@@ -463,7 +489,9 @@ describe("HomePageView", () => {
     const viewport = screen.getByTestId("universe-viewport")
 
     fireEvent.wheel(canvas, { deltaY: -120 })
-    expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
+    await waitFor(() => {
+      expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
+    })
 
     fireEvent.mouseDown(canvas, { clientX: 100, clientY: 120 })
     fireEvent.mouseMove(canvas, { clientX: 136, clientY: 158 })

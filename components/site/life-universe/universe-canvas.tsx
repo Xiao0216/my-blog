@@ -1,5 +1,5 @@
 import type { MouseEvent, WheelEvent } from "react"
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 
 import type {
   CanvasPan,
@@ -65,38 +65,89 @@ export function UniverseCanvas({
       }
     | undefined
   >(undefined)
-  const frameRef = useRef<number | undefined>(undefined)
+  const panFrameRef = useRef<number | undefined>(undefined)
+  const wheelFrameRef = useRef<number | undefined>(undefined)
+  const onPanChangeRef = useRef(onPanChange)
+  const onWheelZoomRef = useRef(onWheelZoom)
+  const onEnterCardRef = useRef(onEnterCard)
+  const onSelectCardRef = useRef(onSelectCard)
+
+  useEffect(() => {
+    onPanChangeRef.current = onPanChange
+  }, [onPanChange])
+
+  useEffect(() => {
+    onWheelZoomRef.current = onWheelZoom
+  }, [onWheelZoom])
+
+  useEffect(() => {
+    onEnterCardRef.current = onEnterCard
+  }, [onEnterCard])
+
+  useEffect(() => {
+    onSelectCardRef.current = onSelectCard
+  }, [onSelectCard])
 
   useEffect(() => {
     return () => {
       if (
-        frameRef.current !== undefined &&
+        panFrameRef.current !== undefined &&
         typeof cancelAnimationFrame !== "undefined"
       ) {
-        cancelAnimationFrame(frameRef.current)
+        cancelAnimationFrame(panFrameRef.current)
+      }
+      if (
+        wheelFrameRef.current !== undefined &&
+        typeof cancelAnimationFrame !== "undefined"
+      ) {
+        cancelAnimationFrame(wheelFrameRef.current)
       }
     }
   }, [])
 
   function schedulePan(nextPan: CanvasPan) {
     if (typeof requestAnimationFrame === "undefined") {
-      onPanChange(nextPan)
+      onPanChangeRef.current(nextPan)
       return
     }
 
-    if (frameRef.current !== undefined) {
-      cancelAnimationFrame(frameRef.current)
+    if (panFrameRef.current !== undefined) {
+      cancelAnimationFrame(panFrameRef.current)
     }
 
-    frameRef.current = requestAnimationFrame(() => {
-      frameRef.current = undefined
-      onPanChange(nextPan)
+    panFrameRef.current = requestAnimationFrame(() => {
+      panFrameRef.current = undefined
+      onPanChangeRef.current(nextPan)
     })
   }
 
+  function scheduleWheel(deltaY: number) {
+    if (typeof requestAnimationFrame === "undefined") {
+      onWheelZoomRef.current(deltaY)
+      return
+    }
+
+    if (wheelFrameRef.current !== undefined) {
+      cancelAnimationFrame(wheelFrameRef.current)
+    }
+
+    wheelFrameRef.current = requestAnimationFrame(() => {
+      wheelFrameRef.current = undefined
+      onWheelZoomRef.current(deltaY)
+    })
+  }
+
+  const handleCardEnter = useCallback((cardId: string) => {
+    onEnterCardRef.current(cardId)
+  }, [])
+
+  const handleCardSelect = useCallback((cardId: string) => {
+    onSelectCardRef.current(cardId)
+  }, [])
+
   function handleWheel(event: WheelEvent<HTMLElement>) {
     event.preventDefault()
-    onWheelZoom(event.deltaY)
+    scheduleWheel(event.deltaY)
   }
 
   function handleMouseDown(event: MouseEvent<HTMLElement>) {
@@ -199,8 +250,8 @@ export function UniverseCanvas({
             card={card}
             isEntered={card.id === enteredCardId}
             isSelected={card.id === selectedCardId}
-            onEnter={() => onEnterCard(card.id)}
-            onSelect={() => onSelectCard(card.id)}
+            onEnter={handleCardEnter}
+            onSelect={handleCardSelect}
           />
         ))}
 
