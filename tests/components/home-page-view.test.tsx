@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { HomePageView } from "@/components/site/home-page-view"
@@ -45,39 +45,50 @@ function buildProps(
 }
 
 describe("HomePageView", () => {
-  it("renders a productized homepage with identity metadata and latest feed", () => {
+  it("renders an interactive spatial knowledge canvas", () => {
     const { container } = render(<HomePageView {...buildProps()} />)
 
     expect(
       screen.getByRole("heading", { name: "Fixture hero title" })
     ).toBeInTheDocument()
-    expect(screen.getByText("Identity")).toBeInTheDocument()
-    expect(screen.getByText("Focus")).toBeInTheDocument()
-    expect(screen.getByText("Latest")).toBeInTheDocument()
-    expect(screen.getByText("Essay")).toBeInTheDocument()
-    expect(screen.getByText("Project")).toBeInTheDocument()
-    expect(screen.getByText("Note")).toBeInTheDocument()
-    expect(screen.getAllByText("A short essay description").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("A project note").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("A short note body").length).toBeGreaterThan(0)
-    expect(screen.getByText("2026-03-01").tagName).toBe("TIME")
-    expect(screen.getByText("2026-03-01")).toHaveAttribute(
-      "dateTime",
-      "2026-03-01"
+    expect(screen.getByRole("heading", { name: "知识星图" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("region", { name: "Spatial knowledge canvas" })
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "放大" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "缩小" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "重置视角" })).toBeInTheDocument()
+
+    expect(
+      screen.getByRole("button", { name: "聚焦 Essay fixture" })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "聚焦 Project fixture" })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "聚焦 Note fixture" })
+    ).toBeInTheDocument()
+    expect(screen.getByText("移动星图流")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "聚焦 Project fixture" }))
+
+    expect(screen.getByRole("complementary", { name: "Focused node" })).toHaveTextContent(
+      "Project fixture"
     )
-    expect(screen.getByText("2026-03-02").tagName).toBe("TIME")
-    expect(screen.getByText("2026-03-02")).toHaveAttribute(
-      "dateTime",
-      "2026-03-02"
+    expect(screen.getByRole("complementary", { name: "Focused node" })).toHaveTextContent(
+      "A project note"
     )
-    expect(screen.getByRole("link", { name: "View all essays" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "打开 Project fixture" })).toHaveAttribute(
       "href",
-      "/essays"
+      "/projects"
     )
-    expect(container.querySelector('[aria-hidden="true"]')).not.toBeInTheDocument()
+    expect(container.querySelector('[data-spatial-lines="true"]')).toHaveAttribute(
+      "aria-hidden",
+      "true"
+    )
   })
 
-  it("renders product empty states when notes, essays, and projects are empty", () => {
+  it("renders spatial empty states when notes, essays, and projects are empty", () => {
     render(
       <HomePageView
         {...buildProps({
@@ -88,8 +99,8 @@ describe("HomePageView", () => {
       />
     )
 
-    expect(screen.getByText("No notes yet")).toBeInTheDocument()
-    expect(screen.getByText("No essays yet")).toBeInTheDocument()
-    expect(screen.getByText("No projects yet")).toBeInTheDocument()
+    expect(screen.getAllByText("No notes in orbit").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("No essays in orbit").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("No projects in orbit").length).toBeGreaterThan(0)
   })
 })
