@@ -2,6 +2,7 @@
 
 import { MessageCircle, Send, X } from "lucide-react"
 import type { FormEvent } from "react"
+import { useEffect, useRef } from "react"
 
 import type {
   ChatMessage,
@@ -12,6 +13,7 @@ import type { StoredTwinIdentity } from "@/lib/content"
 export function TwinOrb({
   identity,
   contextCard,
+  memoriesCount,
   draftMessage,
   isExpanded,
   isSending,
@@ -22,6 +24,7 @@ export function TwinOrb({
 }: {
   readonly identity: StoredTwinIdentity
   readonly contextCard?: UniverseCardModel
+  readonly memoriesCount: number
   readonly draftMessage: string
   readonly isExpanded: boolean
   readonly isSending: boolean
@@ -32,6 +35,23 @@ export function TwinOrb({
 }) {
   const displayName = identity.displayName || "Null AI"
   const contextTitle = contextCard?.title ?? "全局星图"
+  const avatarButtonRef = useRef<HTMLButtonElement | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const previousExpandedRef = useRef(isExpanded)
+
+  useEffect(() => {
+    if (previousExpandedRef.current === isExpanded) {
+      return
+    }
+
+    if (isExpanded) {
+      textareaRef.current?.focus()
+    } else {
+      avatarButtonRef.current?.focus()
+    }
+
+    previousExpandedRef.current = isExpanded
+  }, [isExpanded])
 
   return (
     <div className="twin-orb-shell pointer-events-none absolute">
@@ -64,6 +84,11 @@ export function TwinOrb({
           </header>
 
           <div className="twin-orb-messages">
+            {memoriesCount === 0 ? (
+              <p className="text-sm text-[var(--ns-text-tertiary)]">
+                No public memories attached yet
+              </p>
+            ) : null}
             {messages.map((message) => (
               <article
                 key={message.id}
@@ -94,6 +119,7 @@ export function TwinOrb({
 
           <form onSubmit={onSubmit} className="twin-orb-form">
             <textarea
+              ref={textareaRef}
               value={draftMessage}
               onChange={(event) => onDraftChange(event.target.value)}
               placeholder="搜索或和 Null AI 聊聊..."
@@ -112,6 +138,7 @@ export function TwinOrb({
         </section>
       ) : (
         <button
+          ref={avatarButtonRef}
           type="button"
           aria-label="展开 Null AI"
           onClick={onToggle}

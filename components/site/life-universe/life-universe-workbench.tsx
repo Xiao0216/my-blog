@@ -166,9 +166,11 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
             ? {
                 category: contextCard.category,
                 id: contextCard.id,
+                planetId: contextCard.planetId,
                 title: contextCard.title,
               }
             : undefined,
+          focusedPlanetId: contextCard?.planetId,
           history,
           message,
         }),
@@ -244,6 +246,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
       <TwinOrb
         identity={props.twinIdentity}
         contextCard={contextCard}
+        memoriesCount={props.memories.length}
         draftMessage={draftMessage}
         isExpanded={isTwinExpanded}
         isSending={isSending}
@@ -252,9 +255,6 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         onSubmit={submitMessage}
         onToggle={() => setIsTwinExpanded((current) => !current)}
       />
-      {props.memories.length === 0 ? (
-        <span className="sr-only">No public memories attached yet</span>
-      ) : null}
 
       <div className="pointer-events-none absolute right-9 bottom-5 z-20 hidden items-center gap-5 font-mono text-xs text-[var(--ns-text-muted)] md:flex">
         <span>{props.essays.length} 文章</span>

@@ -504,6 +504,7 @@ describe("HomePageView", () => {
     )
 
     expect(screen.getByText("No planets in this universe yet")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "展开 Null AI" }))
     expect(screen.getByText("No public memories attached yet")).toBeInTheDocument()
   })
 
@@ -566,6 +567,7 @@ describe("HomePageView", () => {
     expect(screen.getByRole("dialog", { name: "Null AI 对话" })).toHaveTextContent(
       "当前上下文：Work"
     )
+    expect(screen.getByPlaceholderText("搜索或和 Null AI 聊聊...")).toHaveFocus()
 
     fireEvent.change(screen.getByPlaceholderText("搜索或和 Null AI 聊聊..."), {
       target: { value: "总结这个行星" },
@@ -573,14 +575,18 @@ describe("HomePageView", () => {
     fireEvent.click(screen.getByRole("button", { name: "发送给 Null AI" }))
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        "/api/twin/chat",
-        expect.objectContaining({ body: expect.stringContaining("总结这个行星") })
-      )
+      expect(fetchMock).toHaveBeenCalledTimes(1)
     })
+    const request = fetchMock.mock.calls[0]?.[1]
+    const body = JSON.parse(String(request?.body))
+
+    expect(body.message).toBe("总结这个行星")
+    expect(body.contextCard.title).toBe("Work")
+    expect(body.focusedPlanetId).toBe(1)
     expect(await screen.findByText("Contextual AI reply")).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "收起 Null AI" }))
     expect(screen.queryByRole("dialog", { name: "Null AI 对话" })).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "展开 Null AI" })).toHaveFocus()
   })
 })
