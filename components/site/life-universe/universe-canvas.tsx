@@ -1,5 +1,5 @@
 import type { MouseEvent, WheelEvent } from "react"
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import type {
   CanvasPan,
@@ -15,6 +15,7 @@ const ACTION_GROUP_WIDTH = 180
 const ACTION_GROUP_HEIGHT = 48
 const ACTION_GROUP_GAP = 14
 const ACTION_GROUP_TOP_MARGIN = 8
+const BASE_ZOOM = 78
 
 export function UniverseCanvas({
   cards,
@@ -49,13 +50,24 @@ export function UniverseCanvas({
   readonly onShowRelated: (cardId: string) => void
   readonly onWheelZoom: (deltaY: number) => void
 }) {
-  const selectedCard = cards.find((card) => card.id === selectedCardId)
-  const actionGroupPosition = selectedCard
-    ? getActionGroupPosition(selectedCard)
+  const [hoveredCardId, setHoveredCardId] = useState<string | undefined>(undefined)
+  const hoveredCard = hoveredCardId
+    ? cards.find((card) => card.id === hoveredCardId)
     : undefined
-  const cameraTransform = detail
-    ? `translate(calc(-50% + ${480 - detail.card.x - detail.card.width / 2}px), calc(-50% + ${330 - detail.card.y - detail.card.height / 2}px)) scale(1.28)`
-    : `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) scale(${zoom / 78})`
+  const actionGroupLayoutPosition = hoveredCard
+    ? getActionGroupPosition(hoveredCard)
+    : undefined
+  const cameraScale = detail ? 1.28 : zoom / BASE_ZOOM
+  const cameraPan = detail
+    ? {
+        x: 480 - detail.card.x - detail.card.width / 2,
+        y: 330 - detail.card.y - detail.card.height / 2,
+      }
+    : pan
+  const cameraTransform = `translate(${cameraPan.x}px, ${cameraPan.y}px) scale(${cameraScale})`
+  const actionGroupPosition = actionGroupLayoutPosition
+    ? projectCameraPosition(actionGroupLayoutPosition, cameraPan, cameraScale)
+    : undefined
   const dragStartRef = useRef<
     | {
         readonly clientX: number
@@ -145,6 +157,10 @@ export function UniverseCanvas({
     onSelectCardRef.current(cardId)
   }, [])
 
+  const handleCardHover = useCallback((cardId: string) => {
+    setHoveredCardId(cardId)
+  }, [])
+
   function handleWheel(event: WheelEvent<HTMLElement>) {
     event.preventDefault()
     scheduleWheel(event.deltaY)
@@ -163,6 +179,10 @@ export function UniverseCanvas({
   }
 
   function handleMouseMove(event: MouseEvent<HTMLElement>) {
+    if (!isHoverTarget(event.target)) {
+      setHoveredCardId(undefined)
+    }
+
     const dragStart = dragStartRef.current
 
     if (!dragStart) {
@@ -179,6 +199,11 @@ export function UniverseCanvas({
     dragStartRef.current = undefined
   }
 
+  function handleMouseLeave() {
+    stopDrag()
+    setHoveredCardId(undefined)
+  }
+
   return (
     <section
       role="region"
@@ -189,47 +214,10 @@ export function UniverseCanvas({
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={stopDrag}
-      onMouseLeave={stopDrag}
+      onMouseLeave={handleMouseLeave}
       className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 cursor-grab overflow-hidden active:cursor-grabbing md:left-20 md:right-6 md:top-20 md:bottom-20"
     >
       <div className="absolute inset-0 rounded-[2rem] border border-[var(--ns-glass-border)] bg-[var(--ns-canvas-wash)]" />
-      <svg
-        data-universe-lines="true"
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full opacity-70"
-        viewBox="0 0 960 660"
-      >
-        <path
-          d="M135 134 L365 245 L505 112 L742 256 L623 454 L426 455 L260 360 L135 134"
-          fill="none"
-          className="connection-line"
-          strokeWidth="1"
-        />
-        <path
-          d="M260 360 L445 315 L623 454 M445 315 L742 256 M365 245 L445 315"
-          fill="none"
-          className="connection-line animated"
-          strokeWidth="1"
-        />
-        {[
-          [135, 134],
-          [365, 245],
-          [505, 112],
-          [742, 256],
-          [623, 454],
-          [426, 455],
-          [260, 360],
-          [445, 315],
-        ].map(([cx, cy]) => (
-          <circle
-            key={`${cx}-${cy}`}
-            cx={cx}
-            cy={cy}
-            r="3"
-            fill="var(--ns-accent-secondary)"
-          />
-        ))}
-      </svg>
 
       {!hasPlanets ? (
         <div className="null-space-panel absolute left-1/2 top-1/2 z-30 w-72 -translate-x-1/2 -translate-y-1/2 p-4 text-center text-sm text-[var(--ns-text-tertiary)]">
@@ -243,51 +231,102 @@ export function UniverseCanvas({
         data-related-scope={isRelatedScopeActive ? "true" : "false"}
         className="universe-scene-3d absolute left-1/2 top-1/2 h-[660px] w-[960px] origin-center"
         style={{
-          transform: cameraTransform,
+          transform: "translate(-50%, -50%)",
         }}
       >
-        {cards.map((card) => (
-          <UniverseCard
-            key={card.id}
-            card={card}
-            isEntered={card.id === enteredCardId}
-            isRelated={!relatedScopeCardId || card.id === relatedScopeCardId}
-            isSelected={card.id === selectedCardId}
-            onEnter={handleCardEnter}
-            onSelect={handleCardSelect}
-          />
-        ))}
+        <div
+          data-testid="universe-camera"
+          className="universe-camera absolute inset-0 h-full w-full origin-center"
+          style={{
+            transform: cameraTransform,
+          }}
+        >
+          <svg
+            data-universe-lines="true"
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full opacity-70"
+            viewBox="0 0 960 660"
+          >
+            <path
+              d="M135 134 L365 245 L505 112 L742 256 L623 454 L426 455 L260 360 L135 134"
+              fill="none"
+              className="connection-line"
+              strokeWidth="1"
+            />
+            <path
+              d="M260 360 L445 315 L623 454 M445 315 L742 256 M365 245 L445 315"
+              fill="none"
+              className="connection-line animated"
+              strokeWidth="1"
+            />
+            {[
+              [135, 134],
+              [365, 245],
+              [505, 112],
+              [742, 256],
+              [623, 454],
+              [426, 455],
+              [260, 360],
+              [445, 315],
+            ].map(([cx, cy]) => (
+              <circle
+                key={`${cx}-${cy}`}
+                cx={cx}
+                cy={cy}
+                r="3"
+                fill="var(--ns-accent-secondary)"
+              />
+            ))}
+          </svg>
 
-        {selectedCard && !detail ? (
+          {cards.map((card) => (
+            <UniverseCard
+              key={card.id}
+              card={card}
+              isEntered={card.id === enteredCardId}
+              isRelated={!relatedScopeCardId || card.id === relatedScopeCardId}
+              isSelected={card.id === selectedCardId}
+              onEnter={handleCardEnter}
+              onHover={handleCardHover}
+              onSelect={handleCardSelect}
+            />
+          ))}
+        </div>
+
+        {hoveredCard && actionGroupPosition && !detail ? (
           <div
             data-testid="planet-action-group"
+            data-anchor-card-id={hoveredCard.id}
+            data-layer="top"
             data-layout-x={actionGroupPosition?.x}
             data-layout-y={actionGroupPosition?.y}
             className="planet-action-group"
+            onMouseEnter={() => setHoveredCardId(hoveredCard.id)}
             style={{
               left: actionGroupPosition?.x,
               top: actionGroupPosition?.y,
               width: ACTION_GROUP_WIDTH,
+              zIndex: 240,
             }}
           >
             <button
               type="button"
-              aria-label={`进入 ${selectedCard.title}`}
-              onClick={() => onEnterCard(selectedCard.id)}
+              aria-label={`进入 ${hoveredCard.title}`}
+              onClick={() => onEnterCard(hoveredCard.id)}
             >
               进入
             </button>
             <button
               type="button"
-              aria-label={`询问 ${selectedCard.title}`}
-              onClick={() => onAskTwin(selectedCard.id)}
+              aria-label={`询问 ${hoveredCard.title}`}
+              onClick={() => onAskTwin(hoveredCard.id)}
             >
               问 AI
             </button>
             <button
               type="button"
-              aria-label={`查看 ${selectedCard.title} 关联`}
-              onClick={() => onShowRelated(selectedCard.id)}
+              aria-label={`查看 ${hoveredCard.title} 关联`}
+              onClick={() => onShowRelated(hoveredCard.id)}
             >
               关联
             </button>
@@ -346,8 +385,22 @@ export function UniverseCanvas({
 }
 
 function isInteractiveTarget(target: EventTarget) {
+  if (!(target instanceof HTMLElement)) {
+    return false
+  }
+
+  if (target.closest('[data-testid="universe-card"]')) {
+    return false
+  }
+
+  return Boolean(target.closest("button,input,textarea,a"))
+}
+
+function isHoverTarget(target: EventTarget) {
   return target instanceof HTMLElement
-    ? Boolean(target.closest("button,input,textarea,a"))
+    ? Boolean(
+        target.closest('[data-testid="universe-card"],[data-testid="planet-action-group"]')
+      )
     : false
 }
 
@@ -369,4 +422,19 @@ function getActionGroupPosition(selectedCard: UniverseCardModel) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
+}
+
+function projectCameraPosition(
+  position: { readonly x: number; readonly y: number },
+  pan: CanvasPan,
+  scale: number
+) {
+  const x = VIEWPORT_WIDTH / 2 + (position.x - VIEWPORT_WIDTH / 2) * scale + pan.x
+  const y =
+    VIEWPORT_HEIGHT / 2 + (position.y - VIEWPORT_HEIGHT / 2) * scale + pan.y
+
+  return {
+    x: clamp(x, 0, VIEWPORT_WIDTH - ACTION_GROUP_WIDTH),
+    y: clamp(y, 0, VIEWPORT_HEIGHT - ACTION_GROUP_HEIGHT),
+  }
 }

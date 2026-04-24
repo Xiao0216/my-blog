@@ -251,9 +251,16 @@ describe("HomePageView", () => {
     expect(workCard.getAttribute("style")).toContain("--card-rotate-y")
     expect(workCard.getAttribute("style")).toContain("--card-depth")
 
+    expect(screen.queryByTestId("planet-action-group")).not.toBeInTheDocument()
+    fireEvent.mouseEnter(workCard)
+
     expect(screen.getByRole("button", { name: "进入 Work" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "询问 Work" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "查看 Work 关联" })).toBeInTheDocument()
+    expect(screen.getByTestId("planet-action-group")).toHaveAttribute(
+      "data-layer",
+      "top"
+    )
   })
 
   it("enters a planet detail overlay on double click and returns to the universe", () => {
@@ -459,8 +466,10 @@ describe("HomePageView", () => {
     expect(within(interactiveShell).queryByRole("button", { name: "放大画布" })).toBeNull()
   })
 
-  it("keeps the selected card action group inside the viewport for right-edge cards", () => {
+  it("keeps the hovered card action group inside the top viewport layer", () => {
     render(<HomePageView {...buildProps()} />)
+
+    expect(screen.queryByTestId("planet-action-group")).not.toBeInTheDocument()
 
     const cards = screen.getAllByTestId("universe-card")
     const rightMostCard = cards.reduce((currentRightMost, card) => {
@@ -473,12 +482,13 @@ describe("HomePageView", () => {
       return nextRightEdge > currentRightEdge ? card : currentRightMost
     })
 
-    fireEvent.click(rightMostCard)
+    fireEvent.mouseEnter(rightMostCard)
 
     const actionGroup = screen.getByTestId("planet-action-group")
     const actionGroupX = Number(actionGroup.getAttribute("data-layout-x"))
     const actionGroupWidth = 180
 
+    expect(actionGroup).toHaveAttribute("data-layer", "top")
     expect(actionGroupX).toBeGreaterThanOrEqual(0)
     expect(actionGroupX).toBeLessThanOrEqual(960 - actionGroupWidth)
     expect(actionGroupX + actionGroupWidth).toBeLessThanOrEqual(960)
@@ -548,33 +558,60 @@ describe("HomePageView", () => {
     )
   })
 
-  it("supports wheel zoom and drag panning on the universe canvas", async () => {
+  it("zooms the universe camera without scaling the viewport shell", async () => {
     render(<HomePageView {...buildProps()} />)
 
     const canvas = screen.getByRole("region", {
       name: "Null Space universe canvas",
     })
     const viewport = screen.getByTestId("universe-viewport")
+    const camera = screen.getByTestId("universe-camera")
 
     fireEvent.wheel(canvas, { deltaY: -120 })
     await waitFor(() => {
       expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
     })
 
+    expect(viewport).toHaveStyle({
+      transform: "translate(-50%, -50%)",
+    })
+    expect(camera).toHaveStyle({
+      transform: "translate(0px, 0px) scale(1.1025641025641026)",
+    })
+  })
+
+  it("pans the universe camera when dragging from the canvas or a card", async () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const canvas = screen.getByRole("region", {
+      name: "Null Space universe canvas",
+    })
+    const camera = screen.getByTestId("universe-camera")
+
     fireEvent.mouseDown(canvas, { clientX: 100, clientY: 120 })
     fireEvent.mouseMove(canvas, { clientX: 136, clientY: 158 })
     fireEvent.mouseUp(canvas)
 
     await waitFor(() => {
-      expect(viewport).toHaveStyle({
-        transform:
-          "translate(calc(-50% + 36px), calc(-50% + 38px)) scale(1.1025641025641026)",
+      expect(camera).toHaveStyle({
+        transform: "translate(36px, 38px) scale(1)",
       })
     })
 
     fireEvent.click(screen.getByRole("button", { name: "重置画布视角" }))
-    expect(viewport).toHaveStyle({
-      transform: "translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1)",
+    expect(camera).toHaveStyle({
+      transform: "translate(0px, 0px) scale(1)",
+    })
+
+    const workCard = screen.getByRole("button", { name: "聚焦 Work" })
+    fireEvent.mouseDown(workCard, { clientX: 200, clientY: 220 })
+    fireEvent.mouseMove(canvas, { clientX: 236, clientY: 258 })
+    fireEvent.mouseUp(canvas)
+
+    await waitFor(() => {
+      expect(camera).toHaveStyle({
+        transform: "translate(36px, 38px) scale(1)",
+      })
     })
   })
 

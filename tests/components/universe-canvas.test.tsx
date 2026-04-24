@@ -20,6 +20,7 @@ vi.mock("@/components/site/life-universe/universe-card", () => ({
     readonly isRelated?: boolean
     readonly isSelected: boolean
     readonly onEnter: (cardId: string) => void
+    readonly onHover: (cardId: string) => void
     readonly onSelect: (cardId: string) => void
   }) {
     renderCounts.set(card.id, (renderCounts.get(card.id) ?? 0) + 1)
