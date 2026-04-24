@@ -4,6 +4,17 @@ import type { ProjectEntry } from "@/data/projects"
 import type { ProfileData } from "@/data/site"
 
 export type ContentStatus = "published" | "draft"
+export type PlanetSize = "small" | "medium" | "large"
+export type MemoryType =
+  | "diary"
+  | "behavior"
+  | "opinion"
+  | "project"
+  | "habit"
+  | "preference"
+  | "milestone"
+  | "bio"
+export type MemoryVisibility = "public" | "assistant" | "private"
 
 export type StoredProfile = ProfileData & {
   readonly email: string
@@ -23,6 +34,48 @@ export type StoredProject = ProjectEntry & {
 
 export type StoredNote = NoteEntry & {
   readonly status: ContentStatus
+}
+
+export type StoredPlanet = {
+  readonly id: number
+  readonly slug: string
+  readonly name: string
+  readonly summary: string
+  readonly description: string
+  readonly x: number
+  readonly y: number
+  readonly size: PlanetSize
+  readonly theme: string
+  readonly status: ContentStatus
+  readonly sortOrder: number
+  readonly weight: number
+}
+
+export type StoredMemory = {
+  readonly id: number
+  readonly planetId: number
+  readonly planetSlug: string
+  readonly planetName: string
+  readonly title: string
+  readonly content: string
+  readonly type: MemoryType
+  readonly occurredAt: string
+  readonly visibility: MemoryVisibility
+  readonly importance: number
+  readonly tags: ReadonlyArray<string>
+  readonly source: string
+}
+
+export type StoredTwinIdentity = {
+  readonly displayName: string
+  readonly subtitle: string
+  readonly avatarDescription: string
+  readonly firstPersonStyle: string
+  readonly thirdPersonStyle: string
+  readonly values: ReadonlyArray<string>
+  readonly communicationRules: ReadonlyArray<string>
+  readonly privacyRules: ReadonlyArray<string>
+  readonly uncertaintyRules: ReadonlyArray<string>
 }
 
 export type EssayInput = {
@@ -67,6 +120,13 @@ export type ProfileInput = {
   readonly certifications: ReadonlyArray<string>
 }
 
+export type PlanetInput = Omit<StoredPlanet, "id">
+export type MemoryInput = Omit<
+  StoredMemory,
+  "id" | "planetSlug" | "planetName"
+>
+export type TwinIdentityInput = StoredTwinIdentity
+
 type ValidationResult<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly errors: Record<string, string> }
@@ -95,6 +155,32 @@ export function parseStringArray(value: unknown): ReadonlyArray<string> {
 
 export function parseStatus(value: unknown): ContentStatus {
   return value === "draft" ? "draft" : "published"
+}
+
+function isValidPlanetSize(value: string): value is PlanetSize {
+  return value === "small" || value === "medium" || value === "large"
+}
+
+function isValidMemoryType(value: string): value is MemoryType {
+  return [
+    "diary",
+    "behavior",
+    "opinion",
+    "project",
+    "habit",
+    "preference",
+    "milestone",
+    "bio",
+  ].includes(value)
+}
+
+function isValidMemoryVisibility(value: string): value is MemoryVisibility {
+  return value === "public" || value === "assistant" || value === "private"
+}
+
+function parseNumberField(value: string, fallback: number): number {
+  const parsed = Number.parseInt(value || String(fallback), 10)
+  return Number.isFinite(parsed) ? parsed : Number.NaN
 }
 
 function formText(formData: FormData, key: string): string {
@@ -285,6 +371,165 @@ export function parseProfileFormData(
       longBio: parseLineList(formText(formData, "longBio")),
       skills: parseLineList(formText(formData, "skills")),
       certifications: parseLineList(formText(formData, "certifications")),
+    },
+  }
+}
+
+export function parsePlanetFormData(
+  formData: FormData
+): ValidationResult<PlanetInput> {
+  const slug = formText(formData, "slug")
+  const name = formText(formData, "name")
+  const summary = formText(formData, "summary")
+  const description = formText(formData, "description")
+  const x = parseNumberField(formText(formData, "x"), 0)
+  const y = parseNumberField(formText(formData, "y"), 0)
+  const size = formText(formData, "size") || "medium"
+  const theme = formText(formData, "theme") || "cyan"
+  const status = formText(formData, "status")
+  const sortOrder = parseNumberField(formText(formData, "sortOrder"), 0)
+  const weight = parseNumberField(formText(formData, "weight"), 5)
+  const errors: Record<string, string> = {}
+
+  validateRequired(errors, { name, summary })
+  validateCommonContentFields(errors, slug, status)
+
+  if (!Number.isFinite(x)) {
+    errors.x = "坐标必须是数字"
+  }
+
+  if (!Number.isFinite(y)) {
+    errors.y = "坐标必须是数字"
+  }
+
+  if (!isValidPlanetSize(size)) {
+    errors.size = "尺寸只能是 small、medium 或 large"
+  }
+
+  if (!Number.isFinite(sortOrder)) {
+    errors.sortOrder = "排序必须是数字"
+  }
+
+  if (!Number.isFinite(weight) || weight < 1 || weight > 10) {
+    errors.weight = "权重必须是 1 到 10 的数字"
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, errors }
+  }
+
+  const planetSize = size as PlanetSize
+
+  return {
+    ok: true,
+    value: {
+      slug,
+      name,
+      summary,
+      description,
+      x,
+      y,
+      size: planetSize,
+      theme,
+      status: status as ContentStatus,
+      sortOrder,
+      weight,
+    },
+  }
+}
+
+export function parseMemoryFormData(
+  formData: FormData
+): ValidationResult<MemoryInput> {
+  const planetId = parseNumberField(formText(formData, "planetId"), 0)
+  const title = formText(formData, "title")
+  const content = formText(formData, "content")
+  const type = formText(formData, "type")
+  const occurredAt = formText(formData, "occurredAt")
+  const visibility = formText(formData, "visibility")
+  const importance = parseNumberField(formText(formData, "importance"), 5)
+  const source = formText(formData, "source") || "manual"
+  const errors: Record<string, string> = {}
+
+  validateRequired(errors, { title, content })
+
+  if (!Number.isFinite(planetId) || planetId < 1) {
+    errors.planetId = "请选择有效星球"
+  }
+
+  if (!isValidMemoryType(type)) {
+    errors.type = "记忆类型无效"
+  }
+
+  if (!isValidDateText(occurredAt)) {
+    errors.occurredAt = "请输入有效日期"
+  }
+
+  if (!isValidMemoryVisibility(visibility)) {
+    errors.visibility = "可见性无效"
+  }
+
+  if (!Number.isFinite(importance) || importance < 1 || importance > 10) {
+    errors.importance = "重要度必须是 1 到 10 的数字"
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, errors }
+  }
+
+  const memoryType = type as MemoryType
+  const memoryVisibility = visibility as MemoryVisibility
+
+  return {
+    ok: true,
+    value: {
+      planetId,
+      title,
+      content,
+      type: memoryType,
+      occurredAt,
+      visibility: memoryVisibility,
+      importance,
+      tags: parseCommaList(formText(formData, "tags")),
+      source,
+    },
+  }
+}
+
+export function parseTwinIdentityFormData(
+  formData: FormData
+): ValidationResult<TwinIdentityInput> {
+  const displayName = formText(formData, "displayName")
+  const subtitle = formText(formData, "subtitle")
+  const avatarDescription = formText(formData, "avatarDescription")
+  const firstPersonStyle = formText(formData, "firstPersonStyle")
+  const thirdPersonStyle = formText(formData, "thirdPersonStyle")
+  const errors: Record<string, string> = {}
+
+  validateRequired(errors, {
+    displayName,
+    subtitle,
+    avatarDescription,
+    firstPersonStyle,
+    thirdPersonStyle,
+  })
+
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, errors }
+  }
+
+  return {
+    ok: true,
+    value: {
+      displayName,
+      subtitle,
+      avatarDescription,
+      firstPersonStyle,
+      thirdPersonStyle,
+      values: parseLineList(formText(formData, "values")),
+      communicationRules: parseLineList(formText(formData, "communicationRules")),
+      privacyRules: parseLineList(formText(formData, "privacyRules")),
+      uncertaintyRules: parseLineList(formText(formData, "uncertaintyRules")),
     },
   }
 }

@@ -12,13 +12,19 @@ import { profile, siteConfig } from "@/data/site"
 import type { ProfileData } from "@/data/site"
 import {
   type EssayInput,
+  type MemoryInput,
   type NoteInput,
+  type PlanetInput,
   type ProfileInput,
   type ProjectInput,
+  type StoredMemory,
   type StoredNote,
+  type StoredPlanet,
   type StoredProfile,
   type StoredProject,
   type StoredEssay,
+  type StoredTwinIdentity,
+  type TwinIdentityInput,
   parseStatus,
   parseStringArray,
   stringifyArray,
@@ -69,6 +75,48 @@ type ProfileRow = {
   updated_at: string
 }
 
+type PlanetRow = {
+  id: number
+  slug: string
+  name: string
+  summary: string
+  description: string
+  x: number
+  y: number
+  size: string
+  theme: string
+  status: string
+  sort_order: number
+  weight: number
+}
+
+type MemoryRow = {
+  id: number
+  planet_id: number
+  planet_slug: string
+  planet_name: string
+  title: string
+  content: string
+  type: string
+  occurred_at: string
+  visibility: string
+  importance: number
+  tags_json: string
+  source: string
+}
+
+type TwinIdentityRow = {
+  display_name: string
+  subtitle: string
+  avatar_description: string
+  first_person_style: string
+  third_person_style: string
+  values_json: string
+  communication_rules_json: string
+  privacy_rules_json: string
+  uncertainty_rules_json: string
+}
+
 export type AdminContentSummary = {
   readonly publishedEssays: number
   readonly draftEssays: number
@@ -76,6 +124,11 @@ export type AdminContentSummary = {
   readonly draftProjects: number
   readonly publishedNotes: number
   readonly draftNotes: number
+  readonly publishedPlanets: number
+  readonly draftPlanets: number
+  readonly publicMemories: number
+  readonly assistantMemories: number
+  readonly privateMemories: number
 }
 
 const initializedDatabasePaths = new Set<string>()
@@ -88,7 +141,7 @@ function openDatabase(): DatabaseSync {
   const databasePath = getDatabasePath()
   mkdirSync(dirname(databasePath), { recursive: true })
   const database = new DatabaseSync(databasePath)
-  database.exec("PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL;")
+  database.exec("PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;")
   return database
 }
 
@@ -166,6 +219,55 @@ function createTables(database: DatabaseSync) {
       published_at TEXT NOT NULL,
       status TEXT NOT NULL CHECK (status IN ('published', 'draft')),
       created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS planets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      description TEXT NOT NULL,
+      x INTEGER NOT NULL DEFAULT 0,
+      y INTEGER NOT NULL DEFAULT 0,
+      size TEXT NOT NULL CHECK (size IN ('small', 'medium', 'large')),
+      theme TEXT NOT NULL,
+      status TEXT NOT NULL CHECK (status IN ('published', 'draft')),
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      weight INTEGER NOT NULL DEFAULT 5,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS memories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      planet_id INTEGER NOT NULL REFERENCES planets(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      type TEXT NOT NULL CHECK (
+        type IN ('diary', 'behavior', 'opinion', 'project', 'habit', 'preference', 'milestone', 'bio')
+      ),
+      occurred_at TEXT NOT NULL,
+      visibility TEXT NOT NULL CHECK (visibility IN ('public', 'assistant', 'private')),
+      importance INTEGER NOT NULL DEFAULT 5,
+      tags_json TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT 'manual',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(planet_id, title, source)
+    );
+
+    CREATE TABLE IF NOT EXISTS twin_identity (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      display_name TEXT NOT NULL,
+      subtitle TEXT NOT NULL,
+      avatar_description TEXT NOT NULL,
+      first_person_style TEXT NOT NULL,
+      third_person_style TEXT NOT NULL,
+      values_json TEXT NOT NULL,
+      communication_rules_json TEXT NOT NULL,
+      privacy_rules_json TEXT NOT NULL,
+      uncertainty_rules_json TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
   `)
@@ -269,11 +371,196 @@ function seedNotes(database: DatabaseSync) {
   }
 }
 
+const lifeUniverseSeedPlanets: ReadonlyArray<PlanetInput> = [
+  {
+    slug: "life",
+    name: "Life",
+    summary: "Daily rhythm, relationships with the world, and lived texture.",
+    description:
+      "The life planet records ordinary days, choices, observations, and non-work context.",
+    x: -260,
+    y: 120,
+    size: "large",
+    theme: "teal",
+    status: "published",
+    sortOrder: 1,
+    weight: 8,
+  },
+  {
+    slug: "work",
+    name: "Work",
+    summary: "Delivery habits, collaboration, and engineering judgment.",
+    description:
+      "The work planet captures how projects are understood, built, shipped, and maintained.",
+    x: 160,
+    y: -140,
+    size: "large",
+    theme: "cyan",
+    status: "published",
+    sortOrder: 2,
+    weight: 9,
+  },
+  {
+    slug: "diary",
+    name: "Diary",
+    summary: "Short reflections and personal state over time.",
+    description:
+      "The diary planet keeps small, timestamped fragments that explain mood, context, and change.",
+    x: 420,
+    y: 170,
+    size: "medium",
+    theme: "violet",
+    status: "published",
+    sortOrder: 3,
+    weight: 6,
+  },
+  {
+    slug: "technology",
+    name: "Technology",
+    summary: "Front-end systems, performance, AI, and product engineering.",
+    description:
+      "The technology planet connects articles, experiments, and engineering opinions.",
+    x: -40,
+    y: 320,
+    size: "large",
+    theme: "blue",
+    status: "published",
+    sortOrder: 4,
+    weight: 8,
+  },
+  {
+    slug: "health",
+    name: "Health",
+    summary: "Energy, habits, body signals, and sustainable pace.",
+    description:
+      "The health planet tracks routines and constraints that affect long-term output.",
+    x: -500,
+    y: -160,
+    size: "medium",
+    theme: "emerald",
+    status: "published",
+    sortOrder: 5,
+    weight: 5,
+  },
+]
+
+function seedLifeUniverse(database: DatabaseSync) {
+  const timestamp = nowText()
+  const planetStatement = database.prepare(`
+    INSERT OR IGNORE INTO planets (
+      slug, name, summary, description, x, y, size, theme, status,
+      sort_order, weight, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+
+  for (const planet of lifeUniverseSeedPlanets) {
+    planetStatement.run(
+      planet.slug,
+      planet.name,
+      planet.summary,
+      planet.description,
+      planet.x,
+      planet.y,
+      planet.size,
+      planet.theme,
+      planet.status,
+      planet.sortOrder,
+      planet.weight,
+      timestamp,
+      timestamp
+    )
+  }
+
+  const work = database
+    .prepare("SELECT id FROM planets WHERE slug = 'work'")
+    .get() as { id: number } | undefined
+  const technology = database
+    .prepare("SELECT id FROM planets WHERE slug = 'technology'")
+    .get() as { id: number } | undefined
+
+  if (work) {
+    run(
+      database,
+      `INSERT OR IGNORE INTO memories (
+        planet_id, title, content, type, occurred_at, visibility, importance,
+        tags_json, source, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        work.id,
+        "Front-end engineer focused on maintainable delivery",
+        "Since 2020, I have worked on medical systems, data platforms, H5, mini programs, and enterprise products with a focus on stable delivery and maintainable architecture.",
+        "bio",
+        "2026-04-24",
+        "public",
+        9,
+        stringifyArray(["work", "frontend", "delivery"]),
+        "seed",
+        timestamp,
+        timestamp,
+      ]
+    )
+  }
+
+  if (technology) {
+    run(
+      database,
+      `INSERT OR IGNORE INTO memories (
+        planet_id, title, content, type, occurred_at, visibility, importance,
+        tags_json, source, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        technology.id,
+        "Technology interests",
+        "I pay attention to Vue, engineering systems, ECharts visualization, WebSocket real-time communication, performance optimization, WebGL, and AI agents.",
+        "preference",
+        "2026-04-24",
+        "assistant",
+        8,
+        stringifyArray(["technology", "ai", "frontend"]),
+        "seed",
+        timestamp,
+        timestamp,
+      ]
+    )
+  }
+
+  run(
+    database,
+    `INSERT OR IGNORE INTO twin_identity (
+      id, display_name, subtitle, avatar_description, first_person_style,
+      third_person_style, values_json, communication_rules_json,
+      privacy_rules_json, uncertainty_rules_json, updated_at
+    ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      "縉紳 AI",
+      "记忆驱动的数字分身",
+      "A quiet dark-space assistant avatar with a glass halo.",
+      "Use first person for public, well-supported facts and explain reasoning directly.",
+      "Use proxy wording when the answer is uncertain, private, or commitment-heavy.",
+      stringifyArray([
+        "Clarity",
+        "Pragmatism",
+        "Maintainability",
+        "Long-term thinking",
+      ]),
+      stringifyArray([
+        "Be direct",
+        "Use concise answers",
+        "Reference relevant memories",
+      ]),
+      stringifyArray(["Do not expose private memories", "Do not invent personal facts"]),
+      stringifyArray(["State uncertainty when memory support is weak"]),
+      timestamp,
+    ]
+  )
+}
+
 function seedDatabase(database: DatabaseSync) {
   seedProfile(database)
   seedEssays(database)
   seedProjects(database)
   seedNotes(database)
+  seedLifeUniverse(database)
 }
 
 function mapEssayRow(row: EssayRow): StoredEssay {
@@ -324,6 +611,68 @@ function mapProfileRow(row: ProfileRow): StoredProfile {
     skills: parseStringArray(row.skills_json),
     certifications: parseStringArray(row.certifications_json),
   }
+}
+
+function mapPlanetRow(row: PlanetRow): StoredPlanet {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    summary: row.summary,
+    description: row.description,
+    x: row.x,
+    y: row.y,
+    size: row.size === "small" || row.size === "large" ? row.size : "medium",
+    theme: row.theme,
+    status: parseStatus(row.status),
+    sortOrder: row.sort_order,
+    weight: row.weight,
+  }
+}
+
+function mapMemoryRow(row: MemoryRow): StoredMemory {
+  return {
+    id: row.id,
+    planetId: row.planet_id,
+    planetSlug: row.planet_slug,
+    planetName: row.planet_name,
+    title: row.title,
+    content: row.content,
+    type: row.type as StoredMemory["type"],
+    occurredAt: row.occurred_at,
+    visibility: row.visibility as StoredMemory["visibility"],
+    importance: row.importance,
+    tags: parseStringArray(row.tags_json),
+    source: row.source,
+  }
+}
+
+function mapTwinIdentityRow(row: TwinIdentityRow): StoredTwinIdentity {
+  return {
+    displayName: row.display_name,
+    subtitle: row.subtitle,
+    avatarDescription: row.avatar_description,
+    firstPersonStyle: row.first_person_style,
+    thirdPersonStyle: row.third_person_style,
+    values: parseStringArray(row.values_json),
+    communicationRules: parseStringArray(row.communication_rules_json),
+    privacyRules: parseStringArray(row.privacy_rules_json),
+    uncertaintyRules: parseStringArray(row.uncertainty_rules_json),
+  }
+}
+
+const fallbackTwinIdentity: StoredTwinIdentity = {
+  displayName: "縉紳 AI",
+  subtitle: "记忆驱动的数字分身",
+  avatarDescription: "A quiet dark-space assistant avatar with a glass halo.",
+  firstPersonStyle:
+    "Use first person for public, well-supported facts and explain reasoning directly.",
+  thirdPersonStyle:
+    "Use proxy wording when the answer is uncertain, private, or commitment-heavy.",
+  values: ["Clarity", "Pragmatism", "Maintainability", "Long-term thinking"],
+  communicationRules: ["Be direct", "Use concise answers", "Reference relevant memories"],
+  privacyRules: ["Do not expose private memories", "Do not invent personal facts"],
+  uncertaintyRules: ["State uncertainty when memory support is weak"],
 }
 
 export function initializeCmsDatabase() {
@@ -505,10 +854,103 @@ export function getAdminNotes(): ReadonlyArray<StoredNote> {
   })
 }
 
+export function getPublicPlanets(): ReadonlyArray<StoredPlanet> {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const rows = database
+      .prepare(
+        `SELECT * FROM planets
+         WHERE status = 'published'
+         ORDER BY sort_order ASC, id ASC`
+      )
+      .all() as PlanetRow[]
+
+    return rows.map(mapPlanetRow)
+  })
+}
+
+export function getAdminPlanets(): ReadonlyArray<StoredPlanet> {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const rows = database
+      .prepare("SELECT * FROM planets ORDER BY sort_order ASC, id ASC")
+      .all() as PlanetRow[]
+
+    return rows.map(mapPlanetRow)
+  })
+}
+
+function getMemoriesByVisibility(
+  visibilitySql: string
+): ReadonlyArray<StoredMemory> {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const rows = database
+      .prepare(
+        `SELECT
+           memories.*,
+           planets.slug AS planet_slug,
+           planets.name AS planet_name
+         FROM memories
+         INNER JOIN planets ON planets.id = memories.planet_id
+         WHERE planets.status = 'published' AND ${visibilitySql}
+         ORDER BY memories.importance DESC, memories.occurred_at DESC, memories.id DESC`
+      )
+      .all() as MemoryRow[]
+
+    return rows.map(mapMemoryRow)
+  })
+}
+
+export function getPublicMemories(): ReadonlyArray<StoredMemory> {
+  return getMemoriesByVisibility("memories.visibility = 'public'")
+}
+
+export function getAssistantMemories(): ReadonlyArray<StoredMemory> {
+  return getMemoriesByVisibility("memories.visibility IN ('public', 'assistant')")
+}
+
+export function getAdminMemories(): ReadonlyArray<StoredMemory> {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const rows = database
+      .prepare(
+        `SELECT
+           memories.*,
+           planets.slug AS planet_slug,
+           planets.name AS planet_name
+         FROM memories
+         INNER JOIN planets ON planets.id = memories.planet_id
+         ORDER BY memories.occurred_at DESC, memories.id DESC`
+      )
+      .all() as MemoryRow[]
+
+    return rows.map(mapMemoryRow)
+  })
+}
+
+export function getTwinIdentity(): StoredTwinIdentity {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const row = database
+      .prepare("SELECT * FROM twin_identity WHERE id = 1")
+      .get() as TwinIdentityRow | undefined
+
+    return row ? mapTwinIdentityRow(row) : fallbackTwinIdentity
+  })
+}
+
 export function getAdminContentSummary(): AdminContentSummary {
   const essays = getAdminEssays()
   const projects = getAdminProjects()
   const notes = getAdminNotes()
+  const planets = getAdminPlanets()
+  const memories = getAdminMemories()
 
   return {
     publishedEssays: essays.filter((essay) => essay.status === "published").length,
@@ -517,6 +959,12 @@ export function getAdminContentSummary(): AdminContentSummary {
     draftProjects: projects.filter((project) => project.status === "draft").length,
     publishedNotes: notes.filter((note) => note.status === "published").length,
     draftNotes: notes.filter((note) => note.status === "draft").length,
+    publishedPlanets: planets.filter((planet) => planet.status === "published").length,
+    draftPlanets: planets.filter((planet) => planet.status === "draft").length,
+    publicMemories: memories.filter((memory) => memory.visibility === "public").length,
+    assistantMemories: memories.filter((memory) => memory.visibility === "assistant")
+      .length,
+    privateMemories: memories.filter((memory) => memory.visibility === "private").length,
   }
 }
 
@@ -658,6 +1106,124 @@ export function saveNote(input: NoteInput) {
   })
 }
 
+export function savePlanet(input: PlanetInput) {
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    const timestamp = nowText()
+
+    run(
+      database,
+      `INSERT INTO planets (
+        slug, name, summary, description, x, y, size, theme, status,
+        sort_order, weight, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(slug) DO UPDATE SET
+        name = excluded.name,
+        summary = excluded.summary,
+        description = excluded.description,
+        x = excluded.x,
+        y = excluded.y,
+        size = excluded.size,
+        theme = excluded.theme,
+        status = excluded.status,
+        sort_order = excluded.sort_order,
+        weight = excluded.weight,
+        updated_at = excluded.updated_at`,
+      [
+        input.slug,
+        input.name,
+        input.summary,
+        input.description,
+        input.x,
+        input.y,
+        input.size,
+        input.theme,
+        input.status,
+        input.sortOrder,
+        input.weight,
+        timestamp,
+        timestamp,
+      ]
+    )
+  })
+}
+
+export function saveMemory(input: MemoryInput) {
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    const timestamp = nowText()
+
+    run(
+      database,
+      `INSERT INTO memories (
+        planet_id, title, content, type, occurred_at, visibility, importance,
+        tags_json, source, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(planet_id, title, source) DO UPDATE SET
+        content = excluded.content,
+        type = excluded.type,
+        occurred_at = excluded.occurred_at,
+        visibility = excluded.visibility,
+        importance = excluded.importance,
+        tags_json = excluded.tags_json,
+        updated_at = excluded.updated_at`,
+      [
+        input.planetId,
+        input.title,
+        input.content,
+        input.type,
+        input.occurredAt,
+        input.visibility,
+        input.importance,
+        stringifyArray(input.tags),
+        input.source,
+        timestamp,
+        timestamp,
+      ]
+    )
+  })
+}
+
+export function saveTwinIdentity(input: TwinIdentityInput) {
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    run(
+      database,
+      `INSERT INTO twin_identity (
+        id, display_name, subtitle, avatar_description, first_person_style,
+        third_person_style, values_json, communication_rules_json,
+        privacy_rules_json, uncertainty_rules_json, updated_at
+      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        display_name = excluded.display_name,
+        subtitle = excluded.subtitle,
+        avatar_description = excluded.avatar_description,
+        first_person_style = excluded.first_person_style,
+        third_person_style = excluded.third_person_style,
+        values_json = excluded.values_json,
+        communication_rules_json = excluded.communication_rules_json,
+        privacy_rules_json = excluded.privacy_rules_json,
+        uncertainty_rules_json = excluded.uncertainty_rules_json,
+        updated_at = excluded.updated_at`,
+      [
+        input.displayName,
+        input.subtitle,
+        input.avatarDescription,
+        input.firstPersonStyle,
+        input.thirdPersonStyle,
+        stringifyArray(input.values),
+        stringifyArray(input.communicationRules),
+        stringifyArray(input.privacyRules),
+        stringifyArray(input.uncertaintyRules),
+        nowText(),
+      ]
+    )
+  })
+}
+
 export function deleteEssay(slug: string) {
   deleteBySlug("essays", slug)
 }
@@ -668,6 +1234,18 @@ export function deleteProject(slug: string) {
 
 export function deleteNote(slug: string) {
   deleteBySlug("notes", slug)
+}
+
+export function deletePlanet(slug: string) {
+  deleteBySlug("planets", slug)
+}
+
+export function deleteMemory(id: number) {
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    run(database, "DELETE FROM memories WHERE id = ?", [id])
+  })
 }
 
 export function toggleEssayStatus(slug: string) {
@@ -682,7 +1260,14 @@ export function toggleNoteStatus(slug: string) {
   toggleStatus("notes", slug)
 }
 
-function deleteBySlug(table: "essays" | "projects" | "notes", slug: string) {
+export function togglePlanetStatus(slug: string) {
+  toggleStatus("planets", slug)
+}
+
+function deleteBySlug(
+  table: "essays" | "projects" | "notes" | "planets",
+  slug: string
+) {
   initializeCmsDatabase()
 
   withDatabase((database) => {
@@ -690,7 +1275,10 @@ function deleteBySlug(table: "essays" | "projects" | "notes", slug: string) {
   })
 }
 
-function toggleStatus(table: "essays" | "projects" | "notes", slug: string) {
+function toggleStatus(
+  table: "essays" | "projects" | "notes" | "planets",
+  slug: string
+) {
   initializeCmsDatabase()
 
   withDatabase((database) => {
