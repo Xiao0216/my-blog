@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Cormorant_Garamond, IBM_Plex_Mono, Manrope } from "next/font/google"
+import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
 
@@ -9,21 +9,19 @@ import { siteConfig } from "@/data/site"
 import { normalizeSiteUrl } from "@/lib/site-url"
 import { cn } from "@/lib/utils"
 
-const headingFont = Cormorant_Garamond({
+const headingFont = Geist({
   subsets: ["latin"],
   variable: "--font-heading-display",
-  weight: ["500", "600", "700"],
 })
 
-const bodyFont = Manrope({
+const bodyFont = Geist({
   subsets: ["latin"],
   variable: "--font-sans-body",
 })
 
-const monoFont = IBM_Plex_Mono({
+const monoFont = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono-code",
-  weight: ["400", "500"],
 })
 
 export const metadata: Metadata = {

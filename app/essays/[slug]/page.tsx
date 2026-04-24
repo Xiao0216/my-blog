@@ -43,10 +43,10 @@ export default async function EssayDetailPage({ params }: EssayPageProps) {
         <p className="story-label">
           {entry.meta.publishedAt} · {entry.meta.readingTime}
         </p>
-        <h1 className="font-heading text-5xl leading-none text-foreground md:text-6xl">
+        <h1 className="text-3xl font-semibold leading-tight text-zinc-950 md:text-4xl dark:text-zinc-50">
           {entry.meta.title}
         </h1>
-        <p className="text-lg leading-8 text-muted-foreground">
+        <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
           {entry.meta.description}
         </p>
         <div className="mt-10">
