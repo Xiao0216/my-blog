@@ -45,19 +45,21 @@ function buildProps(
 }
 
 describe("HomePageView", () => {
-  it("renders the homepage structure from minimal view-model props", () => {
+  it("renders a productized homepage with identity metadata and latest feed", () => {
     const { container } = render(<HomePageView {...buildProps()} />)
 
     expect(
       screen.getByRole("heading", { name: "Fixture hero title" })
     ).toBeInTheDocument()
-    expect(screen.getByText("第一章")).toBeInTheDocument()
-    expect(screen.getByText("第二章")).toBeInTheDocument()
-    expect(screen.getByText("第三章")).toBeInTheDocument()
-    expect(screen.getByText("第四章")).toBeInTheDocument()
-    expect(screen.getByText("Note fixture")).toBeInTheDocument()
-    expect(screen.getByText("Essay fixture")).toBeInTheDocument()
-    expect(screen.getByText("Project fixture")).toBeInTheDocument()
+    expect(screen.getByText("Identity")).toBeInTheDocument()
+    expect(screen.getByText("Focus")).toBeInTheDocument()
+    expect(screen.getByText("Latest")).toBeInTheDocument()
+    expect(screen.getByText("Essay")).toBeInTheDocument()
+    expect(screen.getByText("Project")).toBeInTheDocument()
+    expect(screen.getByText("Note")).toBeInTheDocument()
+    expect(screen.getAllByText("A short essay description").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("A project note").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("A short note body").length).toBeGreaterThan(0)
     expect(screen.getByText("2026-03-01").tagName).toBe("TIME")
     expect(screen.getByText("2026-03-01")).toHaveAttribute(
       "dateTime",
@@ -68,14 +70,14 @@ describe("HomePageView", () => {
       "dateTime",
       "2026-03-02"
     )
-    expect(screen.getByRole("link", { name: "进入文章" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "View all essays" })).toHaveAttribute(
       "href",
       "/essays"
     )
-    expect(container.querySelector('[aria-hidden="true"]')).toBeInTheDocument()
+    expect(container.querySelector('[aria-hidden="true"]')).not.toBeInTheDocument()
   })
 
-  it("renders fallback copy when notes, essays, and projects are empty", () => {
+  it("renders product empty states when notes, essays, and projects are empty", () => {
     render(
       <HomePageView
         {...buildProps({
@@ -86,10 +88,8 @@ describe("HomePageView", () => {
       />
     )
 
-    expect(screen.getByText("更多碎片正在整理中。")).toBeInTheDocument()
-    expect(screen.getByText("第一篇文章正在写完最后一段。")).toBeInTheDocument()
-    expect(
-      screen.getByText("正在整理值得被展开讲述的项目。")
-    ).toBeInTheDocument()
+    expect(screen.getByText("No notes yet")).toBeInTheDocument()
+    expect(screen.getByText("No essays yet")).toBeInTheDocument()
+    expect(screen.getByText("No projects yet")).toBeInTheDocument()
   })
 })

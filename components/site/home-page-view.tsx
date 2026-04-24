@@ -1,9 +1,5 @@
 import Link from "next/link"
 
-import { HeroIllustration } from "@/components/site/hero-illustration"
-import { Reveal } from "@/components/site/reveal"
-import { SectionHeading } from "@/components/site/section-heading"
-
 type HomePageProfile = {
   heroTitle: string
   heroIntro: string
@@ -44,140 +40,211 @@ export function HomePageView({
   notes,
   projects,
 }: HomePageViewProps) {
+  const feedItems = [
+    essays[0] && {
+      type: "Essay",
+      title: essays[0].title,
+      description: essays[0].description,
+      date: essays[0].publishedAt,
+    },
+    projects[0] && {
+      type: "Project",
+      title: projects[0].title,
+      description: projects[0].note,
+    },
+    notes[0] && {
+      type: "Note",
+      title: notes[0].title,
+      description: notes[0].body,
+      date: notes[0].publishedAt,
+    },
+  ].filter(
+    (
+      item
+    ): item is {
+      type: string
+      title: string
+      description: string
+      date?: string
+    } => Boolean(item)
+  )
+
+  const emptyState = (label: string) => (
+    <div className="flex items-center gap-3 rounded-lg border border-zinc-200/70 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-800/70 dark:bg-zinc-950 dark:text-zinc-400">
+      <span className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 font-mono text-xs dark:border-zinc-800">
+        —
+      </span>
+      <span>{label}</span>
+    </div>
+  )
+
+  const sectionHeading = (label: string, title: string, intro: string) => (
+    <div className="space-y-2">
+      <p className="font-mono text-[0.68rem] font-medium tracking-[0.14em] text-zinc-500 uppercase dark:text-zinc-400">
+        {label}
+      </p>
+      <h2 className="text-2xl font-semibold leading-tight text-zinc-950 md:text-3xl dark:text-zinc-50">
+        {title}
+      </h2>
+      <p className="max-w-2xl text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+        {intro}
+      </p>
+    </div>
+  )
+
   return (
-    <div className="page-frame">
-      <section className="story-section grid gap-10 md:grid-cols-[1.1fr_.9fr] md:items-center">
-        <Reveal className="space-y-6">
-          <p className="story-label">序章</p>
-          <h1 className="font-heading text-5xl leading-none text-foreground md:text-7xl">
+    <div className="mx-auto w-full max-w-6xl px-5 text-zinc-950 sm:px-6 dark:text-zinc-50">
+      <section className="grid gap-6 py-10 md:grid-cols-[0.8fr_1.2fr] md:py-16">
+        <div className="rounded-lg border border-zinc-200/70 bg-white p-5 md:p-6 dark:border-zinc-800/70 dark:bg-zinc-950">
+          <p className="font-mono text-[0.68rem] font-medium tracking-[0.14em] text-zinc-500 uppercase dark:text-zinc-400">
+            Identity
+          </p>
+          <h1 className="mt-4 max-w-xl text-2xl font-semibold leading-tight md:text-3xl">
             {profile.heroTitle}
           </h1>
-          <p className="max-w-xl text-lg leading-8 text-muted-foreground">
+          <p className="mt-4 max-w-xl text-sm leading-7 text-zinc-500 dark:text-zinc-400">
             {profile.heroIntro}
           </p>
-          <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-            <span className="rounded-full border border-border px-4 py-2">
-              开发者
-            </span>
-            <span className="rounded-full border border-border px-4 py-2">
-              写作者
-            </span>
-            <span className="rounded-full border border-border px-4 py-2">
-              观察生活的人
-            </span>
+          <div className="mt-6 grid gap-3 text-sm">
+            <div className="flex items-center justify-between border-t border-zinc-200/70 pt-3 dark:border-zinc-800/70">
+              <span className="text-zinc-500 dark:text-zinc-400">Role</span>
+              <span className="font-medium">Developer / Writer</span>
+            </div>
+            <div className="flex items-center justify-between border-t border-zinc-200/70 pt-3 dark:border-zinc-800/70">
+              <span className="text-zinc-500 dark:text-zinc-400">Focus</span>
+              <span className="font-medium">Code, essays, projects</span>
+            </div>
+            <div className="flex items-center justify-between border-t border-zinc-200/70 pt-3 dark:border-zinc-800/70">
+              <span className="text-zinc-500 dark:text-zinc-400">Status</span>
+              <span className="font-medium">Maintaining this archive</span>
+            </div>
           </div>
-        </Reveal>
+        </div>
 
-        <Reveal delay={120}>
-          <HeroIllustration />
-        </Reveal>
-      </section>
-
-      <section className="story-section">
-        <Reveal>
-          <SectionHeading
-            chapter="第一章"
-            title="关于我"
-            intro={profile.aboutSummary}
-          />
-        </Reveal>
-      </section>
-
-      <section className="story-section space-y-8">
-        <Reveal>
-          <SectionHeading
-            chapter="第二章"
-            title="生活碎片"
-            intro="这里保留那些还没有长成文章、但值得被轻轻记下的片段。"
-          />
-        </Reveal>
-        <div className="soft-grid">
-          {notes.length > 0 ? (
-            notes.map((note, index) => (
-              <Reveal key={note.slug} delay={index * 80}>
-                <article className="paper-card p-6">
-                  <time className="story-label" dateTime={note.publishedAt}>
-                    {note.publishedAt}
-                  </time>
-                  <h3 className="mt-3 font-heading text-3xl">{note.title}</h3>
-                  <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                    {note.body}
-                  </p>
+        <div className="overflow-hidden rounded-lg border border-zinc-200/70 bg-white dark:border-zinc-800/70 dark:bg-zinc-950">
+          <div className="flex items-center justify-between border-b border-zinc-200/70 px-4 py-3 dark:border-zinc-800/70">
+            <div>
+              <p className="font-mono text-[0.68rem] font-medium tracking-[0.14em] text-zinc-500 uppercase dark:text-zinc-400">
+                Latest
+              </p>
+              <h2 className="mt-1 text-base font-semibold">Recent activity</h2>
+            </div>
+            <Link
+              href="/essays"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
+              View all essays
+            </Link>
+          </div>
+          {feedItems.length > 0 ? (
+            <div>
+              {feedItems.map((item) => (
+                <article
+                  key={`${item.type}-${item.title}`}
+                  className="flex items-start justify-between gap-4 border-b border-zinc-200/70 px-4 py-3 transition-colors last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800/70 dark:hover:bg-zinc-900/55"
+                >
+                  <div className="flex min-w-0 gap-3">
+                    <span className="mt-0.5 rounded-md border border-zinc-200 px-2 py-1 font-mono text-[0.68rem] font-medium text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                      {item.type}
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold">{item.title}</h3>
+                      <p className="mt-1 line-clamp-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                  {item.date ? (
+                    <time
+                      className="hidden shrink-0 text-xs text-zinc-500 sm:block dark:text-zinc-400"
+                      dateTime={item.date}
+                    >
+                      {item.date}
+                    </time>
+                  ) : null}
                 </article>
-              </Reveal>
-            ))
+              ))}
+            </div>
           ) : (
-            <p className="paper-card p-6 text-muted-foreground">
-              更多碎片正在整理中。
-            </p>
+            <div className="p-4">{emptyState("No entries yet")}</div>
           )}
         </div>
       </section>
 
-      <section className="story-section space-y-8">
-        <Reveal>
-          <SectionHeading
-            chapter="第三章"
-            title="文章"
-            intro="正式文章放在这里，保留更沉静的节奏和更完整的推演。"
-          />
-        </Reveal>
-        <div className="soft-grid">
+      <section className="space-y-5 py-10 md:py-14">
+        {sectionHeading(
+          "Essays",
+          "正式文章",
+          "更完整的结构、更慢的推演，以及值得留给长阅读的内容。"
+        )}
+        <div className="grid gap-4 md:grid-cols-2">
           {essays.length > 0 ? (
-            essays.map((essay, index) => (
-              <Reveal key={essay.slug} delay={index * 80}>
-                <article className="paper-card p-6">
-                  <time className="story-label" dateTime={essay.publishedAt}>
-                    {essay.publishedAt}
-                  </time>
-                  <h3 className="mt-3 font-heading text-3xl">{essay.title}</h3>
-                  <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                    {essay.description}
-                  </p>
-                </article>
-              </Reveal>
+            essays.map((essay) => (
+              <article
+                key={essay.slug}
+                className="rounded-lg border border-zinc-200/70 bg-white p-5 transition-colors hover:border-zinc-400/70 dark:border-zinc-800/70 dark:bg-zinc-950 dark:hover:border-zinc-600"
+              >
+                <h3 className="text-lg font-semibold">{essay.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+                  {essay.description}
+                </p>
+              </article>
             ))
           ) : (
-            <p className="paper-card p-6 text-muted-foreground">
-              第一篇文章正在写完最后一段。
-            </p>
+            emptyState("No essays yet")
           )}
         </div>
-        <Link
-          href="/essays"
-          className="inline-flex rounded-full border border-border px-5 py-3 text-sm transition-colors hover:border-foreground hover:text-foreground"
-        >
-          进入文章
-        </Link>
       </section>
 
-      <section className="story-section space-y-8">
-        <Reveal>
-          <SectionHeading
-            chapter="第四章"
-            title="项目"
-            intro="它们不是简历上的罗列，而是那些真正值得我继续投入时间的作品。"
-          />
-        </Reveal>
-        <div className="soft-grid">
+      <section className="space-y-5 py-10 md:py-14">
+        {sectionHeading(
+          "Projects",
+          "项目",
+          "正在打磨、值得长期维护，或者足以说明工作方式的作品。"
+        )}
+        <div className="grid gap-4 md:grid-cols-2">
           {projects.length > 0 ? (
-            projects.map((project, index) => (
-              <Reveal key={project.slug} delay={index * 80}>
-                <article className="paper-card p-6">
-                  <h3 className="font-heading text-3xl">{project.title}</h3>
-                  <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                    {project.description}
-                  </p>
-                  <p className="mt-4 text-sm leading-7 text-foreground/80">
-                    {project.note}
-                  </p>
-                </article>
-              </Reveal>
+            projects.map((project) => (
+              <article
+                key={project.slug}
+                className="rounded-lg border border-zinc-200/70 bg-white p-5 transition-colors hover:border-zinc-400/70 dark:border-zinc-800/70 dark:bg-zinc-950 dark:hover:border-zinc-600"
+              >
+                <h3 className="text-lg font-semibold">{project.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+                  {project.description}
+                </p>
+                <p className="mt-3 text-sm leading-7 text-zinc-700 dark:text-zinc-300">
+                  {project.note}
+                </p>
+              </article>
             ))
           ) : (
-            <p className="paper-card p-6 text-muted-foreground">
-              正在整理值得被展开讲述的项目。
-            </p>
+            emptyState("No projects yet")
+          )}
+        </div>
+      </section>
+
+      <section className="space-y-5 py-10 md:py-14">
+        {sectionHeading(
+          "Notes",
+          "生活碎片",
+          "轻量记录，但依然保持可回看、可整理的结构。"
+        )}
+        <div className="grid gap-4 md:grid-cols-2">
+          {notes.length > 0 ? (
+            notes.map((note) => (
+              <article
+                key={note.slug}
+                className="rounded-lg border border-zinc-200/70 bg-white p-5 transition-colors hover:border-zinc-400/70 dark:border-zinc-800/70 dark:bg-zinc-950 dark:hover:border-zinc-600"
+              >
+                <h3 className="text-lg font-semibold">{note.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+                  {note.body}
+                </p>
+              </article>
+            ))
+          ) : (
+            emptyState("No notes yet")
           )}
         </div>
       </section>
