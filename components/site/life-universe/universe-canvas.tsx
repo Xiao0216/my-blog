@@ -3,8 +3,11 @@ import { useRef } from "react"
 
 import type {
   CanvasPan,
+  PlanetDetailModel,
   UniverseCardModel,
+  UniverseViewState,
 } from "@/components/site/life-universe/types"
+import { PlanetDetailOverlay } from "@/components/site/life-universe/planet-detail-overlay"
 import { UniverseCard } from "@/components/site/life-universe/universe-card"
 
 const VIEWPORT_WIDTH = 960
@@ -17,24 +20,32 @@ const ACTION_GROUP_TOP_MARGIN = 8
 export function UniverseCanvas({
   cards,
   selectedCardId,
+  detail,
+  enteredCardId,
   zoom,
   pan,
   hasPlanets,
+  viewState,
   onSelectCard,
   onAskTwin,
   onEnterCard,
+  onLeaveCard,
   onPanChange,
   onShowRelated,
   onWheelZoom,
 }: {
   readonly cards: ReadonlyArray<UniverseCardModel>
   readonly selectedCardId: string
+  readonly detail?: PlanetDetailModel
+  readonly enteredCardId?: string
   readonly zoom: number
   readonly pan: CanvasPan
   readonly hasPlanets: boolean
+  readonly viewState: UniverseViewState
   readonly onSelectCard: (cardId: string) => void
   readonly onAskTwin: (cardId: string) => void
   readonly onEnterCard: (cardId: string) => void
+  readonly onLeaveCard: () => void
   readonly onPanChange: (pan: CanvasPan) => void
   readonly onShowRelated: (cardId: string) => void
   readonly onWheelZoom: (deltaY: number) => void
@@ -90,6 +101,7 @@ export function UniverseCanvas({
     <section
       role="region"
       aria-label="Null Space universe canvas"
+      data-view-state={viewState}
       onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -155,12 +167,14 @@ export function UniverseCanvas({
           <UniverseCard
             key={card.id}
             card={card}
+            isEntered={card.id === enteredCardId}
             isSelected={card.id === selectedCardId}
+            onEnter={() => onEnterCard(card.id)}
             onSelect={() => onSelectCard(card.id)}
           />
         ))}
 
-        {selectedCard ? (
+        {selectedCard && !detail ? (
           <div
             data-testid="planet-action-group"
             data-layout-x={actionGroupPosition?.x}
@@ -194,6 +208,14 @@ export function UniverseCanvas({
               关联
             </button>
           </div>
+        ) : null}
+
+        {detail ? (
+          <PlanetDetailOverlay
+            detail={detail}
+            onAskTwin={() => onAskTwin(detail.card.id)}
+            onLeave={onLeaveCard}
+          />
         ) : null}
       </div>
 

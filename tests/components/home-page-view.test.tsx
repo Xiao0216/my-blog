@@ -254,6 +254,39 @@ describe("HomePageView", () => {
     expect(screen.getByRole("button", { name: "查看 Work 关联" })).toBeInTheDocument()
   })
 
+  it("enters a planet detail overlay on double click and returns to the universe", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
+
+    expect(screen.getByRole("dialog", { name: "Work 行星详情" })).toBeInTheDocument()
+    expect(screen.getByText("概览")).toBeInTheDocument()
+    expect(screen.getByText("最近变化")).toBeInTheDocument()
+    expect(screen.getByText("关键记忆")).toBeInTheDocument()
+    expect(screen.getByText("关联内容")).toBeInTheDocument()
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute("data-view-state", "inside")
+
+    fireEvent.click(screen.getByRole("button", { name: "返回宇宙" }))
+
+    expect(
+      screen.queryByRole("dialog", { name: "Work 行星详情" })
+    ).not.toBeInTheDocument()
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
+      "data-view-state",
+      "overview"
+    )
+  })
+
+  it("renders polished fallback detail content when public memory data is empty", () => {
+    render(<HomePageView {...buildProps({ memories: [] })} />)
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
+
+    expect(
+      screen.getByText("最近还没有公开记忆，但这个行星已经可以承载你的行为记录。")
+    ).toBeInTheDocument()
+  })
+
   it("keeps the selected card action group inside the viewport for right-edge cards", () => {
     render(<HomePageView {...buildProps()} />)
 

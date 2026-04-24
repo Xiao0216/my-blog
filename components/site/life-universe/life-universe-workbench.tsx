@@ -8,10 +8,12 @@ import type {
   ChatMessage,
   HomePageViewProps,
   NullSpaceTheme,
+  PlanetDetailModel,
   UniverseCardModel,
   UniverseCardStatus,
   UniverseLayoutInputCard,
   UniverseCardTone,
+  UniverseViewState,
 } from "@/components/site/life-universe/types"
 import { layoutUniverseCards } from "@/components/site/life-universe/universe-layout"
 import { TwinConsole } from "@/components/site/life-universe/twin-console"
@@ -64,6 +66,8 @@ type BaseUniverseCard = UniverseLayoutInputCard & {
 export function LifeUniverseWorkbench(props: HomePageViewProps) {
   const cards = useMemo(() => buildUniverseCards(props), [props])
   const [selectedCardId, setSelectedCardId] = useState(cards[0]?.id ?? "garden")
+  const [viewState, setViewState] = useState<UniverseViewState>("overview")
+  const [enteredCardId, setEnteredCardId] = useState<string | undefined>(undefined)
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
   const [pan, setPan] = useState<CanvasPan>(DEFAULT_PAN)
   const [theme, setTheme] = useState<NullSpaceTheme>("dark")
@@ -79,6 +83,8 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     },
   ])
   const selectedCard = cards.find((card) => card.id === selectedCardId) ?? cards[0]
+  const enteredCard = cards.find((card) => card.id === enteredCardId)
+  const detail = enteredCard ? buildPlanetDetail(enteredCard, props) : undefined
 
   function zoomIn() {
     setZoom((current) => clampZoom(current + 10))
@@ -98,6 +104,8 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setZoom(DEFAULT_ZOOM)
     setPan(DEFAULT_PAN)
     setSelectedCardId(cards[0]?.id ?? "garden")
+    setEnteredCardId(undefined)
+    setViewState("overview")
   }
 
   function toggleTheme() {
@@ -110,6 +118,13 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
 
   function enterCard(cardId: string) {
     setSelectedCardId(cardId)
+    setEnteredCardId(cardId)
+    setViewState("inside")
+  }
+
+  function leaveCard() {
+    setEnteredCardId(undefined)
+    setViewState("overview")
   }
 
   function askTwin(cardId: string) {
@@ -184,6 +199,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     <div
       data-testid="null-space-shell"
       data-theme={theme}
+      data-view-state={viewState}
       className="null-space-shell relative isolate min-h-screen overflow-hidden"
     >
       <div className="null-space-grid absolute inset-0" aria-hidden="true" />
@@ -195,12 +211,16 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
       <UniverseCanvas
         cards={cards}
         selectedCardId={selectedCardId}
+        detail={detail}
+        enteredCardId={enteredCardId}
         zoom={zoom}
         pan={pan}
         hasPlanets={props.planets.length > 0}
+        viewState={viewState}
         onSelectCard={selectCard}
         onAskTwin={askTwin}
         onEnterCard={enterCard}
+        onLeaveCard={leaveCard}
         onPanChange={setPan}
         onShowRelated={showRelated}
         onWheelZoom={zoomFromWheel}
@@ -346,4 +366,39 @@ function buildUniverseCards({
       ...placement,
     }
   })
+}
+
+function buildPlanetDetail(
+  card: UniverseCardModel,
+  { essays, memories, notes, projects }: HomePageViewProps
+): PlanetDetailModel {
+  const keyMemories = memories
+    .filter((memory) => memory.visibility === "public")
+    .slice(0, 3)
+    .map((memory) => memory.title)
+  const relatedTitles = [...essays, ...projects, ...notes]
+    .map((item) => item.title)
+    .slice(0, 4)
+
+  return {
+    card,
+    counts: {
+      essays: essays.length,
+      memories: memories.length,
+      notes: notes.length,
+      projects: projects.length,
+    },
+    keyMemories:
+      keyMemories.length > 0
+        ? keyMemories
+        : ["最近还没有公开记忆，但这个行星已经可以承载你的行为记录。"],
+    recentChanges: [
+      `${card.title} 正在形成更清晰的结构。`,
+      "新的内容会在这里沉淀成时间线。",
+    ],
+    relatedTitles:
+      relatedTitles.length > 0
+        ? relatedTitles
+        : ["关联内容正在形成，下一次沉淀会先出现在这里。"],
+  }
 }

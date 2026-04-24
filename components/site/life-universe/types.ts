@@ -110,6 +110,21 @@ export type UniverseCardModel = {
   readonly planetId?: number
 } & PlacedUniverseCard
 
+export type UniverseViewState = "entering" | "focused" | "inside" | "leaving" | "overview"
+
+export type PlanetDetailModel = {
+  readonly card: UniverseCardModel
+  readonly counts: {
+    readonly essays: number
+    readonly memories: number
+    readonly notes: number
+    readonly projects: number
+  }
+  readonly keyMemories: ReadonlyArray<string>
+  readonly recentChanges: ReadonlyArray<string>
+  readonly relatedTitles: ReadonlyArray<string>
+}
+
 export type ChatMessage = {
   readonly id: string
   readonly role: "user" | "assistant"
