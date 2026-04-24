@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import AboutPage from "@/app/about/page"
-import ProjectsPage from "@/app/projects/page"
+import AboutPage from "@/app/(site)/about/page"
+import ProjectsPage from "@/app/(site)/projects/page"
 import { AboutPageView } from "@/components/site/about-page-view"
 import { NoteTimeline } from "@/components/site/note-timeline"
 import { ProjectCard } from "@/components/site/project-card"

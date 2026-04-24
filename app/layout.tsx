@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
 
-import { SiteShell } from "@/components/site/site-shell"
 import { ThemeProvider } from "@/components/theme-provider"
 import { siteConfig } from "@/data/site"
 import { normalizeSiteUrl } from "@/lib/site-url"
@@ -46,7 +45,7 @@ export default function RootLayout({
     >
       <body className="bg-background font-sans text-foreground antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <SiteShell>{children}</SiteShell>
+          {children}
         </ThemeProvider>
       </body>
     </html>
