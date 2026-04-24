@@ -8,21 +8,25 @@ type ProjectCardProps = {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const className =
-    "mt-6 inline-flex text-sm text-primary underline-offset-4 hover:underline"
+    "mt-5 inline-flex text-sm font-medium text-zinc-950 underline-offset-4 hover:underline dark:text-zinc-50"
   const isExternalHref = /^(https?:)?\/\//i.test(project.href)
 
   return (
-    <article className="paper-card p-6">
-      <h2 className="font-heading text-4xl text-foreground">{project.title}</h2>
-      <p className="mt-4 text-sm leading-7 text-muted-foreground">
+    <article className="rounded-lg border border-zinc-200/70 bg-white p-5 transition-colors hover:border-zinc-400/70 dark:border-zinc-800/70 dark:bg-zinc-950 dark:hover:border-zinc-600">
+      <h2 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
+        {project.title}
+      </h2>
+      <p className="mt-3 text-sm leading-7 text-zinc-500 dark:text-zinc-400">
         {project.description}
       </p>
-      <p className="mt-4 text-sm leading-7 text-foreground/80">{project.note}</p>
-      <div className="mt-5 flex flex-wrap gap-2">
+      <p className="mt-3 text-sm leading-7 text-zinc-700 dark:text-zinc-300">
+        {project.note}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
         {project.stack.map((item) => (
           <span
             key={item}
-            className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground"
+            className="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400"
           >
             {item}
           </span>

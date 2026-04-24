@@ -96,7 +96,7 @@ describe("secondary page components", () => {
     )
 
     rerender(<NoteTimeline notes={[]} />)
-    expect(screen.getByText("碎片正在路上。")).toBeInTheDocument()
+    expect(screen.getByText("No notes yet")).toBeInTheDocument()
   })
 
   it("renders project links with an accessible name and href", () => {

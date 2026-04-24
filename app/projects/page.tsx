@@ -23,7 +23,7 @@ export default function ProjectsPage() {
           ))}
         </div>
       ) : (
-        <p className="paper-card p-6 text-muted-foreground">
+        <p className="rounded-lg border border-zinc-200/70 bg-white p-5 text-sm text-zinc-500 dark:border-zinc-800/70 dark:bg-zinc-950 dark:text-zinc-400">
           正在整理值得被展开讲述的项目。
         </p>
       )}
