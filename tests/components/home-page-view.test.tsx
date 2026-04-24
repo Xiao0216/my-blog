@@ -243,11 +243,11 @@ describe("HomePageView", () => {
 
     const workCard = screen.getByRole("button", { name: "聚焦 Work" })
 
+    fireEvent.click(workCard)
+
     expect(workCard.getAttribute("style")).toContain("--card-rotate-x")
     expect(workCard.getAttribute("style")).toContain("--card-rotate-y")
     expect(workCard.getAttribute("style")).toContain("--card-depth")
-
-    fireEvent.click(workCard)
 
     expect(screen.getByRole("button", { name: "进入 Work" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "询问 Work" })).toBeInTheDocument()
