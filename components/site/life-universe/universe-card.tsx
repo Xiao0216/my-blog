@@ -59,6 +59,9 @@ export function UniverseCard({
       data-kind={card.kind}
       data-layout-x={card.x}
       data-layout-y={card.y}
+      data-layout-width={card.width}
+      data-layout-height={card.height}
+      data-layout-status={card.layoutStatus}
       data-ring={card.ring}
       data-status={card.status}
       data-selected={isSelected ? "true" : "false"}

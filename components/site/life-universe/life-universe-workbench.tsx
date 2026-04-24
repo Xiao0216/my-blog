@@ -36,10 +36,11 @@ const UNIVERSE_VIEWPORT = {
 
 const CARD_SIZE = {
   core: { width: 286, height: 190 },
-  planet: { width: 184, height: 142 },
-  feature: { width: 168, height: 138 },
-  note: { width: 164, height: 124 },
+  planet: { width: 172, height: 132 },
+  feature: { width: 160, height: 128 },
+  note: { width: 140, height: 96 },
 } as const
+const MAX_HOME_NOTE_PREVIEW_CARDS = 1
 
 const toneByTheme: Record<string, UniverseCardTone> = {
   blue: "blue",
@@ -222,6 +223,7 @@ function buildUniverseCards({
   profile,
   projects,
 }: HomePageViewProps): ReadonlyArray<UniverseCardModel> {
+  const visibleNotes = notes.slice(0, MAX_HOME_NOTE_PREVIEW_CARDS)
   const baseCards = [
     {
       id: "garden",
@@ -257,7 +259,7 @@ function buildUniverseCards({
             id: `essay-${essays[0].slug}`,
             kind: "essay" as const,
             group: essays[0].slug,
-            importance: 6,
+            importance: 3,
             ...CARD_SIZE.feature,
             category: "技术趋势",
             title: essays[0].title,
@@ -274,7 +276,7 @@ function buildUniverseCards({
             id: `project-${projects[0].slug}`,
             kind: "project" as const,
             group: projects[0].slug,
-            importance: 7,
+            importance: 3,
             ...CARD_SIZE.feature,
             category: "产品思考",
             title: projects[0].title,
@@ -285,11 +287,11 @@ function buildUniverseCards({
           },
         ]
       : []),
-    ...notes.map((note, index) => ({
+    ...visibleNotes.map((note, index) => ({
       id: `note-${note.slug}`,
       kind: "note" as const,
       group: note.slug,
-      importance: Math.max(2, 4 - index),
+      importance: 2,
       ...CARD_SIZE.note,
       category: "碎片笔记",
       title: note.title,
