@@ -50,6 +50,15 @@ export type UniverseCardTone =
   | "teal"
   | "violet"
 
+export type UniverseCardStatus = "seedling" | "growing" | "mature" | "archived"
+
+export type NullSpaceTheme = "dark" | "light"
+
+export type CanvasPan = {
+  readonly x: number
+  readonly y: number
+}
+
 export type UniverseCardModel = {
   readonly id: string
   readonly category: string
@@ -62,6 +71,7 @@ export type UniverseCardModel = {
   readonly width: number
   readonly height: number
   readonly rotate: number
+  readonly status: UniverseCardStatus
   readonly featured?: boolean
   readonly planetId?: number
 }

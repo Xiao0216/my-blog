@@ -157,6 +157,79 @@ describe("HomePageView", () => {
     expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
   })
 
+  it("switches between dark and light Null Space themes", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
+      "data-theme",
+      "dark"
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "切换白天模式" }))
+
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
+      "data-theme",
+      "light"
+    )
+    expect(screen.getByRole("button", { name: "切换黑夜模式" })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "切换黑夜模式" }))
+
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
+      "data-theme",
+      "dark"
+    )
+  })
+
+  it("supports wheel zoom and drag panning on the universe canvas", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const canvas = screen.getByRole("region", {
+      name: "Null Space universe canvas",
+    })
+    const viewport = screen.getByTestId("universe-viewport")
+
+    fireEvent.wheel(canvas, { deltaY: -120 })
+    expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
+
+    fireEvent.mouseDown(canvas, { clientX: 100, clientY: 120 })
+    fireEvent.mouseMove(canvas, { clientX: 136, clientY: 158 })
+    fireEvent.mouseUp(canvas)
+
+    expect(viewport).toHaveStyle({
+      transform: "translate(calc(-50% + 36px), calc(-50% + 38px)) scale(1.1025641025641026)",
+    })
+
+    fireEvent.click(screen.getByRole("button", { name: "重置画布视角" }))
+    expect(viewport).toHaveStyle({
+      transform: "translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1)",
+    })
+  })
+
+  it("renders card maturity states and material tilt feedback", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const gardenCard = screen.getByRole("button", { name: "聚焦 构建你的数字花园" })
+    const noteCard = screen.getByRole("button", { name: "聚焦 Note fixture" })
+
+    expect(gardenCard).toHaveAttribute("data-status", "mature")
+    expect(noteCard).toHaveAttribute("data-status", "seedling")
+
+    fireEvent.mouseMove(gardenCard, { clientX: 80, clientY: 70 })
+
+    expect(gardenCard).toHaveStyle({
+      "--tilt-x": "8deg",
+      "--tilt-y": "-8deg",
+    })
+
+    fireEvent.mouseLeave(gardenCard)
+
+    expect(gardenCard).toHaveStyle({
+      "--tilt-x": "0deg",
+      "--tilt-y": "0deg",
+    })
+  })
+
   it("renders stable Null Space empty states when planets and memories are empty", () => {
     render(
       <HomePageView
@@ -202,6 +275,8 @@ describe("HomePageView", () => {
       target: { value: "你好" },
     })
     fireEvent.click(screen.getByRole("button", { name: "发送给 Null AI" }))
+
+    expect(screen.getByText("思考中")).toBeInTheDocument()
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(

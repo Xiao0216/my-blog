@@ -4,8 +4,10 @@ import type { FormEvent } from "react"
 import { useMemo, useState } from "react"
 
 import type {
+  CanvasPan,
   ChatMessage,
   HomePageViewProps,
+  NullSpaceTheme,
   UniverseCardModel,
   UniverseCardTone,
 } from "@/components/site/life-universe/types"
@@ -17,6 +19,10 @@ import { UniverseTopbar } from "@/components/site/life-universe/universe-topbar"
 import type { TwinChatResponse } from "@/lib/twin/types"
 
 const DEFAULT_ZOOM = 78
+const WHEEL_ZOOM_STEP = 8
+const MIN_ZOOM = 50
+const MAX_ZOOM = 150
+const DEFAULT_PAN: CanvasPan = { x: 0, y: 0 }
 
 const planetSlots = [
   { x: 132, y: 78, width: 184, height: 142, rotate: -3 },
@@ -44,6 +50,8 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   const cards = useMemo(() => buildUniverseCards(props), [props])
   const [selectedCardId, setSelectedCardId] = useState(cards[0]?.id ?? "garden")
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
+  const [pan, setPan] = useState<CanvasPan>(DEFAULT_PAN)
+  const [theme, setTheme] = useState<NullSpaceTheme>("dark")
   const [draftMessage, setDraftMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [messages, setMessages] = useState<ReadonlyArray<ChatMessage>>([
@@ -58,16 +66,27 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   const selectedCard = cards.find((card) => card.id === selectedCardId) ?? cards[0]
 
   function zoomIn() {
-    setZoom((current) => Math.min(118, current + 10))
+    setZoom((current) => clampZoom(current + 10))
   }
 
   function zoomOut() {
-    setZoom((current) => Math.max(58, current - 10))
+    setZoom((current) => clampZoom(current - 10))
+  }
+
+  function zoomFromWheel(deltaY: number) {
+    setZoom((current) =>
+      clampZoom(current + (deltaY < 0 ? WHEEL_ZOOM_STEP : -WHEEL_ZOOM_STEP))
+    )
   }
 
   function resetCanvas() {
     setZoom(DEFAULT_ZOOM)
+    setPan(DEFAULT_PAN)
     setSelectedCardId(cards[0]?.id ?? "garden")
+  }
+
+  function toggleTheme() {
+    setTheme((current) => (current === "dark" ? "light" : "dark"))
   }
 
   async function submitMessage(event: FormEvent<HTMLFormElement>) {
@@ -131,19 +150,26 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   }
 
   return (
-    <div className="null-space-shell relative isolate min-h-screen overflow-hidden text-zinc-50">
+    <div
+      data-testid="null-space-shell"
+      data-theme={theme}
+      className="null-space-shell relative isolate min-h-screen overflow-hidden"
+    >
       <div className="null-space-grid absolute inset-0" aria-hidden="true" />
       <div className="null-space-noise absolute inset-0" aria-hidden="true" />
       <div className="null-space-vignette absolute inset-0" aria-hidden="true" />
 
       <UniverseSidebar />
-      <UniverseTopbar />
+      <UniverseTopbar theme={theme} onToggleTheme={toggleTheme} />
       <UniverseCanvas
         cards={cards}
         selectedCardId={selectedCardId}
         zoom={zoom}
+        pan={pan}
         hasPlanets={props.planets.length > 0}
         onSelectCard={setSelectedCardId}
+        onPanChange={setPan}
+        onWheelZoom={zoomFromWheel}
       />
       <UniverseToolbar
         zoom={zoom}
@@ -162,13 +188,17 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         onSubmit={submitMessage}
       />
 
-      <div className="pointer-events-none absolute right-9 bottom-5 z-20 hidden items-center gap-5 font-mono text-xs text-zinc-600 md:flex">
+      <div className="pointer-events-none absolute right-9 bottom-5 z-20 hidden items-center gap-5 font-mono text-xs text-[var(--ns-text-muted)] md:flex">
         <span>{props.essays.length} 文章</span>
         <span>{props.planets.length} 连接</span>
         <span>无限可能</span>
       </div>
     </div>
   )
+}
+
+function clampZoom(value: number) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value))
 }
 
 function buildUniverseCards({
@@ -185,6 +215,7 @@ function buildUniverseCards({
     excerpt: profile.heroTitle || profile.heroIntro,
     date: "2024.05.12",
     tone: "teal",
+    status: "mature",
     x: 396,
     y: 216,
     width: 286,
@@ -203,6 +234,7 @@ function buildUniverseCards({
       excerpt: planet.summary,
       date: "2024.05.12",
       tone: toneByTheme[planet.theme] ?? "violet",
+      status: "mature",
       planetId: planet.id,
       ...slot,
     } satisfies UniverseCardModel
@@ -216,6 +248,7 @@ function buildUniverseCards({
         excerpt: projects[0].description,
         date: "2024.04.26",
         tone: "violet",
+        status: "archived",
         x: 724,
         y: 404,
         width: 168,
@@ -232,6 +265,7 @@ function buildUniverseCards({
         excerpt: essays[0].description,
         date: essays[0].publishedAt.replaceAll("-", "."),
         tone: "violet",
+        status: "growing",
         x: 716,
         y: 100,
         width: 164,
@@ -250,6 +284,7 @@ function buildUniverseCards({
       excerpt: note.body,
       date: note.publishedAt.replaceAll("-", "."),
       tone: index === 0 ? "cyan" : "neutral",
+      status: "seedling",
       ...slot,
     } satisfies UniverseCardModel
   })

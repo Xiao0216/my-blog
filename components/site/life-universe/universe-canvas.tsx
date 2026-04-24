@@ -1,4 +1,8 @@
+import type { MouseEvent, WheelEvent } from "react"
+import { useRef } from "react"
+
 import type {
+  CanvasPan,
   UniverseCardModel,
 } from "@/components/site/life-universe/types"
 import { UniverseCard } from "@/components/site/life-universe/universe-card"
@@ -7,22 +11,76 @@ export function UniverseCanvas({
   cards,
   selectedCardId,
   zoom,
+  pan,
   hasPlanets,
   onSelectCard,
+  onPanChange,
+  onWheelZoom,
 }: {
   readonly cards: ReadonlyArray<UniverseCardModel>
   readonly selectedCardId: string
   readonly zoom: number
+  readonly pan: CanvasPan
   readonly hasPlanets: boolean
   readonly onSelectCard: (cardId: string) => void
+  readonly onPanChange: (pan: CanvasPan) => void
+  readonly onWheelZoom: (deltaY: number) => void
 }) {
+  const dragStartRef = useRef<
+    | {
+        readonly clientX: number
+        readonly clientY: number
+        readonly pan: CanvasPan
+      }
+    | undefined
+  >(undefined)
+
+  function handleWheel(event: WheelEvent<HTMLElement>) {
+    event.preventDefault()
+    onWheelZoom(event.deltaY)
+  }
+
+  function handleMouseDown(event: MouseEvent<HTMLElement>) {
+    if (isInteractiveTarget(event.target)) {
+      return
+    }
+
+    dragStartRef.current = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      pan,
+    }
+  }
+
+  function handleMouseMove(event: MouseEvent<HTMLElement>) {
+    const dragStart = dragStartRef.current
+
+    if (!dragStart) {
+      return
+    }
+
+    onPanChange({
+      x: dragStart.pan.x + event.clientX - dragStart.clientX,
+      y: dragStart.pan.y + event.clientY - dragStart.clientY,
+    })
+  }
+
+  function stopDrag() {
+    dragStartRef.current = undefined
+  }
+
   return (
     <section
       role="region"
       aria-label="Null Space universe canvas"
-      className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 overflow-hidden md:left-20 md:right-[23rem] md:top-20 md:bottom-20"
+      onWheel={handleWheel}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={stopDrag}
+      onMouseLeave={stopDrag}
+      className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 cursor-grab overflow-hidden active:cursor-grabbing md:left-20 md:right-[23rem] md:top-20 md:bottom-20"
     >
-      <div className="absolute inset-0 rounded-[2rem] border border-white/[0.025] bg-black/[0.02]" />
+      <div className="absolute inset-0 rounded-[2rem] border border-[var(--ns-glass-border)] bg-[var(--ns-canvas-wash)]" />
       <svg
         data-universe-lines="true"
         aria-hidden="true"
@@ -32,13 +90,13 @@ export function UniverseCanvas({
         <path
           d="M135 134 L365 245 L505 112 L742 256 L623 454 L426 455 L260 360 L135 134"
           fill="none"
-          stroke="rgba(148,163,184,0.16)"
+          className="connection-line"
           strokeWidth="1"
         />
         <path
           d="M260 360 L445 315 L623 454 M445 315 L742 256 M365 245 L445 315"
           fill="none"
-          stroke="rgba(45,212,191,0.18)"
+          className="connection-line animated"
           strokeWidth="1"
         />
         {[
@@ -56,21 +114,24 @@ export function UniverseCanvas({
             cx={cx}
             cy={cy}
             r="3"
-            fill="rgba(196,181,253,0.9)"
+            fill="var(--ns-accent-secondary)"
           />
         ))}
       </svg>
 
       {!hasPlanets ? (
-        <div className="absolute left-1/2 top-1/2 z-30 w-72 -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-white/[0.055] p-4 text-center text-sm text-zinc-500 backdrop-blur-xl">
+        <div className="null-space-panel absolute left-1/2 top-1/2 z-30 w-72 -translate-x-1/2 -translate-y-1/2 p-4 text-center text-sm text-[var(--ns-text-tertiary)]">
           No planets in this universe yet
         </div>
       ) : null}
 
       <div
+        data-testid="universe-viewport"
         className="absolute left-1/2 top-1/2 h-[660px] w-[960px] origin-center transition-transform duration-200"
         style={{
-          transform: `translate(-50%, -50%) scale(${zoom / 78})`,
+          transform: `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) scale(${
+            zoom / 78
+          })`,
         }}
       >
         {cards.map((card) => (
@@ -91,15 +152,15 @@ export function UniverseCanvas({
             aria-label={`移动聚焦 ${card.title}`}
             data-selected={card.id === selectedCardId ? "true" : "false"}
             onClick={() => onSelectCard(card.id)}
-            className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left backdrop-blur-xl data-[selected=true]:border-teal-100/60"
+            className="null-space-panel p-4 text-left data-[selected=true]:border-[var(--ns-accent-primary)]"
           >
-            <span className="font-mono text-[0.68rem] text-zinc-500">
+            <span className="font-mono text-[0.68rem] text-[var(--ns-text-tertiary)]">
               {card.category}
             </span>
-            <span className="mt-2 block font-semibold text-zinc-100">
+            <span className="mt-2 block font-semibold text-[var(--ns-text-primary)]">
               {card.title}
             </span>
-            <span className="mt-2 block text-sm leading-6 text-zinc-500">
+            <span className="mt-2 block text-sm leading-6 text-[var(--ns-text-tertiary)]">
               {card.excerpt}
             </span>
           </button>
@@ -107,4 +168,10 @@ export function UniverseCanvas({
       </div>
     </section>
   )
+}
+
+function isInteractiveTarget(target: EventTarget) {
+  return target instanceof HTMLElement
+    ? Boolean(target.closest("button,input,textarea,a"))
+    : false
 }

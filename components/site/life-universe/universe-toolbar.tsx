@@ -13,7 +13,7 @@ export function UniverseToolbar({
   readonly onReset: () => void
 }) {
   return (
-    <div className="pointer-events-auto absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 shadow-2xl shadow-black/40 backdrop-blur-xl">
+    <div className="null-space-panel pointer-events-auto absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 px-3 py-2">
       <ToolbarButton label="抓手模式">
         <Hand className="h-4 w-4" />
       </ToolbarButton>
@@ -26,7 +26,7 @@ export function UniverseToolbar({
       </ToolbarButton>
       <span
         data-testid="zoom-value"
-        className="min-w-14 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-center font-mono text-xs text-zinc-300"
+        className="min-w-14 rounded-xl border border-[var(--ns-glass-border)] bg-[var(--ns-control-bg)] px-3 py-2 text-center font-mono text-xs text-[var(--ns-text-secondary)]"
       >
         {zoom}%
       </span>
@@ -58,7 +58,7 @@ function ToolbarButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="grid h-9 w-9 place-items-center rounded-xl text-zinc-500 outline-none transition hover:bg-white/10 hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-teal-100/60"
+      className="grid h-9 w-9 place-items-center rounded-xl text-[var(--ns-text-tertiary)] outline-none transition hover:bg-[var(--ns-control-bg)] hover:text-[var(--ns-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)]"
     >
       {children}
     </button>
@@ -66,5 +66,5 @@ function ToolbarButton({
 }
 
 function Divider() {
-  return <span aria-hidden="true" className="h-5 w-px bg-white/10" />
+  return <span aria-hidden="true" className="h-5 w-px bg-[var(--ns-glass-border)]" />
 }
