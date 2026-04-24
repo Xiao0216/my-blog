@@ -91,6 +91,7 @@ export type PlacedUniverseCard = UniverseLayoutInputCard & {
   readonly ring: number
   readonly angle: number
   readonly posture: UniverseCardPosture
+  readonly layoutStatus: "placed" | "overlap-fallback"
 }
 
 export type CanvasPan = {

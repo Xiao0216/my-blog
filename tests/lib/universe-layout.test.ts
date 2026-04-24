@@ -132,6 +132,25 @@ const crowdedCards: ReadonlyArray<UniverseLayoutInputCard> = [
   },
 ]
 
+const impossibleCards: ReadonlyArray<UniverseLayoutInputCard> = [
+  {
+    id: "core",
+    kind: "core",
+    group: "self",
+    importance: 10,
+    width: 420,
+    height: 420,
+  },
+  {
+    id: "shell",
+    kind: "project",
+    group: "build",
+    importance: 8,
+    width: 420,
+    height: 420,
+  },
+]
+
 describe("universe layout", () => {
   it("treats the safety margin as expansion on both rectangles", () => {
     const left = { height: 80, width: 100, x: 40, y: 40 }
@@ -166,6 +185,7 @@ describe("universe layout", () => {
     })
 
     expectCardsWithinSafetyBounds(placedCards, 960, 660)
+    expectAllCardsPlaced(placedCards)
   })
 
   it("does not overlap card rectangles when expanded by the safety margin", () => {
@@ -208,6 +228,7 @@ describe("universe layout", () => {
     })
 
     expectCardsWithinSafetyBounds(placedCards, 1080, 720)
+    expectAllCardsPlaced(placedCards)
 
     for (let index = 0; index < placedCards.length; index += 1) {
       for (let nextIndex = index + 1; nextIndex < placedCards.length; nextIndex += 1) {
@@ -216,6 +237,34 @@ describe("universe layout", () => {
     }
 
     expect(placedCards.some((card) => card.ring >= 3)).toBe(true)
+  })
+
+  it("marks unresolved placements when no zero-overlap grid cell exists", () => {
+    const first = layoutUniverseCards(impossibleCards, {
+      centerX: 250,
+      centerY: 250,
+      height: 500,
+      width: 500,
+    })
+    const second = layoutUniverseCards(impossibleCards, {
+      centerX: 250,
+      centerY: 250,
+      height: 500,
+      width: 500,
+    })
+
+    expect(second).toEqual(first)
+    expect(first.some((card) => card.layoutStatus === "overlap-fallback")).toBe(true)
+
+    const fallbackCard = first.find((card) => card.layoutStatus === "overlap-fallback")
+
+    expect(fallbackCard).toBeDefined()
+    expect(fallbackCard && Number.isFinite(fallbackCard.x)).toBe(true)
+    expect(fallbackCard && Number.isFinite(fallbackCard.y)).toBe(true)
+    expect(fallbackCard && fallbackCard.x).toBeGreaterThanOrEqual(32)
+    expect(fallbackCard && fallbackCard.y).toBeGreaterThanOrEqual(32)
+    expect(fallbackCard && fallbackCard.x + fallbackCard.width).toBeLessThanOrEqual(500 - 32)
+    expect(fallbackCard && fallbackCard.y + fallbackCard.height).toBeLessThanOrEqual(500 - 32)
   })
 })
 
@@ -229,5 +278,11 @@ function expectCardsWithinSafetyBounds(
     expect(card.y).toBeGreaterThanOrEqual(32)
     expect(card.x + card.width).toBeLessThanOrEqual(width - 32)
     expect(card.y + card.height).toBeLessThanOrEqual(height - 32)
+  }
+}
+
+function expectAllCardsPlaced(cards: ReadonlyArray<{ layoutStatus: string }>) {
+  for (const card of cards) {
+    expect(card.layoutStatus).toBe("placed")
   }
 }

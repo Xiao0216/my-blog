@@ -83,6 +83,7 @@ function createPlacedCard(
   return {
     ...card,
     angle: round(angle),
+    layoutStatus: "placed",
     posture: derivePosture(x + card.width / 2, y + card.height / 2, ring, viewport),
     ring,
     x: round(x),
@@ -130,7 +131,20 @@ function findFallbackPlacement(
   }
 
   // If every safe grid cell overlaps, return the least-bad deterministic candidate.
-  return bestCandidate ?? createPlacedCardAtPoint(card, viewport, RING_RADII.length - 1, bounds.minX, bounds.minY, seedAngle)
+  return bestCandidate
+    ? {
+        ...bestCandidate,
+        layoutStatus: "overlap-fallback",
+      }
+    : createPlacedCardAtPoint(
+        card,
+        viewport,
+        RING_RADII.length - 1,
+        bounds.minX,
+        bounds.minY,
+        seedAngle,
+        "overlap-fallback"
+      )
 }
 
 function createPlacedCardAtPoint(
@@ -139,7 +153,8 @@ function createPlacedCardAtPoint(
   ring: number,
   x: number,
   y: number,
-  seedAngle: number
+  seedAngle: number,
+  layoutStatus: PlacedUniverseCard["layoutStatus"] = "placed"
 ): PlacedUniverseCard {
   const roundedX = round(x)
   const roundedY = round(y)
@@ -151,6 +166,7 @@ function createPlacedCardAtPoint(
   return {
     ...card,
     angle: round(resolvedAngle),
+    layoutStatus,
     posture: derivePosture(centerX, centerY, ring, viewport),
     ring,
     x: roundedX,
