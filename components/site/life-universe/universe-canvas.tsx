@@ -54,6 +54,9 @@ export function UniverseCanvas({
   const actionGroupPosition = selectedCard
     ? getActionGroupPosition(selectedCard)
     : undefined
+  const cameraTransform = detail
+    ? `translate(calc(-50% + ${480 - detail.card.x - detail.card.width / 2}px), calc(-50% + ${330 - detail.card.y - detail.card.height / 2}px)) scale(1.28)`
+    : `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) scale(${zoom / 78})`
   const dragStartRef = useRef<
     | {
         readonly clientX: number
@@ -156,11 +159,10 @@ export function UniverseCanvas({
 
       <div
         data-testid="universe-viewport"
+        data-camera-mode={viewState === "inside" ? "inside" : "overview"}
         className="universe-scene-3d absolute left-1/2 top-1/2 h-[660px] w-[960px] origin-center transition-transform duration-200"
         style={{
-          transform: `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) scale(${
-            zoom / 78
-          })`,
+          transform: cameraTransform,
         }}
       >
         {cards.map((card) => (

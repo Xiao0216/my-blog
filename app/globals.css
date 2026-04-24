@@ -383,6 +383,15 @@
     backdrop-filter: blur(20px) saturate(180%);
   }
 
+  .null-space-shell[data-view-state="inside"] .planet-action-group {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  [data-testid="universe-viewport"] {
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   .planet-action-group button {
     border-radius: 9999px;
     padding: 0.4rem 0.65rem;
@@ -811,6 +820,7 @@
   .connection-line.animated,
   .message-ai.thinking .message-bubble::after,
   .null-ai-avatar[data-state="thinking"],
+  [data-testid="universe-viewport"],
   .planet-detail-overlay,
   .twin-orb-avatar,
   .twin-orb-panel {

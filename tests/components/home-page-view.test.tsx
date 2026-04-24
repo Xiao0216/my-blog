@@ -282,6 +282,35 @@ describe("HomePageView", () => {
     )
   })
 
+  it("moves the camera during planet entry and restores it on return", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const viewport = screen.getByTestId("universe-viewport")
+    expect(viewport).toHaveAttribute("data-camera-mode", "overview")
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
+
+    expect(viewport).toHaveAttribute("data-camera-mode", "inside")
+
+    fireEvent.click(screen.getByRole("button", { name: "返回宇宙" }))
+
+    expect(viewport).toHaveAttribute("data-camera-mode", "overview")
+  })
+
+  it("uses Escape to collapse Null AI before leaving planet detail", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    fireEvent.click(screen.getByRole("button", { name: "展开 Null AI" }))
+    fireEvent.keyDown(window, { key: "Escape" })
+
+    expect(screen.queryByRole("dialog", { name: "Null AI 对话" })).not.toBeInTheDocument()
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
+    fireEvent.keyDown(window, { key: "Escape" })
+
+    expect(screen.queryByRole("dialog", { name: "Work 行星详情" })).not.toBeInTheDocument()
+  })
+
   it("renders polished fallback detail content when public memory data is empty", () => {
     render(<HomePageView {...buildProps({ memories: [] })} />)
 

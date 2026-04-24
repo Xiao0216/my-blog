@@ -1,7 +1,7 @@
 "use client"
 
 import type { FormEvent } from "react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import type {
   CanvasPan,
@@ -128,6 +128,22 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setEnteredCardId(undefined)
     setViewState("overview")
   }
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return
+      if (isTwinExpanded) {
+        setIsTwinExpanded(false)
+        return
+      }
+      if (viewState === "inside") {
+        leaveCard()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isTwinExpanded, leaveCard, viewState])
 
   function askTwin(cardId: string) {
     setSelectedCardId(cardId)
