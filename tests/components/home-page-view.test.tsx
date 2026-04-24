@@ -259,11 +259,16 @@ describe("HomePageView", () => {
 
     fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Work" }))
 
-    expect(screen.getByRole("dialog", { name: "Work 行星详情" })).toBeInTheDocument()
+    const dialog = screen.getByRole("dialog", { name: "Work 行星详情" })
+
+    expect(dialog).toBeInTheDocument()
+    expect(dialog).toHaveAttribute("aria-modal", "true")
+    expect(dialog.closest('[data-testid="universe-viewport"]')).toBeNull()
     expect(screen.getByText("概览")).toBeInTheDocument()
     expect(screen.getByText("最近变化")).toBeInTheDocument()
     expect(screen.getByText("关键记忆")).toBeInTheDocument()
     expect(screen.getByText("关联内容")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "返回宇宙" })).toHaveFocus()
     expect(screen.getByTestId("null-space-shell")).toHaveAttribute("data-view-state", "inside")
 
     fireEvent.click(screen.getByRole("button", { name: "返回宇宙" }))
@@ -285,6 +290,50 @@ describe("HomePageView", () => {
     expect(
       screen.getByText("最近还没有公开记忆，但这个行星已经可以承载你的行为记录。")
     ).toBeInTheDocument()
+  })
+
+  it("shows only public memories for the entered planet", () => {
+    render(
+      <HomePageView
+        {...buildProps({
+          memories: [
+            {
+              id: 1,
+              planetId: 1,
+              planetSlug: "work",
+              planetName: "Work",
+              title: "Work memory",
+              content: "Work detail",
+              type: "preference",
+              occurredAt: "2026-04-24",
+              visibility: "public",
+              importance: 9,
+              tags: ["work"],
+              source: "fixture",
+            },
+            {
+              id: 2,
+              planetId: 2,
+              planetSlug: "life",
+              planetName: "Life",
+              title: "Life memory",
+              content: "Life detail",
+              type: "preference",
+              occurredAt: "2026-04-24",
+              visibility: "public",
+              importance: 8,
+              tags: ["life"],
+              source: "fixture",
+            },
+          ],
+        })}
+      />
+    )
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 Life" }))
+
+    expect(screen.getByText("Life memory")).toBeInTheDocument()
+    expect(screen.queryByText("Work memory")).not.toBeInTheDocument()
   })
 
   it("keeps the selected card action group inside the viewport for right-edge cards", () => {

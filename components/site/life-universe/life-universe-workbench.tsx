@@ -373,7 +373,11 @@ function buildPlanetDetail(
   { essays, memories, notes, projects }: HomePageViewProps
 ): PlanetDetailModel {
   const keyMemories = memories
-    .filter((memory) => memory.visibility === "public")
+    .filter((memory) =>
+      card.planetId
+        ? memory.visibility === "public" && memory.planetId === card.planetId
+        : memory.visibility === "public"
+    )
     .slice(0, 3)
     .map((memory) => memory.title)
   const relatedTitles = [...essays, ...projects, ...notes]

@@ -210,14 +210,15 @@ export function UniverseCanvas({
           </div>
         ) : null}
 
-        {detail ? (
-          <PlanetDetailOverlay
-            detail={detail}
-            onAskTwin={() => onAskTwin(detail.card.id)}
-            onLeave={onLeaveCard}
-          />
-        ) : null}
       </div>
+
+      {detail ? (
+        <PlanetDetailOverlay
+          detail={detail}
+          onAskTwin={() => onAskTwin(detail.card.id)}
+          onLeave={onLeaveCard}
+        />
+      ) : null}
 
       <div className="grid gap-3 md:hidden">
         {cards.map((card) => (

@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useRef } from "react"
+
 import { ArrowLeft, ExternalLink, Link2, MessageCircle } from "lucide-react"
 
 import type { PlanetDetailModel } from "@/components/site/life-universe/types"
@@ -13,15 +15,23 @@ export function PlanetDetailOverlay({
   readonly onAskTwin: () => void
   readonly onLeave: () => void
 }) {
+  const leaveButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    leaveButtonRef.current?.focus()
+  }, [])
+
   return (
     <section
       role="dialog"
+      aria-modal="true"
       aria-label={`${detail.card.title} 行星详情`}
       className="planet-detail-overlay"
     >
       <header className="planet-detail-header">
         <div className="flex items-start gap-3">
           <button
+            ref={leaveButtonRef}
             type="button"
             aria-label="返回宇宙"
             onClick={onLeave}
@@ -73,24 +83,24 @@ export function PlanetDetailOverlay({
         <article>
           <h3>最近变化</h3>
           <ul>
-            {detail.recentChanges.map((item) => (
-              <li key={item}>{item}</li>
+            {detail.recentChanges.map((item, index) => (
+              <li key={`recent-changes-${index}-${item}`}>{item}</li>
             ))}
           </ul>
         </article>
         <article>
           <h3>关键记忆</h3>
           <ul>
-            {detail.keyMemories.map((item) => (
-              <li key={item}>{item}</li>
+            {detail.keyMemories.map((item, index) => (
+              <li key={`key-memories-${index}-${item}`}>{item}</li>
             ))}
           </ul>
         </article>
         <article>
           <h3>关联内容</h3>
           <ul>
-            {detail.relatedTitles.map((item) => (
-              <li key={item}>{item}</li>
+            {detail.relatedTitles.map((item, index) => (
+              <li key={`related-titles-${index}-${item}`}>{item}</li>
             ))}
           </ul>
         </article>
