@@ -9,8 +9,10 @@ import type {
   HomePageViewProps,
   NullSpaceTheme,
   UniverseCardModel,
+  UniverseLayoutInputCard,
   UniverseCardTone,
 } from "@/components/site/life-universe/types"
+import { layoutUniverseCards } from "@/components/site/life-universe/universe-layout"
 import { TwinConsole } from "@/components/site/life-universe/twin-console"
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
 import { UniverseSidebar } from "@/components/site/life-universe/universe-sidebar"
@@ -24,19 +26,19 @@ const MIN_ZOOM = 50
 const MAX_ZOOM = 150
 const DEFAULT_PAN: CanvasPan = { x: 0, y: 0 }
 
-const planetSlots = [
-  { x: 132, y: 78, width: 184, height: 142, rotate: -3 },
-  { x: 110, y: 414, width: 168, height: 140, rotate: -3 },
-  { x: 342, y: 248, width: 146, height: 112, rotate: 1 },
-  { x: 534, y: 68, width: 148, height: 126, rotate: 1 },
-  { x: 708, y: 108, width: 166, height: 142, rotate: 1 },
-  { x: 722, y: 398, width: 168, height: 134, rotate: 5 },
-] as const
+const UNIVERSE_VIEWPORT = {
+  centerX: 480,
+  centerY: 330,
+  height: 660,
+  width: 960,
+} as const
 
-const noteSlots = [
-  { x: 504, y: 428, width: 164, height: 124, rotate: 0 },
-  { x: 650, y: 280, width: 112, height: 106, rotate: 1 },
-] as const
+const CARD_SIZE = {
+  core: { width: 286, height: 190 },
+  planet: { width: 184, height: 142 },
+  feature: { width: 168, height: 138 },
+  note: { width: 164, height: 124 },
+} as const
 
 const toneByTheme: Record<string, UniverseCardTone> = {
   blue: "blue",
@@ -45,6 +47,9 @@ const toneByTheme: Record<string, UniverseCardTone> = {
   teal: "teal",
   violet: "violet",
 }
+
+type BaseUniverseCard = Omit<UniverseCardModel, keyof UniverseLayoutInputCard> &
+  UniverseLayoutInputCard
 
 export function LifeUniverseWorkbench(props: HomePageViewProps) {
   const cards = useMemo(() => buildUniverseCards(props), [props])
@@ -208,92 +213,107 @@ function buildUniverseCards({
   profile,
   projects,
 }: HomePageViewProps): ReadonlyArray<UniverseCardModel> {
-  const centerCard: UniverseCardModel = {
-    id: "garden",
-    category: "数字花园",
-    title: "构建你的数字花园",
-    excerpt: profile.heroTitle || profile.heroIntro,
-    date: "2024.05.12",
-    tone: "teal",
-    status: "mature",
-    x: 396,
-    y: 216,
-    width: 286,
-    height: 190,
-    rotate: -2,
-    featured: true,
-  }
-
-  const planetCards = planets.slice(0, planetSlots.length).map((planet, index) => {
-    const slot = planetSlots[index]
-
-    return {
+  const baseCards = [
+    {
+      id: "garden",
+      kind: "core" as const,
+      group: "self",
+      importance: 10,
+      ...CARD_SIZE.core,
+      category: "数字花园",
+      title: "构建你的数字花园",
+      excerpt: profile.heroTitle || profile.heroIntro,
+      date: "2024.05.12",
+      tone: "teal" as const,
+      status: "mature" as const,
+      featured: true,
+    },
+    ...planets.map((planet, index) => ({
       id: `planet-${planet.id}`,
+      kind: "planet" as const,
+      group: planet.slug,
+      importance: planet.weight ?? Math.max(1, planets.length - index),
+      ...CARD_SIZE.planet,
       category: planet.slug,
       title: planet.name,
       excerpt: planet.summary,
       date: "2024.05.12",
       tone: toneByTheme[planet.theme] ?? "violet",
-      status: "mature",
+      status: "mature" as const,
       planetId: planet.id,
-      ...slot,
-    } satisfies UniverseCardModel
-  })
-
-  const projectCard = projects[0]
-    ? ({
-        id: `project-${projects[0].slug}`,
-        category: "产品思考",
-        title: projects[0].title,
-        excerpt: projects[0].description,
-        date: "2024.04.26",
-        tone: "violet",
-        status: "archived",
-        x: 724,
-        y: 404,
-        width: 168,
-        height: 132,
-        rotate: 5,
-      } satisfies UniverseCardModel)
-    : undefined
-
-  const essayCard = essays[0]
-    ? ({
-        id: `essay-${essays[0].slug}`,
-        category: "技术趋势",
-        title: essays[0].title,
-        excerpt: essays[0].description,
-        date: essays[0].publishedAt.replaceAll("-", "."),
-        tone: "violet",
-        status: "growing",
-        x: 716,
-        y: 100,
-        width: 164,
-        height: 138,
-        rotate: 0,
-      } satisfies UniverseCardModel)
-    : undefined
-
-  const noteCards = notes.slice(0, noteSlots.length).map((note, index) => {
-    const slot = noteSlots[index]
-
-    return {
+    })),
+    ...(essays[0]
+      ? [
+          {
+            id: `essay-${essays[0].slug}`,
+            kind: "essay" as const,
+            group: essays[0].slug,
+            importance: 6,
+            ...CARD_SIZE.feature,
+            category: "技术趋势",
+            title: essays[0].title,
+            excerpt: essays[0].description,
+            date: essays[0].publishedAt.replaceAll("-", "."),
+            tone: "violet" as const,
+            status: "growing" as const,
+          },
+        ]
+      : []),
+    ...(projects[0]
+      ? [
+          {
+            id: `project-${projects[0].slug}`,
+            kind: "project" as const,
+            group: projects[0].slug,
+            importance: 7,
+            ...CARD_SIZE.feature,
+            category: "产品思考",
+            title: projects[0].title,
+            excerpt: projects[0].description,
+            date: "2024.04.26",
+            tone: "violet" as const,
+            status: "archived" as const,
+          },
+        ]
+      : []),
+    ...notes.map((note, index) => ({
       id: `note-${note.slug}`,
+      kind: "note" as const,
+      group: note.slug,
+      importance: Math.max(2, 4 - index),
+      ...CARD_SIZE.note,
       category: "碎片笔记",
       title: note.title,
       excerpt: note.body,
       date: note.publishedAt.replaceAll("-", "."),
-      tone: index === 0 ? "cyan" : "neutral",
-      status: "seedling",
-      ...slot,
-    } satisfies UniverseCardModel
-  })
+      tone: index === 0 ? ("cyan" as const) : ("neutral" as const),
+      status: "seedling" as const,
+    })),
+  ] satisfies ReadonlyArray<BaseUniverseCard>
 
-  return [
-    centerCard,
-    ...planetCards,
-    ...(essayCard ? [essayCard] : []),
-    ...(projectCard ? [projectCard] : []),
-    ...noteCards,
-  ]
+  const placements = layoutUniverseCards(
+    baseCards.map(({ group, height, id, importance, kind, width }) => ({
+      group,
+      height,
+      id,
+      importance,
+      kind,
+      width,
+    })),
+    UNIVERSE_VIEWPORT
+  )
+  const placementById = new Map(placements.map((placement) => [placement.id, placement]))
+
+  return baseCards.map((card) => {
+    const placement = placementById.get(card.id)
+
+    if (!placement) {
+      throw new Error(`Missing layout placement for universe card: ${card.id}`)
+    }
+
+    return {
+      ...card,
+      ...placement,
+    }
+  })
 }

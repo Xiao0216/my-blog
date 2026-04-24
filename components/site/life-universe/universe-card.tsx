@@ -55,6 +55,11 @@ export function UniverseCard({
     <button
       type="button"
       aria-label={`聚焦 ${card.title}`}
+      data-testid="universe-card"
+      data-kind={card.kind}
+      data-layout-x={card.x}
+      data-layout-y={card.y}
+      data-ring={card.ring}
       data-status={card.status}
       data-selected={isSelected ? "true" : "false"}
       onClick={onSelect}
@@ -64,7 +69,7 @@ export function UniverseCard({
         toneClass[card.tone]
       } ${card.featured ? "z-20" : "z-10"}`}
       style={{
-        "--card-rotate": `${card.rotate}deg`,
+        "--card-rotate": `${card.posture.rotateZ}deg`,
         "--selected-scale": isSelected ? "1.06" : "1",
         "--tilt-x": `${tilt.x}deg`,
         "--tilt-y": `${tilt.y}deg`,

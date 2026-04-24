@@ -100,21 +100,15 @@ export type CanvasPan = {
 }
 
 export type UniverseCardModel = {
-  readonly id: string
   readonly category: string
   readonly title: string
   readonly excerpt: string
   readonly date: string
   readonly tone: UniverseCardTone
-  readonly x: number
-  readonly y: number
-  readonly width: number
-  readonly height: number
-  readonly rotate: number
   readonly status: UniverseCardStatus
   readonly featured?: boolean
   readonly planetId?: number
-}
+} & PlacedUniverseCard
 
 export type ChatMessage = {
   readonly id: string

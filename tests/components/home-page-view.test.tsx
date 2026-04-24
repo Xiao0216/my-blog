@@ -230,6 +230,17 @@ describe("HomePageView", () => {
     })
   })
 
+  it("renders layout-driven cards without overlap metadata collisions", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const cards = screen.getAllByTestId("universe-card")
+
+    expect(cards.length).toBeGreaterThan(3)
+    expect(cards.every((card) => card.getAttribute("data-ring"))).toBe(true)
+    expect(cards.every((card) => card.getAttribute("data-layout-x"))).toBe(true)
+    expect(cards.every((card) => card.getAttribute("data-layout-y"))).toBe(true)
+  })
+
   it("renders stable Null Space empty states when planets and memories are empty", () => {
     render(
       <HomePageView
