@@ -6,6 +6,8 @@ export const metadata = {
   title: "Projects",
 }
 
+export const dynamic = "force-dynamic"
+
 export default function ProjectsPage() {
   const projects = getProjects()
 

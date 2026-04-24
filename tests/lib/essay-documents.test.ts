@@ -1,4 +1,3 @@
-import * as essayContent from "@/content/essays"
 import {
   getAllEssaySlugs,
   getEssayDocumentBySlug,
@@ -7,29 +6,28 @@ import {
 import { describe, expect, it } from "vitest"
 
 describe("essay documents", () => {
-  it("uses the essay registry as the source of truth for detail slugs", () => {
-    expect(essayContent.essayDocumentSlugs).toEqual(getAllEssaySlugs())
-  })
+  it("returns a document for every public essay slug", () => {
+    const slugs = getAllEssaySlugs()
 
-  it("returns a document for every registered essay slug", () => {
-    expect(essayContent.essayDocumentSlugs.length).toBeGreaterThan(0)
+    expect(slugs.length).toBeGreaterThan(0)
 
-    for (const slug of essayContent.essayDocumentSlugs) {
+    for (const slug of slugs) {
       const document = getEssayDocumentBySlug(slug)
 
       expect(document).not.toBeNull()
       expect(document?.meta.slug).toBe(slug)
+      expect(document?.content.length).toBeGreaterThan(0)
     }
   })
 
-  it("keeps essay list slugs aligned with the document registry", () => {
+  it("keeps essay list slugs aligned with public detail slugs", () => {
     expect(new Set(getEssaySummaries().map((essay) => essay.slug))).toEqual(
-      new Set(essayContent.essayDocumentSlugs)
+      new Set(getAllEssaySlugs())
     )
   })
 
   it("registers professional technical article slugs", () => {
-    expect(essayContent.essayDocumentSlugs).toEqual([
+    expect(getAllEssaySlugs()).toEqual([
       "healthcare-frontend-engineering",
       "large-data-frontend-performance",
     ])

@@ -3,10 +3,13 @@ import { dirname, join } from "node:path"
 import { DatabaseSync } from "node:sqlite"
 
 import { essaySummaries } from "@/data/essays"
+import type { EssaySummary } from "@/data/essays"
 import { notes } from "@/data/notes"
+import type { NoteEntry } from "@/data/notes"
 import { projects } from "@/data/projects"
+import type { ProjectEntry } from "@/data/projects"
 import { profile, siteConfig } from "@/data/site"
-import type { EssaySummary, NoteEntry, ProjectEntry, ProfileData } from "@/lib/content"
+import type { ProfileData } from "@/data/site"
 import {
   type EssayInput,
   type NoteInput,
@@ -59,6 +62,8 @@ type ProfileRow = {
   long_bio_json: string
 }
 
+const initializedDatabasePaths = new Set<string>()
+
 function getDatabasePath(): string {
   return process.env.BLOG_DATABASE_PATH ?? join(process.cwd(), "data/blog.sqlite")
 }
@@ -66,7 +71,9 @@ function getDatabasePath(): string {
 function openDatabase(): DatabaseSync {
   const databasePath = getDatabasePath()
   mkdirSync(dirname(databasePath), { recursive: true })
-  return new DatabaseSync(databasePath)
+  const database = new DatabaseSync(databasePath)
+  database.exec("PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL;")
+  return database
 }
 
 function withDatabase<T>(callback: (database: DatabaseSync) => T): T {
@@ -266,7 +273,9 @@ function mapEssayRow(row: EssayRow): StoredEssay {
   }
 }
 
-function mapProjectRow(row: ProjectRow): ProjectEntry & { sortOrder: number; status: string } {
+function mapProjectRow(
+  row: ProjectRow
+): ProjectEntry & { sortOrder: number; status: string } {
   return {
     slug: row.slug,
     title: row.title,
@@ -301,10 +310,17 @@ function mapProfileRow(row: ProfileRow): ProfileData {
 }
 
 export function initializeCmsDatabase() {
+  const databasePath = getDatabasePath()
+
+  if (initializedDatabasePaths.has(databasePath)) {
+    return
+  }
+
   withDatabase((database) => {
     createTables(database)
     seedDatabase(database)
   })
+  initializedDatabasePaths.add(databasePath)
 }
 
 export function getPublicProfile(): ProfileData {

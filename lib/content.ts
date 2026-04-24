@@ -1,21 +1,21 @@
-import {
-  essayDocumentSlugs,
-  essayDocuments,
-  isEssayDocumentSlug,
-} from "@/content/essays"
-import { essaySummaries } from "@/data/essays"
 import type { EssaySummary } from "@/data/essays"
-import { notes } from "@/data/notes"
 import type { NoteEntry } from "@/data/notes"
-import { projects } from "@/data/projects"
 import type { ProjectEntry } from "@/data/projects"
-import { profile } from "@/data/site"
 import type { ProfileData } from "@/data/site"
+import {
+  getAllEssaySlugs as getDatabaseEssaySlugs,
+  getEssayBySlug,
+  getPublicEssays,
+  getPublicNotes,
+  getPublicProfile,
+  getPublicProjects,
+} from "@/lib/cms/db"
 
 export type { EssaySummary, NoteEntry, ProjectEntry, ProfileData }
-export type EssayDocument = NonNullable<
-  ReturnType<typeof getEssayDocumentBySlug>
->
+export type EssayDocument = {
+  readonly meta: EssaySummary
+  readonly content: string
+}
 
 function cloneProfileData(data: ProfileData): ProfileData {
   return {
@@ -45,29 +45,34 @@ function cloneProjectEntry(project: ProjectEntry): ProjectEntry {
 }
 
 export function getProfile(): ProfileData {
-  return cloneProfileData(profile)
+  return cloneProfileData(getPublicProfile())
 }
 
 export function getEssaySummaries(): ReadonlyArray<EssaySummary> {
-  return [...essaySummaries].sort((left, right) =>
-    right.publishedAt.localeCompare(left.publishedAt)
-  ).map(cloneEssaySummary)
+  return getPublicEssays().map(cloneEssaySummary)
 }
 
 export function getAllEssaySlugs(): ReadonlyArray<string> {
-  return [...essayDocumentSlugs]
+  return [...getDatabaseEssaySlugs()]
 }
 
-export function getEssayDocumentBySlug(slug: string) {
-  if (!isEssayDocumentSlug(slug)) {
+export function getEssayDocumentBySlug(slug: string): EssayDocument | null {
+  const essay = getEssayBySlug(slug)
+
+  if (!essay) {
     return null
   }
 
-  const essay = essayDocuments[slug]
-
   return {
-    meta: cloneEssaySummary(essay.meta),
-    load: essay.load,
+    meta: cloneEssaySummary({
+      slug: essay.slug,
+      title: essay.title,
+      description: essay.description,
+      publishedAt: essay.publishedAt,
+      readingTime: essay.readingTime,
+      tags: essay.tags,
+    }),
+    content: essay.content,
   }
 }
 
@@ -76,11 +81,9 @@ export function getFeaturedNotes(limit = 3): ReadonlyArray<NoteEntry> {
 }
 
 export function getAllNotes(): ReadonlyArray<NoteEntry> {
-  return [...notes].sort((left, right) =>
-    right.publishedAt.localeCompare(left.publishedAt)
-  ).map(cloneNoteEntry)
+  return getPublicNotes().map(cloneNoteEntry)
 }
 
 export function getProjects(): ReadonlyArray<ProjectEntry> {
-  return projects.map(cloneProjectEntry)
+  return getPublicProjects().map(cloneProjectEntry)
 }

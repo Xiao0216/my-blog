@@ -6,6 +6,8 @@ export const metadata = {
   title: "Notes",
 }
 
+export const dynamic = "force-dynamic"
+
 export default function NotesPage() {
   return (
     <div className="page-frame story-section space-y-10">

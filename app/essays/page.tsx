@@ -6,6 +6,8 @@ export const metadata = {
   title: "Essays",
 }
 
+export const dynamic = "force-dynamic"
+
 export default function EssaysPage() {
   const essays = getEssaySummaries()
 
