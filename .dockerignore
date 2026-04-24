@@ -9,6 +9,7 @@ build
 
 data/*.sqlite
 data/*.sqlite-*
+public/export.jpg
 
 .env
 .env.*

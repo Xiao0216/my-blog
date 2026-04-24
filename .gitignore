@@ -19,6 +19,7 @@
 /build
 data/*.sqlite
 data/*.sqlite-*
+public/export.jpg
 
 # misc
 .DS_Store
