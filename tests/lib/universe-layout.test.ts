@@ -151,6 +151,17 @@ const impossibleCards: ReadonlyArray<UniverseLayoutInputCard> = [
   },
 ]
 
+const oversizedCard: ReadonlyArray<UniverseLayoutInputCard> = [
+  {
+    id: "oversized",
+    kind: "project",
+    group: "build",
+    importance: 9,
+    width: 480,
+    height: 160,
+  },
+]
+
 describe("universe layout", () => {
   it("treats the safety margin as expansion on both rectangles", () => {
     const left = { height: 80, width: 100, x: 40, y: 40 }
@@ -265,6 +276,28 @@ describe("universe layout", () => {
     expect(fallbackCard && fallbackCard.y).toBeGreaterThanOrEqual(32)
     expect(fallbackCard && fallbackCard.x + fallbackCard.width).toBeLessThanOrEqual(500 - 32)
     expect(fallbackCard && fallbackCard.y + fallbackCard.height).toBeLessThanOrEqual(500 - 32)
+  })
+
+  it("marks an oversized card as overlap-fallback instead of silently placing it", () => {
+    const first = layoutUniverseCards(oversizedCard, {
+      centerX: 250,
+      centerY: 250,
+      height: 500,
+      width: 500,
+    })
+    const second = layoutUniverseCards(oversizedCard, {
+      centerX: 250,
+      centerY: 250,
+      height: 500,
+      width: 500,
+    })
+
+    expect(second).toEqual(first)
+    expect(first[0].layoutStatus).toBe("overlap-fallback")
+    expect(Number.isFinite(first[0].x)).toBe(true)
+    expect(Number.isFinite(first[0].y)).toBe(true)
+    expect(first[0].x).toBe(32)
+    expect(first[0].y).toBe(32)
   })
 })
 

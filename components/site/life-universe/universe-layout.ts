@@ -205,13 +205,23 @@ function canPlace(
   placedCards: ReadonlyArray<PlacedUniverseCard>,
   viewport: UniverseViewport
 ) {
-  return isWithinSafetyBounds(candidate, viewport) && !placedCards.some((placedCard) => cardsOverlap(candidate, placedCard))
+  return (
+    isWithinSafetyBounds(candidate, viewport) &&
+    !placedCards.some((placedCard) => cardsOverlap(candidate, placedCard))
+  )
 }
 
 function isWithinSafetyBounds(
   candidate: Pick<PlacedUniverseCard, "height" | "width" | "x" | "y">,
   viewport: UniverseViewport
 ) {
+  const safeWidth = viewport.width - SAFETY_MARGIN * 2
+  const safeHeight = viewport.height - SAFETY_MARGIN * 2
+
+  if (candidate.width > safeWidth || candidate.height > safeHeight) {
+    return false
+  }
+
   const bounds = getSafeBounds(candidate, viewport)
 
   return (
