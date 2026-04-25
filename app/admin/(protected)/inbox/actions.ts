@@ -12,6 +12,13 @@ export type InboxActionState = {
   readonly record?: StoredRecord
 }
 
+const projectedAdminPathByTable = {
+  essays: "/admin/essays",
+  memories: "/admin/memories",
+  notes: "/admin/notes",
+  projects: "/admin/projects",
+} as const
+
 export async function submitAiInboxAction(
   _state: InboxActionState,
   formData: FormData
@@ -24,6 +31,17 @@ export async function submitAiInboxAction(
     revalidatePath("/")
     revalidatePath("/admin")
     revalidatePath("/admin/inbox")
+    const projectedAdminPath =
+      record.projectionTable &&
+      record.projectionTable in projectedAdminPathByTable
+        ? projectedAdminPathByTable[
+            record.projectionTable as keyof typeof projectedAdminPathByTable
+          ]
+        : null
+
+    if (projectedAdminPath) {
+      revalidatePath(projectedAdminPath)
+    }
 
     return {
       sourceText: "",
