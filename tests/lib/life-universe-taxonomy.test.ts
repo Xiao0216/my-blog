@@ -40,6 +40,17 @@ describe("life universe taxonomy", () => {
       "fragment",
       "list",
     ])
+    expect(LIFE_UNIVERSE_CONTENT_TYPES.map((type) => type.label)).toEqual([
+      "文章",
+      "日记",
+      "项目",
+      "记忆",
+      "照片",
+      "碎片",
+      "清单",
+    ])
+    const galaxyNames = new Set(LIFE_UNIVERSE_GALAXIES.map((galaxy) => galaxy.name))
+    expect(LIFE_UNIVERSE_CONTENT_TYPES.every((type) => !galaxyNames.has(type.label))).toBe(true)
   })
 
   it("defines special holding areas for uncertain and private material", () => {
