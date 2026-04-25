@@ -51,11 +51,14 @@ describe("admin auth", () => {
   it("allows only safe internal admin next paths", async () => {
     const auth = await loadAuth()
 
+    expect(auth.getSafeAdminNextPath("/admin")).toBe("/admin")
     expect(auth.getSafeAdminNextPath("/admin/inbox")).toBe("/admin/inbox")
     expect(auth.getSafeAdminNextPath("/admin/inbox?error=1")).toBe(
       "/admin/inbox"
     )
     expect(auth.getSafeAdminNextPath("/admin/login")).toBe("/admin")
+    expect(auth.getSafeAdminNextPath("/administer")).toBe("/admin")
+    expect(auth.getSafeAdminNextPath("/admin.evil")).toBe("/admin")
     expect(auth.getSafeAdminNextPath("https://evil.test/admin/inbox")).toBe(
       "/admin"
     )

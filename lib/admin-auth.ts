@@ -75,15 +75,18 @@ export function getSafeAdminNextPath(value: string | undefined | null): string {
     return "/admin"
   }
 
-  if (!value.startsWith("/admin") || value.startsWith("/admin/login")) {
-    return "/admin"
-  }
-
   if (value.includes("://") || value.includes("\\") || value.includes("//")) {
     return "/admin"
   }
 
   const [path] = value.split("?")
+  const isAdminPath = path === "/admin" || path.startsWith("/admin/")
+  const isLoginPath = path === "/admin/login" || path.startsWith("/admin/login/")
+
+  if (!isAdminPath || isLoginPath) {
+    return "/admin"
+  }
+
   return path || "/admin"
 }
 
