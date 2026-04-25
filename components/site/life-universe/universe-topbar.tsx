@@ -1,3 +1,5 @@
+import Link from "next/link"
+
 import { Filter, Moon, Search, Sparkles, Sun } from "lucide-react"
 
 import { MobileBrandMark } from "@/components/site/life-universe/universe-sidebar"
@@ -55,13 +57,13 @@ export function UniverseTopbar({
         >
           <Filter className="h-3.5 w-3.5" />
         </button>
-        <button
-          type="button"
+        <Link
+          href="/admin/inbox"
           className="null-space-control inline-flex h-8 items-center gap-2 px-4 text-xs font-medium outline-none transition hover:text-[var(--ns-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)]"
         >
           <Sparkles className="h-3.5 w-3.5 text-[var(--ns-accent-primary)]" />
           New
-        </button>
+        </Link>
       </div>
     </header>
   )

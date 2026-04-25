@@ -237,6 +237,10 @@ describe("HomePageView", () => {
 
     expect(screen.getByRole("button", { name: "搜索空间" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "筛选空间" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "New" })).toHaveAttribute(
+      "href",
+      "/admin/inbox"
+    )
     expect(screen.getByRole("button", { name: "抓手模式" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "画布搜索" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "连接视图" })).toBeInTheDocument()
