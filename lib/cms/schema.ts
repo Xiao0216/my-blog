@@ -15,6 +15,18 @@ export type MemoryType =
   | "milestone"
   | "bio"
 export type MemoryVisibility = "public" | "assistant" | "private"
+export type RecordTargetType =
+  | "memory"
+  | "note"
+  | "essay"
+  | "project"
+  | "photo"
+  | "list"
+
+export type RecordProjectionStatus =
+  | "projected"
+  | "pending_projection"
+  | "failed"
 
 export type StoredProfile = ProfileData & {
   readonly email: string
@@ -64,6 +76,29 @@ export type StoredMemory = {
   readonly importance: number
   readonly tags: ReadonlyArray<string>
   readonly source: string
+}
+
+export type StoredRecord = {
+  readonly id: number
+  readonly sourceText: string
+  readonly targetType: RecordTargetType
+  readonly title: string
+  readonly body: string
+  readonly summary: string
+  readonly tags: ReadonlyArray<string>
+  readonly galaxySlug: string
+  readonly planetId: number | null
+  readonly planetName: string | null
+  readonly occurredAt: string
+  readonly visibility: MemoryVisibility | null
+  readonly status: ContentStatus | null
+  readonly confidence: number
+  readonly aiReasoning: string
+  readonly projectionStatus: RecordProjectionStatus
+  readonly projectionTable: string | null
+  readonly projectionId: number | null
+  readonly createdAt: string
+  readonly updatedAt: string
 }
 
 export type StoredTwinIdentity = {

@@ -318,4 +318,51 @@ describe("cms database", () => {
       "Public health memory"
     )
   })
+
+  it("seeds a draft stardust capture planet outside public homepage planets", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+
+    expect(db.getPublicPlanets().map((planet) => planet.slug)).not.toContain(
+      "stardust"
+    )
+    expect(db.getAdminPlanets()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          slug: "stardust",
+          name: "星尘",
+          status: "draft",
+        }),
+      ])
+    )
+  })
+
+  it("allows assistant retrieval from the stardust capture planet", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+    const stardust = db
+      .getAdminPlanets()
+      .find((planet) => planet.slug === "stardust")
+
+    db.saveMemory({
+      planetId: stardust?.id ?? 0,
+      title: "Unclassified assistant memory",
+      content: "A low confidence record can still support the twin.",
+      type: "diary",
+      occurredAt: "2026-04-25",
+      visibility: "assistant",
+      importance: 5,
+      tags: ["inbox"],
+      source: "ai-inbox",
+    })
+
+    expect(
+      db.getAssistantMemories().map((memory) => memory.title)
+    ).toContain("Unclassified assistant memory")
+    expect(db.getPublicMemories().map((memory) => memory.title)).not.toContain(
+      "Unclassified assistant memory"
+    )
+  })
 })

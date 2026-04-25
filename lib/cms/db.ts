@@ -18,11 +18,14 @@ import {
   type PlanetInput,
   type ProfileInput,
   type ProjectInput,
+  type RecordProjectionStatus,
+  type RecordTargetType,
   type StoredMemory,
   type StoredNote,
   type StoredPlanet,
   type StoredProfile,
   type StoredProject,
+  type StoredRecord,
   type StoredEssay,
   type StoredTwinIdentity,
   type TwinIdentityInput,
@@ -104,6 +107,29 @@ type MemoryRow = {
   importance: number
   tags_json: string
   source: string
+}
+
+type RecordRow = {
+  id: number
+  source_text: string
+  target_type: string
+  title: string
+  body: string
+  summary: string
+  tags_json: string
+  galaxy_slug: string
+  planet_id: number | null
+  planet_name: string | null
+  occurred_at: string
+  visibility: string | null
+  status: string | null
+  confidence: number
+  ai_reasoning: string
+  projection_status: string
+  projection_table: string | null
+  projection_id: number | null
+  created_at: string
+  updated_at: string
 }
 
 type TwinIdentityRow = {
@@ -260,6 +286,32 @@ function createTables(database: DatabaseSync) {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       UNIQUE(planet_id, title, source)
+    );
+
+    CREATE TABLE IF NOT EXISTS records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      source_text TEXT NOT NULL,
+      target_type TEXT NOT NULL CHECK (
+        target_type IN ('memory', 'note', 'essay', 'project', 'photo', 'list')
+      ),
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      tags_json TEXT NOT NULL,
+      galaxy_slug TEXT NOT NULL,
+      planet_id INTEGER REFERENCES planets(id) ON DELETE SET NULL,
+      occurred_at TEXT NOT NULL,
+      visibility TEXT CHECK (visibility IN ('public', 'assistant', 'private')),
+      status TEXT CHECK (status IN ('published', 'draft')),
+      confidence INTEGER NOT NULL CHECK (confidence >= 0 AND confidence <= 100),
+      ai_reasoning TEXT NOT NULL,
+      projection_status TEXT NOT NULL CHECK (
+        projection_status IN ('projected', 'pending_projection', 'failed')
+      ),
+      projection_table TEXT,
+      projection_id INTEGER,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS twin_identity (
@@ -546,8 +598,34 @@ function retireLegacyHealthSeedPlanet(
   )
 }
 
+function seedDefaultCapturePlanet(database: DatabaseSync, timestamp: string) {
+  run(
+    database,
+    `INSERT OR IGNORE INTO planets (
+      slug, name, summary, description, x, y, size, theme, status,
+      sort_order, weight, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      "stardust",
+      "星尘",
+      "AI 收件箱中还没有明确归属的临时碎片。",
+      "星尘用于承接低置信度或暂时未分类的 AI 辅助录入内容。",
+      0,
+      0,
+      "small",
+      "teal",
+      "draft",
+      99,
+      1,
+      timestamp,
+      timestamp,
+    ]
+  )
+}
+
 function seedLifeUniverse(database: DatabaseSync) {
   const timestamp = nowText()
+  seedDefaultCapturePlanet(database, timestamp)
   const planetStatement = database.prepare(`
     INSERT OR IGNORE INTO planets (
       slug, name, summary, description, x, y, size, theme, status,
@@ -755,6 +833,32 @@ function mapMemoryRow(row: MemoryRow): StoredMemory {
     importance: row.importance,
     tags: parseStringArray(row.tags_json),
     source: row.source,
+  }
+}
+
+function mapRecordRow(row: RecordRow): StoredRecord {
+  return {
+    id: row.id,
+    sourceText: row.source_text,
+    targetType: row.target_type as RecordTargetType,
+    title: row.title,
+    body: row.body,
+    summary: row.summary,
+    tags: parseStringArray(row.tags_json),
+    galaxySlug: row.galaxy_slug,
+    planetId: row.planet_id,
+    planetName: row.planet_name,
+    occurredAt: row.occurred_at,
+    visibility:
+      row.visibility === null ? null : (row.visibility as StoredRecord["visibility"]),
+    status: row.status === null ? null : parseStatus(row.status),
+    confidence: row.confidence,
+    aiReasoning: row.ai_reasoning,
+    projectionStatus: row.projection_status as RecordProjectionStatus,
+    projectionTable: row.projection_table,
+    projectionId: row.projection_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   }
 }
 
@@ -1002,12 +1106,19 @@ export function getAdminPlanets(): ReadonlyArray<StoredPlanet> {
   })
 }
 
-function getMemoriesByVisibility(
-  visibilitySql: string
-): ReadonlyArray<StoredMemory> {
+function getMemoriesByVisibility({
+  includeStardust,
+  visibilitySql,
+}: {
+  readonly includeStardust: boolean
+  readonly visibilitySql: string
+}): ReadonlyArray<StoredMemory> {
   initializeCmsDatabase()
 
   return withDatabase((database) => {
+    const planetVisibilitySql = includeStardust
+      ? "(planets.status = 'published' OR planets.slug = 'stardust')"
+      : "planets.status = 'published'"
     const rows = database
       .prepare(
         `SELECT
@@ -1016,7 +1127,7 @@ function getMemoriesByVisibility(
            planets.name AS planet_name
          FROM memories
          INNER JOIN planets ON planets.id = memories.planet_id
-         WHERE planets.status = 'published' AND ${visibilitySql}
+         WHERE ${planetVisibilitySql} AND ${visibilitySql}
          ORDER BY memories.importance DESC, memories.occurred_at DESC, memories.id DESC`
       )
       .all() as MemoryRow[]
@@ -1026,13 +1137,17 @@ function getMemoriesByVisibility(
 }
 
 export function getPublicMemories(): ReadonlyArray<StoredMemory> {
-  return getMemoriesByVisibility("memories.visibility = 'public'")
+  return getMemoriesByVisibility({
+    includeStardust: false,
+    visibilitySql: "memories.visibility = 'public'",
+  })
 }
 
 export function getAssistantMemories(): ReadonlyArray<StoredMemory> {
-  return getMemoriesByVisibility(
-    "memories.visibility IN ('public', 'assistant')"
-  )
+  return getMemoriesByVisibility({
+    includeStardust: true,
+    visibilitySql: "memories.visibility IN ('public', 'assistant')",
+  })
 }
 
 export function getAdminMemories(): ReadonlyArray<StoredMemory> {
