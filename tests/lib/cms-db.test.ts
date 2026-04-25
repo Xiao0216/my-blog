@@ -156,9 +156,9 @@ describe("cms database", () => {
     expect(db.getPublicMemories().map((memory) => memory.title)).not.toContain(
       "Private reading note"
     )
-    expect(db.getAssistantMemories().map((memory) => memory.title)).not.toContain(
-      "Private reading note"
-    )
+    expect(
+      db.getAssistantMemories().map((memory) => memory.title)
+    ).not.toContain("Private reading note")
     expect(db.getAdminMemories().map((memory) => memory.title)).toContain(
       "Private reading note"
     )
@@ -224,14 +224,51 @@ describe("cms database", () => {
       weight: 5,
     })
 
-    expect(db.getPublicPlanets().map((planet) => planet.slug)).toContain("health")
+    expect(db.getPublicPlanets().map((planet) => planet.slug)).toContain(
+      "health"
+    )
 
     db = await loadDb()
     db.initializeCmsDatabase()
 
-    expect(db.getPublicPlanets().map((planet) => planet.slug)).not.toContain("health")
-    expect(db.getAdminPlanets().find((planet) => planet.slug === "health")).toMatchObject({
+    expect(db.getPublicPlanets().map((planet) => planet.slug)).not.toContain(
+      "health"
+    )
+    expect(
+      db.getAdminPlanets().find((planet) => planet.slug === "health")
+    ).toMatchObject({
       status: "draft",
+    })
+  })
+
+  it("preserves partially edited legacy health planets during initialization", async () => {
+    let db = await loadDb()
+
+    db.initializeCmsDatabase()
+    db.savePlanet({
+      slug: "health",
+      name: "Health Edited",
+      summary: "Energy, habits, body signals, and sustainable pace.",
+      description:
+        "The health planet tracks routines and constraints that affect long-term output.",
+      x: -500,
+      y: -160,
+      size: "medium",
+      theme: "emerald",
+      status: "published",
+      sortOrder: 5,
+      weight: 6,
+    })
+
+    db = await loadDb()
+    db.initializeCmsDatabase()
+
+    expect(
+      db.getAdminPlanets().find((planet) => planet.slug === "health")
+    ).toMatchObject({
+      name: "Health Edited",
+      status: "published",
+      weight: 6,
     })
   })
 })

@@ -135,14 +135,18 @@ export type AdminContentSummary = {
 const initializedDatabasePaths = new Set<string>()
 
 function getDatabasePath(): string {
-  return process.env.BLOG_DATABASE_PATH ?? join(process.cwd(), "data/blog.sqlite")
+  return (
+    process.env.BLOG_DATABASE_PATH ?? join(process.cwd(), "data/blog.sqlite")
+  )
 }
 
 function openDatabase(): DatabaseSync {
   const databasePath = getDatabasePath()
   mkdirSync(dirname(databasePath), { recursive: true })
   const database = new DatabaseSync(databasePath)
-  database.exec("PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;")
+  database.exec(
+    "PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;"
+  )
   return database
 }
 
@@ -276,9 +280,14 @@ function createTables(database: DatabaseSync) {
 
 function readSeedEssayContent(slug: string): string {
   try {
-    return readFileSync(join(process.cwd(), "content/essays", `${slug}.mdx`), "utf8")
+    return readFileSync(
+      join(process.cwd(), "content/essays", `${slug}.mdx`),
+      "utf8"
+    )
   } catch {
-    return essaySummaries.find((essay) => essay.slug === slug)?.description ?? ""
+    return (
+      essaySummaries.find((essay) => essay.slug === slug)?.description ?? ""
+    )
   }
 }
 
@@ -387,12 +396,77 @@ const lifeUniverseSeedPlanets: ReadonlyArray<PlanetInput> =
     weight: galaxy.weight,
   }))
 
-const legacySeedPlanetSummaries: Record<string, string> = {
-  diary: "Short reflections and personal state over time.",
-  health: "Energy, habits, body signals, and sustainable pace.",
-  life: "Daily rhythm, relationships with the world, and lived texture.",
-  technology: "Front-end systems, performance, AI, and product engineering.",
-  work: "Delivery habits, collaboration, and engineering judgment.",
+const legacySeedPlanets: Record<string, PlanetInput> = {
+  diary: {
+    slug: "diary",
+    name: "Diary",
+    summary: "Short reflections and personal state over time.",
+    description:
+      "The diary planet keeps small, timestamped fragments that explain mood, context, and change.",
+    x: 420,
+    y: 170,
+    size: "medium",
+    theme: "violet",
+    status: "published",
+    sortOrder: 3,
+    weight: 6,
+  },
+  health: {
+    slug: "health",
+    name: "Health",
+    summary: "Energy, habits, body signals, and sustainable pace.",
+    description:
+      "The health planet tracks routines and constraints that affect long-term output.",
+    x: -500,
+    y: -160,
+    size: "medium",
+    theme: "emerald",
+    status: "published",
+    sortOrder: 5,
+    weight: 5,
+  },
+  life: {
+    slug: "life",
+    name: "Life",
+    summary: "Daily rhythm, relationships with the world, and lived texture.",
+    description:
+      "The life planet records ordinary days, choices, observations, and non-work context.",
+    x: -260,
+    y: 120,
+    size: "large",
+    theme: "teal",
+    status: "published",
+    sortOrder: 1,
+    weight: 8,
+  },
+  technology: {
+    slug: "technology",
+    name: "Technology",
+    summary: "Front-end systems, performance, AI, and product engineering.",
+    description:
+      "The technology planet connects articles, experiments, and engineering opinions.",
+    x: -40,
+    y: 320,
+    size: "large",
+    theme: "blue",
+    status: "published",
+    sortOrder: 4,
+    weight: 8,
+  },
+  work: {
+    slug: "work",
+    name: "Work",
+    summary: "Delivery habits, collaboration, and engineering judgment.",
+    description:
+      "The work planet captures how projects are understood, built, shipped, and maintained.",
+    x: 160,
+    y: -140,
+    size: "large",
+    theme: "cyan",
+    status: "published",
+    sortOrder: 2,
+    weight: 9,
+  },
 }
 
 function updateLegacySeedPlanet(
@@ -400,9 +474,9 @@ function updateLegacySeedPlanet(
   planet: PlanetInput,
   timestamp: string
 ) {
-  const legacySummary = legacySeedPlanetSummaries[planet.slug]
+  const legacyPlanet = legacySeedPlanets[planet.slug]
 
-  if (!legacySummary) {
+  if (!legacyPlanet) {
     return
   }
 
@@ -411,7 +485,8 @@ function updateLegacySeedPlanet(
     `UPDATE planets
      SET name = ?, summary = ?, description = ?, x = ?, y = ?, size = ?,
          theme = ?, status = ?, sort_order = ?, weight = ?, updated_at = ?
-     WHERE slug = ? AND summary = ?`,
+     WHERE slug = ? AND name = ? AND summary = ? AND description = ? AND x = ? AND y = ?
+       AND size = ? AND theme = ? AND status = ? AND sort_order = ? AND weight = ?`,
     [
       planet.name,
       planet.summary,
@@ -425,18 +500,46 @@ function updateLegacySeedPlanet(
       planet.weight,
       timestamp,
       planet.slug,
-      legacySummary,
+      legacyPlanet.name,
+      legacyPlanet.summary,
+      legacyPlanet.description,
+      legacyPlanet.x,
+      legacyPlanet.y,
+      legacyPlanet.size,
+      legacyPlanet.theme,
+      legacyPlanet.status,
+      legacyPlanet.sortOrder,
+      legacyPlanet.weight,
     ]
   )
 }
 
-function retireLegacyHealthSeedPlanet(database: DatabaseSync, timestamp: string) {
+function retireLegacyHealthSeedPlanet(
+  database: DatabaseSync,
+  timestamp: string
+) {
+  const legacyPlanet = legacySeedPlanets.health
+
   run(
     database,
     `UPDATE planets
      SET status = 'draft', updated_at = ?
-     WHERE slug = 'health' AND summary = ?`,
-    [timestamp, legacySeedPlanetSummaries.health]
+     WHERE slug = ? AND name = ? AND summary = ? AND description = ? AND x = ? AND y = ?
+       AND size = ? AND theme = ? AND status = ? AND sort_order = ? AND weight = ?`,
+    [
+      timestamp,
+      legacyPlanet.slug,
+      legacyPlanet.name,
+      legacyPlanet.summary,
+      legacyPlanet.description,
+      legacyPlanet.x,
+      legacyPlanet.y,
+      legacyPlanet.size,
+      legacyPlanet.theme,
+      legacyPlanet.status,
+      legacyPlanet.sortOrder,
+      legacyPlanet.weight,
+    ]
   )
 }
 
@@ -550,7 +653,10 @@ function seedLifeUniverse(database: DatabaseSync) {
         "Use concise answers",
         "Reference relevant memories",
       ]),
-      stringifyArray(["Do not expose private memories", "Do not invent personal facts"]),
+      stringifyArray([
+        "Do not expose private memories",
+        "Do not invent personal facts",
+      ]),
       stringifyArray(["State uncertainty when memory support is weak"]),
       timestamp,
     ]
@@ -672,8 +778,15 @@ const fallbackTwinIdentity: StoredTwinIdentity = {
   thirdPersonStyle:
     "Use proxy wording when the answer is uncertain, private, or commitment-heavy.",
   values: ["Clarity", "Pragmatism", "Maintainability", "Long-term thinking"],
-  communicationRules: ["Be direct", "Use concise answers", "Reference relevant memories"],
-  privacyRules: ["Do not expose private memories", "Do not invent personal facts"],
+  communicationRules: [
+    "Be direct",
+    "Use concise answers",
+    "Reference relevant memories",
+  ],
+  privacyRules: [
+    "Do not expose private memories",
+    "Do not invent personal facts",
+  ],
   uncertaintyRules: ["State uncertainty when memory support is weak"],
 }
 
@@ -695,9 +808,9 @@ export function getPublicProfile(): ProfileData {
   initializeCmsDatabase()
 
   return withDatabase((database) => {
-    const row = database
-      .prepare("SELECT * FROM profile WHERE id = 1")
-      .get() as ProfileRow | undefined
+    const row = database.prepare("SELECT * FROM profile WHERE id = 1").get() as
+      | ProfileRow
+      | undefined
 
     return row ? mapProfileRow(row) : profile
   })
@@ -812,11 +925,13 @@ export function getAdminProfile(): StoredProfile {
   initializeCmsDatabase()
 
   return withDatabase((database) => {
-    const row = database
-      .prepare("SELECT * FROM profile WHERE id = 1")
-      .get() as ProfileRow | undefined
+    const row = database.prepare("SELECT * FROM profile WHERE id = 1").get() as
+      | ProfileRow
+      | undefined
 
-    return row ? mapProfileRow(row) : { ...profile, email: siteConfig.email, skills: [], certifications: [] }
+    return row
+      ? mapProfileRow(row)
+      : { ...profile, email: siteConfig.email, skills: [], certifications: [] }
   })
 }
 
@@ -912,7 +1027,9 @@ export function getPublicMemories(): ReadonlyArray<StoredMemory> {
 }
 
 export function getAssistantMemories(): ReadonlyArray<StoredMemory> {
-  return getMemoriesByVisibility("memories.visibility IN ('public', 'assistant')")
+  return getMemoriesByVisibility(
+    "memories.visibility IN ('public', 'assistant')"
+  )
 }
 
 export function getAdminMemories(): ReadonlyArray<StoredMemory> {
@@ -955,18 +1072,27 @@ export function getAdminContentSummary(): AdminContentSummary {
   const memories = getAdminMemories()
 
   return {
-    publishedEssays: essays.filter((essay) => essay.status === "published").length,
+    publishedEssays: essays.filter((essay) => essay.status === "published")
+      .length,
     draftEssays: essays.filter((essay) => essay.status === "draft").length,
-    publishedProjects: projects.filter((project) => project.status === "published").length,
-    draftProjects: projects.filter((project) => project.status === "draft").length,
+    publishedProjects: projects.filter(
+      (project) => project.status === "published"
+    ).length,
+    draftProjects: projects.filter((project) => project.status === "draft")
+      .length,
     publishedNotes: notes.filter((note) => note.status === "published").length,
     draftNotes: notes.filter((note) => note.status === "draft").length,
-    publishedPlanets: planets.filter((planet) => planet.status === "published").length,
-    draftPlanets: planets.filter((planet) => planet.status === "draft").length,
-    publicMemories: memories.filter((memory) => memory.visibility === "public").length,
-    assistantMemories: memories.filter((memory) => memory.visibility === "assistant")
+    publishedPlanets: planets.filter((planet) => planet.status === "published")
       .length,
-    privateMemories: memories.filter((memory) => memory.visibility === "private").length,
+    draftPlanets: planets.filter((planet) => planet.status === "draft").length,
+    publicMemories: memories.filter((memory) => memory.visibility === "public")
+      .length,
+    assistantMemories: memories.filter(
+      (memory) => memory.visibility === "assistant"
+    ).length,
+    privateMemories: memories.filter(
+      (memory) => memory.visibility === "private"
+    ).length,
   }
 }
 
