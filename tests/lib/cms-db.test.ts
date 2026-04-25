@@ -675,6 +675,142 @@ describe("cms database", () => {
     )
   })
 
+  it("marks a projected memory record as failed when the memory is deleted", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+    const stardust = db
+      .getAdminPlanets()
+      .find((planet) => planet.slug === "stardust")
+
+    expect(stardust).toBeDefined()
+
+    const record = db.saveAiInboxRecord({
+      sourceText: "A memory that will be deleted",
+      targetType: "memory",
+      title: "Deleted memory",
+      body: "Projected memory body.",
+      summary: "Memory summary",
+      tags: ["inbox", "memory"],
+      galaxySlug: "diary",
+      planetId: stardust?.id ?? null,
+      occurredAt: "2026-04-25",
+      visibility: "assistant",
+      status: null,
+      confidence: 82,
+      aiReasoning: "Looks like a personal memory.",
+      memoryType: "diary",
+      importance: 5,
+    })
+
+    db.deleteMemory(record.projectionId ?? -1)
+
+    expect(db.getRecentRecords(5)[0]).toMatchObject({
+      title: "Deleted memory",
+      projectionStatus: "failed",
+      projectionTable: null,
+      projectionId: null,
+    })
+  })
+
+  it("marks note essay and project records as failed when their projections are deleted by slug", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+
+    const noteRecord = db.saveAiInboxRecord({
+      sourceText: "A note that will be deleted",
+      targetType: "note",
+      title: "Deleted note",
+      body: "Note body",
+      summary: "Note summary",
+      tags: ["inbox", "note"],
+      galaxySlug: "writing",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: "published",
+      confidence: 80,
+      aiReasoning: "Looks like a note.",
+    })
+    const essayRecord = db.saveAiInboxRecord({
+      sourceText: "An essay that will be deleted",
+      targetType: "essay",
+      title: "Deleted essay",
+      body: "Essay body",
+      summary: "Essay summary",
+      tags: ["inbox", "essay"],
+      galaxySlug: "writing",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: "published",
+      confidence: 81,
+      aiReasoning: "Looks like an essay.",
+      readingTime: "1 min read",
+    })
+    const projectRecord = db.saveAiInboxRecord({
+      sourceText: "A project that will be deleted",
+      targetType: "project",
+      title: "Deleted project",
+      body: "Project body",
+      summary: "Project summary",
+      tags: ["inbox", "project"],
+      galaxySlug: "work",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: "published",
+      confidence: 83,
+      aiReasoning: "Looks like a project.",
+      stack: ["Next.js"],
+      href: "/projects",
+    })
+
+    const rawDatabase = openRawDatabase()
+    const noteSlug = rawDatabase
+      .prepare("SELECT slug FROM notes WHERE id = ?")
+      .get(noteRecord.projectionId) as { slug?: string } | undefined
+    const essaySlug = rawDatabase
+      .prepare("SELECT slug FROM essays WHERE id = ?")
+      .get(essayRecord.projectionId) as { slug?: string } | undefined
+    const projectSlug = rawDatabase
+      .prepare("SELECT slug FROM projects WHERE id = ?")
+      .get(projectRecord.projectionId) as { slug?: string } | undefined
+    rawDatabase.close()
+
+    expect(noteSlug?.slug).toBeDefined()
+    expect(essaySlug?.slug).toBeDefined()
+    expect(projectSlug?.slug).toBeDefined()
+
+    db.deleteNote(noteSlug?.slug ?? "")
+    db.deleteEssay(essaySlug?.slug ?? "")
+    db.deleteProject(projectSlug?.slug ?? "")
+
+    expect(db.getRecentRecords(10)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Deleted note",
+          projectionStatus: "failed",
+          projectionTable: null,
+          projectionId: null,
+        }),
+        expect.objectContaining({
+          title: "Deleted essay",
+          projectionStatus: "failed",
+          projectionTable: null,
+          projectionId: null,
+        }),
+        expect.objectContaining({
+          title: "Deleted project",
+          projectionStatus: "failed",
+          projectionTable: null,
+          projectionId: null,
+        }),
+      ])
+    )
+  })
+
   it("uses AI inbox projection defaults and fallback slugs", async () => {
     const db = await loadDb()
 

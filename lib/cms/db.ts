@@ -1829,15 +1829,15 @@ export function saveTwinIdentity(input: TwinIdentityInput) {
 }
 
 export function deleteEssay(slug: string) {
-  deleteBySlug("essays", slug)
+  deleteProjectedBySlug("essays", slug)
 }
 
 export function deleteProject(slug: string) {
-  deleteBySlug("projects", slug)
+  deleteProjectedBySlug("projects", slug)
 }
 
 export function deleteNote(slug: string) {
-  deleteBySlug("notes", slug)
+  deleteProjectedBySlug("notes", slug)
 }
 
 export function deletePlanet(slug: string) {
@@ -1848,6 +1848,7 @@ export function deleteMemory(id: number) {
   initializeCmsDatabase()
 
   withDatabase((database) => {
+    clearRecordProjectionForTarget(database, "memories", id, nowText())
     run(database, "DELETE FROM memories WHERE id = ?", [id])
   })
 }
@@ -1877,6 +1878,44 @@ function deleteBySlug(
   withDatabase((database) => {
     run(database, `DELETE FROM ${table} WHERE slug = ?`, [slug])
   })
+}
+
+function deleteProjectedBySlug(
+  table: "essays" | "projects" | "notes",
+  slug: string
+) {
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    const row = database
+      .prepare(`SELECT id FROM ${table} WHERE slug = ? LIMIT 1`)
+      .get(slug) as { id: number } | undefined
+
+    if (!row) {
+      return
+    }
+
+    clearRecordProjectionForTarget(database, table, row.id, nowText())
+    run(database, `DELETE FROM ${table} WHERE id = ?`, [row.id])
+  })
+}
+
+function clearRecordProjectionForTarget(
+  database: DatabaseSync,
+  table: ProjectionTable,
+  projectionId: number,
+  timestamp: string
+) {
+  run(
+    database,
+    `UPDATE records
+     SET projection_status = 'failed',
+         projection_table = NULL,
+         projection_id = NULL,
+         updated_at = ?
+     WHERE projection_table = ? AND projection_id = ?`,
+    [timestamp, table, projectionId]
+  )
 }
 
 function toggleStatus(
