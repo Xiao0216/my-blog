@@ -639,12 +639,15 @@ function uniqueSlug(database: DatabaseSync, table: string, base: string): string
 
 In `lib/cms/db.ts`, add these helpers before the public save functions:
 
+The `records` table enforces projection consistency. Insert records as `pending_projection`
+with null projection fields first, then update to `projected` with `projection_table` and
+`projection_id` after the target row has been created inside the same transaction.
+
 ```ts
 function insertRecord(
   database: DatabaseSync,
   input: AiInboxRecordInput,
-  timestamp: string,
-  projectionStatus: RecordProjectionStatus
+  timestamp: string
 ): number {
   const result = database
     .prepare(
@@ -652,7 +655,7 @@ function insertRecord(
         source_text, target_type, title, body, summary, tags_json, galaxy_slug,
         planet_id, occurred_at, visibility, status, confidence, ai_reasoning,
         projection_status, projection_table, projection_id, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_projection', NULL, NULL, ?, ?)`
     )
     .run(
       input.sourceText,
@@ -668,7 +671,6 @@ function insertRecord(
       input.status,
       input.confidence,
       input.aiReasoning,
-      projectionStatus,
       timestamp,
       timestamp
     )
@@ -679,6 +681,7 @@ function insertRecord(
 function updateRecordProjection(
   database: DatabaseSync,
   recordId: number,
+  projectionStatus: RecordProjectionStatus,
   table: string | null,
   projectionId: number | null,
   timestamp: string
@@ -686,9 +689,9 @@ function updateRecordProjection(
   run(
     database,
     `UPDATE records
-     SET projection_table = ?, projection_id = ?, updated_at = ?
+     SET projection_status = ?, projection_table = ?, projection_id = ?, updated_at = ?
      WHERE id = ?`,
-    [table, projectionId, timestamp, recordId]
+    [projectionStatus, table, projectionId, timestamp, recordId]
   )
 }
 ```
@@ -721,16 +724,12 @@ export function saveAiInboxRecord(input: AiInboxRecordInput): StoredRecord {
 
   return withDatabase((database) => {
     const timestamp = nowText()
-    const projectionStatus: RecordProjectionStatus =
-      input.targetType === "photo" || input.targetType === "list"
-        ? "pending_projection"
-        : "projected"
 
     let savedRecordId = 0
     database.exec("BEGIN IMMEDIATE")
 
     try {
-      const recordId = insertRecord(database, input, timestamp, projectionStatus)
+      const recordId = insertRecord(database, input, timestamp)
       savedRecordId = recordId
       let projectionTable: string | null = null
       let projectionId: number | null = null
@@ -820,7 +819,14 @@ export function saveAiInboxRecord(input: AiInboxRecordInput): StoredRecord {
         projectionId = Number(result.lastInsertRowid)
       }
 
-      updateRecordProjection(database, recordId, projectionTable, projectionId, timestamp)
+      updateRecordProjection(
+        database,
+        recordId,
+        projectionTable && projectionId ? "projected" : "pending_projection",
+        projectionTable,
+        projectionId,
+        timestamp
+      )
       database.exec("COMMIT")
     } catch (error) {
       database.exec("ROLLBACK")
