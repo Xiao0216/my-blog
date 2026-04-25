@@ -101,6 +101,27 @@ export type StoredRecord = {
   readonly updatedAt: string
 }
 
+export type AiInboxRecordInput = {
+  readonly sourceText: string
+  readonly targetType: RecordTargetType
+  readonly title: string
+  readonly body: string
+  readonly summary: string
+  readonly tags: ReadonlyArray<string>
+  readonly galaxySlug: string
+  readonly planetId: number | null
+  readonly occurredAt: string
+  readonly visibility: MemoryVisibility | null
+  readonly status: ContentStatus | null
+  readonly confidence: number
+  readonly aiReasoning: string
+  readonly memoryType?: MemoryType
+  readonly importance?: number
+  readonly readingTime?: string
+  readonly stack?: ReadonlyArray<string>
+  readonly href?: string
+}
+
 export type StoredTwinIdentity = {
   readonly displayName: string
   readonly subtitle: string

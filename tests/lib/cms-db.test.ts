@@ -494,4 +494,215 @@ describe("cms database", () => {
       "Unclassified assistant memory"
     )
   })
+
+  it("saves memory records and projects them atomically", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+    const stardust = db
+      .getAdminPlanets()
+      .find((planet) => planet.slug === "stardust")
+
+    expect(stardust).toBeDefined()
+
+    const record = db.saveAiInboxRecord({
+      sourceText: "今天记录一个想法。",
+      targetType: "memory",
+      title: "Inbox memory",
+      body: "A projected memory body.",
+      summary: "Memory summary",
+      tags: ["inbox", "memory"],
+      galaxySlug: "diary",
+      planetId: stardust?.id ?? null,
+      occurredAt: "2026-04-25",
+      visibility: "assistant",
+      status: null,
+      confidence: 82,
+      aiReasoning: "Looks like a personal memory.",
+      memoryType: "diary",
+      importance: 5,
+    })
+
+    expect(record).toMatchObject({
+      targetType: "memory",
+      projectionStatus: "projected",
+      projectionTable: "memories",
+    })
+    expect(db.getAdminMemories()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Inbox memory",
+          visibility: "assistant",
+          source: "ai-inbox",
+        }),
+      ])
+    )
+    expect(db.getRecentRecords(5)[0]).toMatchObject({
+      title: "Inbox memory",
+      projectionTable: "memories",
+    })
+  })
+
+  it("saves note essay and project records as drafts", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+
+    db.saveAiInboxRecord({
+      sourceText: "A note from the inbox",
+      targetType: "note",
+      title: "Inbox note",
+      body: "Note body",
+      summary: "Note summary",
+      tags: ["inbox", "note"],
+      galaxySlug: "writing",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: "draft",
+      confidence: 80,
+      aiReasoning: "Looks like a note.",
+    })
+    db.saveAiInboxRecord({
+      sourceText: "An essay from the inbox",
+      targetType: "essay",
+      title: "Inbox essay",
+      body: "Essay body",
+      summary: "Essay summary",
+      tags: ["inbox", "essay"],
+      galaxySlug: "writing",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: "draft",
+      confidence: 81,
+      aiReasoning: "Looks like an essay.",
+      readingTime: "1 min read",
+    })
+    db.saveAiInboxRecord({
+      sourceText: "A project from the inbox",
+      targetType: "project",
+      title: "Inbox project",
+      body: "Project body",
+      summary: "Project summary",
+      tags: ["inbox", "project"],
+      galaxySlug: "work",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: "draft",
+      confidence: 83,
+      aiReasoning: "Looks like a project.",
+      stack: ["Next.js"],
+      href: "/projects",
+    })
+
+    expect(db.getAdminNotes()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Inbox note",
+          status: "draft",
+        }),
+      ])
+    )
+    expect(db.getAdminEssays()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Inbox essay",
+          status: "draft",
+          readingTime: "1 min read",
+        }),
+      ])
+    )
+    expect(db.getAdminProjects()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Inbox project",
+          status: "draft",
+          stack: ["Next.js"],
+          href: "/projects",
+        }),
+      ])
+    )
+  })
+
+  it("keeps photo and list records pending without projection", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+
+    const photoRecord = db.saveAiInboxRecord({
+      sourceText: "A photo record",
+      targetType: "photo",
+      title: "Inbox photo",
+      body: "Photo body",
+      summary: "Photo summary",
+      tags: ["inbox", "photo"],
+      galaxySlug: "life",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: null,
+      confidence: 65,
+      aiReasoning: "Looks like a photo.",
+    })
+    const listRecord = db.saveAiInboxRecord({
+      sourceText: "A list record",
+      targetType: "list",
+      title: "Inbox list",
+      body: "List body",
+      summary: "List summary",
+      tags: ["inbox", "list"],
+      galaxySlug: "life",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: null,
+      confidence: 66,
+      aiReasoning: "Looks like a list.",
+    })
+
+    expect(photoRecord).toMatchObject({
+      projectionStatus: "pending_projection",
+      projectionTable: null,
+      projectionId: null,
+    })
+    expect(listRecord).toMatchObject({
+      projectionStatus: "pending_projection",
+      projectionTable: null,
+      projectionId: null,
+    })
+  })
+
+  it("rolls back the record when projection fails", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+    const before = db.getRecentRecords(20)
+
+    expect(() =>
+      db.saveAiInboxRecord({
+        sourceText: "Broken source text",
+        targetType: "memory",
+        title: "Broken memory",
+        body: "Broken body",
+        summary: "Broken summary",
+        tags: ["broken"],
+        galaxySlug: "diary",
+        planetId: 999_999,
+        occurredAt: "2026-04-25",
+        visibility: "assistant",
+        status: null,
+        confidence: 10,
+        aiReasoning: "This should fail because the planet does not exist.",
+        memoryType: "diary",
+        importance: 5,
+      })
+    ).toThrow()
+
+    expect(db.getRecentRecords(20)).toHaveLength(before.length)
+    expect(db.getAdminMemories().map((memory) => memory.title)).not.toContain(
+      "Broken memory"
+    )
+  })
 })

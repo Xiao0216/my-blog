@@ -12,11 +12,13 @@ import { profile, siteConfig } from "@/data/site"
 import type { ProfileData } from "@/data/site"
 import { LIFE_UNIVERSE_GALAXIES } from "@/lib/life-universe/taxonomy"
 import {
+  type AiInboxRecordInput,
   type EssayInput,
   type MemoryInput,
   type NoteInput,
   type PlanetInput,
   type ProfileInput,
+  type StoredRecord,
   type ProjectInput,
   type StoredMemory,
   type StoredNote,
@@ -117,6 +119,32 @@ type TwinIdentityRow = {
   privacy_rules_json: string
   uncertainty_rules_json: string
 }
+
+type RecordRow = {
+  id: number
+  source_text: string
+  target_type: string
+  title: string
+  body: string
+  summary: string
+  tags_json: string
+  galaxy_slug: string
+  planet_id: number | null
+  planet_name: string | null
+  occurred_at: string
+  visibility: string | null
+  status: string | null
+  confidence: number
+  ai_reasoning: string
+  projection_status: string
+  projection_table: string | null
+  projection_id: number | null
+  created_at: string
+  updated_at: string
+}
+
+type ProjectionTable = "memories" | "notes" | "essays" | "projects"
+type SlugTable = "notes" | "essays" | "projects"
 
 export type AdminContentSummary = {
   readonly publishedEssays: number
@@ -845,6 +873,139 @@ function mapTwinIdentityRow(row: TwinIdentityRow): StoredTwinIdentity {
   }
 }
 
+function mapRecordRow(row: RecordRow): StoredRecord {
+  return {
+    id: row.id,
+    sourceText: row.source_text,
+    targetType: row.target_type as StoredRecord["targetType"],
+    title: row.title,
+    body: row.body,
+    summary: row.summary,
+    tags: parseStringArray(row.tags_json),
+    galaxySlug: row.galaxy_slug,
+    planetId: row.planet_id,
+    planetName: row.planet_name,
+    occurredAt: row.occurred_at,
+    visibility: row.visibility as StoredRecord["visibility"],
+    status: row.status === null ? null : parseStatus(row.status),
+    confidence: row.confidence,
+    aiReasoning: row.ai_reasoning,
+    projectionStatus:
+      row.projection_status === "pending_projection" ||
+      row.projection_status === "failed"
+        ? row.projection_status
+        : "projected",
+    projectionTable: row.projection_table,
+    projectionId: row.projection_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+function slugBaseFromTitle(title: string, fallback: string): string {
+  const base = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+
+  return base || fallback
+}
+
+function uniqueSlug(
+  database: DatabaseSync,
+  table: SlugTable,
+  base: string
+): string {
+  let slug = base
+  let suffix = 2
+
+  while (true) {
+    const row = database
+      .prepare(`SELECT 1 FROM ${table} WHERE slug = ? LIMIT 1`)
+      .get(slug) as { 1: number } | undefined
+
+    if (!row) {
+      return slug
+    }
+
+    slug = `${base}-${suffix}`
+    suffix += 1
+  }
+}
+
+function insertRecord(
+  database: DatabaseSync,
+  input: AiInboxRecordInput,
+  timestamp: string
+): number {
+  const result = database
+    .prepare(
+      `INSERT INTO records (
+        source_text, target_type, title, body, summary, tags_json,
+        galaxy_slug, planet_id, occurred_at, visibility, status, confidence,
+        ai_reasoning, projection_status, projection_table, projection_id,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .run(
+      input.sourceText,
+      input.targetType,
+      input.title,
+      input.body,
+      input.summary,
+      stringifyArray(input.tags),
+      input.galaxySlug,
+      input.planetId,
+      input.occurredAt,
+      input.visibility,
+      input.status,
+      input.confidence,
+      input.aiReasoning,
+      "pending_projection",
+      null,
+      null,
+      timestamp,
+      timestamp
+    )
+
+  return Number(result.lastInsertRowid)
+}
+
+function updateRecordProjection(
+  database: DatabaseSync,
+  recordId: number,
+  projectionStatus: StoredRecord["projectionStatus"],
+  table: ProjectionTable | null,
+  projectionId: number | null,
+  timestamp: string
+) {
+  run(
+    database,
+    `UPDATE records
+     SET projection_status = ?, projection_table = ?, projection_id = ?, updated_at = ?
+     WHERE id = ?`,
+    [projectionStatus, table, projectionId, timestamp, recordId]
+  )
+}
+
+function getRecordById(
+  database: DatabaseSync,
+  id: number
+): StoredRecord | null {
+  const row = database
+    .prepare(
+      `SELECT
+         records.*,
+         planets.name AS planet_name
+       FROM records
+       LEFT JOIN planets ON planets.id = records.planet_id
+       WHERE records.id = ?`
+    )
+    .get(id) as RecordRow | undefined
+
+  return row ? mapRecordRow(row) : null
+}
+
 const fallbackTwinIdentity: StoredTwinIdentity = {
   displayName: "縉紳 AI",
   subtitle: "记忆驱动的数字分身",
@@ -1151,6 +1312,26 @@ export function getTwinIdentity(): StoredTwinIdentity {
   })
 }
 
+export function getRecentRecords(limit = 10): ReadonlyArray<StoredRecord> {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    const rows = database
+      .prepare(
+        `SELECT
+           records.*,
+           planets.name AS planet_name
+         FROM records
+         LEFT JOIN planets ON planets.id = records.planet_id
+         ORDER BY records.created_at DESC, records.id DESC
+         LIMIT ?`
+      )
+      .all(limit) as RecordRow[]
+
+    return rows.map(mapRecordRow)
+  })
+}
+
 export function getAdminContentSummary(): AdminContentSummary {
   const essays = getAdminEssays()
   const projects = getAdminProjects()
@@ -1433,6 +1614,179 @@ export function saveMemoryById(id: number, input: MemoryInput) {
         id,
       ]
     )
+  })
+}
+
+export function saveAiInboxRecord(input: AiInboxRecordInput): StoredRecord {
+  initializeCmsDatabase()
+
+  return withDatabase((database) => {
+    let transactionOpen = false
+
+    const normalizedInput: AiInboxRecordInput =
+      input.targetType === "memory"
+        ? {
+            ...input,
+            visibility: input.visibility ?? "assistant",
+            status: null,
+          }
+        : input.targetType === "note" ||
+            input.targetType === "essay" ||
+            input.targetType === "project"
+          ? {
+              ...input,
+              visibility: null,
+              status: input.status ?? "draft",
+            }
+          : {
+              ...input,
+              visibility: null,
+              status: null,
+            }
+
+    try {
+      database.exec("BEGIN IMMEDIATE")
+      transactionOpen = true
+
+      const timestamp = nowText()
+      const recordId = insertRecord(database, normalizedInput, timestamp)
+      let projectionTable: ProjectionTable | null = null
+      let projectionId: number | null = null
+
+      if (normalizedInput.targetType === "memory") {
+        const result = database
+          .prepare(
+            `INSERT INTO memories (
+              planet_id, title, content, type, occurred_at, visibility, importance,
+              tags_json, source, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            normalizedInput.planetId,
+            normalizedInput.title,
+            normalizedInput.body,
+            normalizedInput.memoryType ?? "diary",
+            normalizedInput.occurredAt,
+            normalizedInput.visibility,
+            normalizedInput.importance ?? 5,
+            stringifyArray(normalizedInput.tags),
+            "ai-inbox",
+            timestamp,
+            timestamp
+          )
+        projectionTable = "memories"
+        projectionId = Number(result.lastInsertRowid)
+      }
+
+      if (normalizedInput.targetType === "note") {
+        const slug = uniqueSlug(
+          database,
+          "notes",
+          slugBaseFromTitle(normalizedInput.title, "ai-note")
+        )
+        const result = database
+          .prepare(
+            `INSERT INTO notes (
+              slug, title, body, published_at, status, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            slug,
+            normalizedInput.title,
+            normalizedInput.body,
+            normalizedInput.occurredAt,
+            normalizedInput.status,
+            timestamp,
+            timestamp
+          )
+        projectionTable = "notes"
+        projectionId = Number(result.lastInsertRowid)
+      }
+
+      if (normalizedInput.targetType === "essay") {
+        const slug = uniqueSlug(
+          database,
+          "essays",
+          slugBaseFromTitle(normalizedInput.title, "ai-essay")
+        )
+        const result = database
+          .prepare(
+            `INSERT INTO essays (
+              slug, title, description, content, published_at, reading_time,
+              tags_json, status, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            slug,
+            normalizedInput.title,
+            normalizedInput.summary,
+            normalizedInput.body,
+            normalizedInput.occurredAt,
+            normalizedInput.readingTime ?? "1 min read",
+            stringifyArray(normalizedInput.tags),
+            normalizedInput.status,
+            timestamp,
+            timestamp
+          )
+        projectionTable = "essays"
+        projectionId = Number(result.lastInsertRowid)
+      }
+
+      if (normalizedInput.targetType === "project") {
+        const slug = uniqueSlug(
+          database,
+          "projects",
+          slugBaseFromTitle(normalizedInput.title, "ai-project")
+        )
+        const result = database
+          .prepare(
+            `INSERT INTO projects (
+              slug, title, description, note, stack_json, href, sort_order, status,
+              created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            slug,
+            normalizedInput.title,
+            normalizedInput.summary,
+            normalizedInput.body,
+            stringifyArray(normalizedInput.stack ?? []),
+            normalizedInput.href ?? "/projects",
+            0,
+            normalizedInput.status,
+            timestamp,
+            timestamp
+          )
+        projectionTable = "projects"
+        projectionId = Number(result.lastInsertRowid)
+      }
+
+      updateRecordProjection(
+        database,
+        recordId,
+        projectionId === null ? "pending_projection" : "projected",
+        projectionTable,
+        projectionId,
+        timestamp
+      )
+
+      database.exec("COMMIT")
+      transactionOpen = false
+
+      const record = getRecordById(database, recordId)
+
+      if (!record) {
+        throw new Error(`Record ${recordId} not found after save`)
+      }
+
+      return record
+    } catch (error) {
+      if (transactionOpen) {
+        database.exec("ROLLBACK")
+      }
+
+      throw error
+    }
   })
 }
 
