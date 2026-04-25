@@ -8,6 +8,7 @@ import {
   getFeaturedNotes,
   getLifeMemories,
   getLifePlanets,
+  getLifeUniverseTaxonomy,
   getProfile,
   getProjects,
   getPublicTwinIdentity,
@@ -23,10 +24,18 @@ type Mutable<T> = {
 
 describe("content helpers", () => {
   it("uses stable string schemas for key public fields", () => {
-    expectTypeOf<ReturnType<typeof getEssaySummaries>[number]["slug"]>().toEqualTypeOf<string>()
-    expectTypeOf<ReturnType<typeof getAllNotes>[number]["slug"]>().toEqualTypeOf<string>()
-    expectTypeOf<ReturnType<typeof getProjects>[number]["slug"]>().toEqualTypeOf<string>()
-    expectTypeOf<ReturnType<typeof getProfile>["roleLine"]>().toEqualTypeOf<string>()
+    expectTypeOf<
+      ReturnType<typeof getEssaySummaries>[number]["slug"]
+    >().toEqualTypeOf<string>()
+    expectTypeOf<
+      ReturnType<typeof getAllNotes>[number]["slug"]
+    >().toEqualTypeOf<string>()
+    expectTypeOf<
+      ReturnType<typeof getProjects>[number]["slug"]
+    >().toEqualTypeOf<string>()
+    expectTypeOf<
+      ReturnType<typeof getProfile>["roleLine"]
+    >().toEqualTypeOf<string>()
   })
 
   it("sorts essays from newest to oldest", () => {
@@ -152,17 +161,51 @@ describe("content helpers", () => {
     const identity = getPublicTwinIdentity()
 
     expect(planets.map((planet) => planet.slug)).toEqual([
-      "life",
       "work",
-      "diary",
       "technology",
-      "health",
+      "writing",
+      "diary",
+      "relationships",
+      "life",
+      "interests",
     ])
-    expect(publicMemories.every((memory) => memory.visibility === "public")).toBe(true)
+    expect(
+      publicMemories.every((memory) => memory.visibility === "public")
+    ).toBe(true)
     expect(twinMemories.map((memory) => memory.visibility)).toEqual(
       expect.arrayContaining(["public", "assistant"])
     )
     expect(identity.displayName).toBe("縉紳 AI")
     expect(identity.communicationRules).toContain("Be direct")
+  })
+
+  it("exposes the life universe taxonomy without leaking mutations", () => {
+    const taxonomy = getLifeUniverseTaxonomy()
+
+    expect(taxonomy.galaxies.map((galaxy) => galaxy.slug)).toEqual([
+      "work",
+      "technology",
+      "writing",
+      "diary",
+      "relationships",
+      "life",
+      "interests",
+    ])
+    expect(
+      taxonomy.specialAreas.find((area) => area.slug === "black-box")
+    ).toMatchObject({
+      label: "黑匣子",
+      visibility: "private",
+    })
+
+    taxonomy.galaxies[0].suggestedPlanets.push("mutated")
+    const mutableContentTypes = taxonomy.contentTypes as Array<{
+      label: string
+    }>
+    mutableContentTypes[0].label = "mutated"
+
+    const next = getLifeUniverseTaxonomy()
+    expect(next.galaxies[0].suggestedPlanets).not.toContain("mutated")
+    expect(next.contentTypes[0].label).toBe("文章")
   })
 })

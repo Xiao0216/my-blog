@@ -8,6 +8,10 @@ import type {
   StoredTwinIdentity,
 } from "@/lib/cms/schema"
 import {
+  getLifeUniverseTaxonomy as getCanonicalLifeUniverseTaxonomy,
+  type LifeUniverseTaxonomy,
+} from "@/lib/life-universe/taxonomy"
+import {
   getAllEssaySlugs as getDatabaseEssaySlugs,
   getAssistantMemories,
   getEssayBySlug,
@@ -22,6 +26,7 @@ import {
 
 export type { EssaySummary, NoteEntry, ProjectEntry, ProfileData }
 export type { StoredMemory, StoredPlanet, StoredTwinIdentity }
+export type { LifeUniverseTaxonomy }
 export type EssayDocument = {
   readonly meta: EssaySummary
   readonly content: string
@@ -121,6 +126,10 @@ export function getProjects(): ReadonlyArray<ProjectEntry> {
 
 export function getLifePlanets(): ReadonlyArray<StoredPlanet> {
   return getPublicPlanets().map(clonePlanet)
+}
+
+export function getLifeUniverseTaxonomy(): LifeUniverseTaxonomy {
+  return getCanonicalLifeUniverseTaxonomy()
 }
 
 export function getLifeMemories(): ReadonlyArray<StoredMemory> {
