@@ -543,6 +543,51 @@ describe("cms database", () => {
     })
   })
 
+  it("normalizes memory records to assistant defaults before projection", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+    const stardust = db
+      .getAdminPlanets()
+      .find((planet) => planet.slug === "stardust")
+
+    expect(stardust).toBeDefined()
+
+    const record = db.saveAiInboxRecord({
+      sourceText: "A public-looking memory from the inbox",
+      targetType: "memory",
+      title: "Unsafe memory visibility",
+      body: "This should stay assistant-only.",
+      summary: "Memory safety summary",
+      tags: ["inbox", "memory"],
+      galaxySlug: "diary",
+      planetId: stardust?.id ?? null,
+      occurredAt: "2026-04-25",
+      visibility: "public",
+      status: null,
+      confidence: 75,
+      aiReasoning: "Looks like a personal memory.",
+    })
+
+    expect(record).toMatchObject({
+      visibility: "assistant",
+      status: null,
+      projectionStatus: "projected",
+      projectionTable: "memories",
+    })
+    expect(db.getAdminMemories()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Unsafe memory visibility",
+          type: "diary",
+          visibility: "assistant",
+          importance: 5,
+          source: "ai-inbox",
+        }),
+      ])
+    )
+  })
+
   it("normalizes note essay and project records to drafts", async () => {
     const db = await loadDb()
 
@@ -628,6 +673,133 @@ describe("cms database", () => {
         }),
       ])
     )
+  })
+
+  it("uses AI inbox projection defaults and fallback slugs", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+
+    db.saveAiInboxRecord({
+      sourceText: "First non sluggable note",
+      targetType: "note",
+      title: "星尘",
+      body: "First note body",
+      summary: "First note summary",
+      tags: ["inbox"],
+      galaxySlug: "writing",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: null,
+      confidence: 70,
+      aiReasoning: "Looks like a note.",
+    })
+    db.saveAiInboxRecord({
+      sourceText: "Second non sluggable note",
+      targetType: "note",
+      title: "星尘",
+      body: "Second note body",
+      summary: "Second note summary",
+      tags: ["inbox"],
+      galaxySlug: "writing",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: null,
+      confidence: 71,
+      aiReasoning: "Looks like a note.",
+    })
+    db.saveAiInboxRecord({
+      sourceText: "First non sluggable essay",
+      targetType: "essay",
+      title: "星尘",
+      body: "First essay body",
+      summary: "First essay summary",
+      tags: ["inbox"],
+      galaxySlug: "writing",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: null,
+      confidence: 72,
+      aiReasoning: "Looks like an essay.",
+    })
+    db.saveAiInboxRecord({
+      sourceText: "Second non sluggable essay",
+      targetType: "essay",
+      title: "星尘",
+      body: "Second essay body",
+      summary: "Second essay summary",
+      tags: ["inbox"],
+      galaxySlug: "writing",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: null,
+      confidence: 73,
+      aiReasoning: "Looks like an essay.",
+    })
+    db.saveAiInboxRecord({
+      sourceText: "First non sluggable project",
+      targetType: "project",
+      title: "星尘",
+      body: "First project body",
+      summary: "First project summary",
+      tags: ["inbox"],
+      galaxySlug: "work",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: null,
+      confidence: 74,
+      aiReasoning: "Looks like a project.",
+    })
+    db.saveAiInboxRecord({
+      sourceText: "Second non sluggable project",
+      targetType: "project",
+      title: "星尘",
+      body: "Second project body",
+      summary: "Second project summary",
+      tags: ["inbox"],
+      galaxySlug: "work",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: null,
+      confidence: 75,
+      aiReasoning: "Looks like a project.",
+    })
+
+    const inboxNotes = db
+      .getAdminNotes()
+      .filter((note) => note.title === "星尘")
+      .map((note) => note.slug)
+    const inboxEssays = db
+      .getAdminEssays()
+      .filter((essay) => essay.title === "星尘")
+      .map((essay) => ({
+        slug: essay.slug,
+        readingTime: essay.readingTime,
+      }))
+    const inboxProjects = db
+      .getAdminProjects()
+      .filter((project) => project.title === "星尘")
+      .map((project) => ({
+        slug: project.slug,
+        href: project.href,
+        sortOrder: project.sortOrder,
+      }))
+
+    expect(inboxNotes).toEqual(["ai-note-2", "ai-note"])
+    expect(inboxEssays).toEqual([
+      { slug: "ai-essay-2", readingTime: "1 min read" },
+      { slug: "ai-essay", readingTime: "1 min read" },
+    ])
+    expect(inboxProjects).toEqual([
+      { slug: "ai-project", href: "/projects", sortOrder: 0 },
+      { slug: "ai-project-2", href: "/projects", sortOrder: 0 },
+    ])
   })
 
   it("keeps photo and list records pending without projection", async () => {

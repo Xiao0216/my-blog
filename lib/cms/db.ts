@@ -1627,7 +1627,7 @@ export function saveAiInboxRecord(input: AiInboxRecordInput): StoredRecord {
       input.targetType === "memory"
         ? {
             ...input,
-            visibility: input.visibility ?? "assistant",
+            visibility: "assistant",
             status: null,
           }
         : input.targetType === "note" ||
