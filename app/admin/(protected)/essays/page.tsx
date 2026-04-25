@@ -27,6 +27,8 @@ export default async function AdminEssaysPage({
 }: {
   readonly searchParams?: Promise<{ error?: string }>
 }) {
+  await requireAdminSession("/admin/essays")
+
   const essays = getAdminEssays()
   const params = await searchParams
 

@@ -21,6 +21,8 @@ export default async function AdminTwinPage({
 }: {
   readonly searchParams?: Promise<{ error?: string }>
 }) {
+  await requireAdminSession("/admin/twin")
+
   const identity = getTwinIdentity()
   const params = await searchParams
 

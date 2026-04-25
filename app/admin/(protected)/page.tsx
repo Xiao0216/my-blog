@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 
 import { AdminPageHeader, AdminPanel } from "@/components/admin/admin-ui"
 import { ADMIN_SESSION_COOKIE, adminCookieOptions } from "@/lib/admin-auth"
+import { requireAdminSession } from "@/lib/admin-guard"
 import {
   getAdminContentSummary,
   getAdminEssays,
@@ -17,7 +18,9 @@ export const metadata = {
   title: "Admin",
 }
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  await requireAdminSession("/admin")
+
   const summary = getAdminContentSummary()
   const twinIdentity = getTwinIdentity()
   const latest = [

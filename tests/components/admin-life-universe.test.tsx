@@ -7,6 +7,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { AdminShell } from "@/components/admin/admin-ui"
 
+vi.mock("@/lib/admin-guard", () => ({
+  requireAdminSession: vi.fn(async () => undefined),
+}))
+
 let tempDir = ""
 
 beforeEach(() => {

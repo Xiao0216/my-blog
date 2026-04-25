@@ -21,6 +21,8 @@ export default async function AdminProfilePage({
 }: {
   readonly searchParams?: Promise<{ error?: string }>
 }) {
+  await requireAdminSession("/admin/profile")
+
   const profile = getAdminProfile()
   const params = await searchParams
 

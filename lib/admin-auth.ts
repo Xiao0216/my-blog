@@ -70,6 +70,23 @@ export function verifyAdminSessionCookieValue(
   return timingSafeTextEqual(signature ?? "", signSession(issuedAt, configuredPassword))
 }
 
+export function getSafeAdminNextPath(value: string | undefined | null): string {
+  if (!value) {
+    return "/admin"
+  }
+
+  if (!value.startsWith("/admin") || value.startsWith("/admin/login")) {
+    return "/admin"
+  }
+
+  if (value.includes("://") || value.includes("\\") || value.includes("//")) {
+    return "/admin"
+  }
+
+  const [path] = value.split("?")
+  return path || "/admin"
+}
+
 export function adminCookieOptions() {
   return {
     httpOnly: true,

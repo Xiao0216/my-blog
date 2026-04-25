@@ -27,6 +27,8 @@ export default async function AdminMemoriesPage({
 }: {
   readonly searchParams?: Promise<{ error?: string }>
 }) {
+  await requireAdminSession("/admin/memories")
+
   const memories = getAdminMemories()
   const planets = getAdminPlanets()
   const params = await searchParams

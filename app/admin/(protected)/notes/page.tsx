@@ -22,6 +22,8 @@ export default async function AdminNotesPage({
 }: {
   readonly searchParams?: Promise<{ error?: string }>
 }) {
+  await requireAdminSession("/admin/notes")
+
   const notes = getAdminNotes()
   const params = await searchParams
 

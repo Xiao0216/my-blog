@@ -27,6 +27,8 @@ export default async function AdminPlanetsPage({
 }: {
   readonly searchParams?: Promise<{ error?: string }>
 }) {
+  await requireAdminSession("/admin/planets")
+
   const planets = getAdminPlanets()
   const params = await searchParams
 

@@ -27,6 +27,8 @@ export default async function AdminProjectsPage({
 }: {
   readonly searchParams?: Promise<{ error?: string }>
 }) {
+  await requireAdminSession("/admin/projects")
+
   const projects = getAdminProjects()
   const params = await searchParams
 

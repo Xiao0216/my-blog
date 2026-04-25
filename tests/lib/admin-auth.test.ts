@@ -47,4 +47,18 @@ describe("admin auth", () => {
       auth.verifyAdminSessionCookieValue(sessionValue, 1_777_075_201_000)
     ).toBe(false)
   })
+
+  it("allows only safe internal admin next paths", async () => {
+    const auth = await loadAuth()
+
+    expect(auth.getSafeAdminNextPath("/admin/inbox")).toBe("/admin/inbox")
+    expect(auth.getSafeAdminNextPath("/admin/inbox?error=1")).toBe(
+      "/admin/inbox"
+    )
+    expect(auth.getSafeAdminNextPath("/admin/login")).toBe("/admin")
+    expect(auth.getSafeAdminNextPath("https://evil.test/admin/inbox")).toBe(
+      "/admin"
+    )
+    expect(auth.getSafeAdminNextPath("/essays")).toBe("/admin")
+  })
 })

@@ -5,6 +5,7 @@ import {
   ADMIN_SESSION_COOKIE,
   adminCookieOptions,
   createAdminSessionCookieValue,
+  getSafeAdminNextPath,
   verifyAdminPassword,
 } from "@/lib/admin-auth"
 
@@ -15,7 +16,7 @@ export const metadata = {
 export default function AdminLoginPage({
   searchParams,
 }: {
-  readonly searchParams?: Promise<{ error?: string }>
+  readonly searchParams?: Promise<{ error?: string; next?: string }>
 }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-5 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
@@ -26,6 +27,7 @@ export default function AdminLoginPage({
         <h1 className="mt-2 text-xl font-semibold">登录后台</h1>
         <LoginError searchParams={searchParams} />
         <form action={loginAction} className="mt-5 space-y-4">
+          <LoginNextInput searchParams={searchParams} />
           <label className="grid gap-1.5 text-sm">
             <span className="font-medium">管理员密码</span>
             <input
@@ -47,7 +49,7 @@ export default function AdminLoginPage({
 async function LoginError({
   searchParams,
 }: {
-  readonly searchParams?: Promise<{ error?: string }>
+  readonly searchParams?: Promise<{ error?: string; next?: string }>
 }) {
   const params = await searchParams
 
@@ -58,13 +60,25 @@ async function LoginError({
   return <p className="mt-4 text-sm text-red-600">密码错误或后台未配置密码。</p>
 }
 
+async function LoginNextInput({
+  searchParams,
+}: {
+  readonly searchParams?: Promise<{ next?: string }>
+}) {
+  const params = await searchParams
+  const nextPath = getSafeAdminNextPath(params?.next)
+
+  return <input type="hidden" name="next" value={nextPath} />
+}
+
 async function loginAction(formData: FormData) {
   "use server"
 
   const password = String(formData.get("password") ?? "")
+  const nextPath = getSafeAdminNextPath(String(formData.get("next") ?? ""))
 
   if (!verifyAdminPassword(password)) {
-    redirect("/admin/login?error=1")
+    redirect(`/admin/login?error=1&next=${encodeURIComponent(nextPath)}`)
   }
 
   const cookieStore = await cookies()
@@ -73,5 +87,5 @@ async function loginAction(formData: FormData) {
     createAdminSessionCookieValue(),
     adminCookieOptions()
   )
-  redirect("/admin")
+  redirect(nextPath)
 }
