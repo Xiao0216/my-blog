@@ -7,8 +7,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { AdminShell } from "@/components/admin/admin-ui"
 
+const { requireAdminSessionMock } = vi.hoisted(() => ({
+  requireAdminSessionMock: vi.fn(async () => undefined),
+}))
+
 vi.mock("@/lib/admin-guard", () => ({
-  requireAdminSession: vi.fn(async () => undefined),
+  requireAdminSession: requireAdminSessionMock,
 }))
 
 let tempDir = ""
@@ -16,6 +20,7 @@ let tempDir = ""
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), "blog-admin-life-"))
   process.env.BLOG_DATABASE_PATH = join(tempDir, "blog.sqlite")
+  requireAdminSessionMock.mockClear()
 })
 
 afterEach(() => {
@@ -68,5 +73,68 @@ describe("life universe admin UI", () => {
     expect(
       screen.getByRole("heading", { name: "Twin Identity" })
     ).toBeInTheDocument()
+  })
+
+  it("guards protected admin pages with route-specific return paths", async () => {
+    const [
+      { default: AdminDashboardPage },
+      { default: AdminPlanetsPage },
+      { default: AdminMemoriesPage },
+      { default: AdminTwinPage },
+      { default: AdminProfilePage },
+      { default: AdminEssaysPage },
+      { default: AdminProjectsPage },
+      { default: AdminNotesPage },
+    ] = await Promise.all([
+      import("@/app/admin/(protected)/page"),
+      import("@/app/admin/(protected)/planets/page"),
+      import("@/app/admin/(protected)/memories/page"),
+      import("@/app/admin/(protected)/twin/page"),
+      import("@/app/admin/(protected)/profile/page"),
+      import("@/app/admin/(protected)/essays/page"),
+      import("@/app/admin/(protected)/projects/page"),
+      import("@/app/admin/(protected)/notes/page"),
+    ])
+    const emptySearchParams = Promise.resolve({})
+    const pages = [
+      { path: "/admin", load: () => AdminDashboardPage() },
+      {
+        path: "/admin/planets",
+        load: () => AdminPlanetsPage({ searchParams: emptySearchParams }),
+      },
+      {
+        path: "/admin/memories",
+        load: () => AdminMemoriesPage({ searchParams: emptySearchParams }),
+      },
+      {
+        path: "/admin/twin",
+        load: () => AdminTwinPage({ searchParams: emptySearchParams }),
+      },
+      {
+        path: "/admin/profile",
+        load: () => AdminProfilePage({ searchParams: emptySearchParams }),
+      },
+      {
+        path: "/admin/essays",
+        load: () => AdminEssaysPage({ searchParams: emptySearchParams }),
+      },
+      {
+        path: "/admin/projects",
+        load: () => AdminProjectsPage({ searchParams: emptySearchParams }),
+      },
+      {
+        path: "/admin/notes",
+        load: () => AdminNotesPage({ searchParams: emptySearchParams }),
+      },
+    ]
+
+    for (const page of pages) {
+      requireAdminSessionMock.mockClear()
+
+      await page.load()
+
+      expect(requireAdminSessionMock).toHaveBeenCalledTimes(1)
+      expect(requireAdminSessionMock).toHaveBeenCalledWith(page.path)
+    }
   })
 })

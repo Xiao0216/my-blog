@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto"
 export const ADMIN_SESSION_COOKIE = "blog_admin_session"
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000
+const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001F\u007F]/
 
 function getAdminPassword(): string | null {
   const password = process.env.ADMIN_PASSWORD?.trim()
@@ -70,16 +71,26 @@ export function verifyAdminSessionCookieValue(
   return timingSafeTextEqual(signature ?? "", signSession(issuedAt, configuredPassword))
 }
 
-export function getSafeAdminNextPath(value: string | undefined | null): string {
-  if (!value) {
+export function getSafeAdminNextPath(value: unknown): string {
+  if (typeof value !== "string" || CONTROL_CHARACTER_PATTERN.test(value)) {
     return "/admin"
   }
 
-  if (value.includes("://") || value.includes("\\") || value.includes("//")) {
+  const nextPath = value.trim()
+
+  if (!nextPath) {
     return "/admin"
   }
 
-  const [path] = value.split("?")
+  if (
+    nextPath.includes("://") ||
+    nextPath.includes("\\") ||
+    nextPath.includes("//")
+  ) {
+    return "/admin"
+  }
+
+  const [path] = nextPath.split("?")
   const isAdminPath = path === "/admin" || path.startsWith("/admin/")
   const isLoginPath = path === "/admin/login" || path.startsWith("/admin/login/")
 

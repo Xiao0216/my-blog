@@ -53,12 +53,23 @@ describe("admin auth", () => {
 
     expect(auth.getSafeAdminNextPath("/admin")).toBe("/admin")
     expect(auth.getSafeAdminNextPath("/admin/inbox")).toBe("/admin/inbox")
+    expect(auth.getSafeAdminNextPath("  /admin/inbox  ")).toBe("/admin/inbox")
     expect(auth.getSafeAdminNextPath("/admin/inbox?error=1")).toBe(
       "/admin/inbox"
     )
     expect(auth.getSafeAdminNextPath("/admin/login")).toBe("/admin")
+    expect(auth.getSafeAdminNextPath("/admin/login/reset")).toBe("/admin")
+    expect(auth.getSafeAdminNextPath(["/admin/inbox"])).toBe("/admin")
+    expect(auth.getSafeAdminNextPath(["/admin/inbox", "/admin/notes"])).toBe(
+      "/admin"
+    )
+    expect(auth.getSafeAdminNextPath("/admin/inbox\n/admin/notes")).toBe(
+      "/admin"
+    )
     expect(auth.getSafeAdminNextPath("/administer")).toBe("/admin")
     expect(auth.getSafeAdminNextPath("/admin.evil")).toBe("/admin")
+    expect(auth.getSafeAdminNextPath("/admin\\inbox")).toBe("/admin")
+    expect(auth.getSafeAdminNextPath("//evil.test/admin/inbox")).toBe("/admin")
     expect(auth.getSafeAdminNextPath("https://evil.test/admin/inbox")).toBe(
       "/admin"
     )

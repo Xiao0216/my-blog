@@ -16,7 +16,10 @@ export const metadata = {
 export default function AdminLoginPage({
   searchParams,
 }: {
-  readonly searchParams?: Promise<{ error?: string; next?: string }>
+  readonly searchParams?: Promise<{
+    error?: string | string[]
+    next?: string | string[]
+  }>
 }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-5 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
@@ -49,7 +52,10 @@ export default function AdminLoginPage({
 async function LoginError({
   searchParams,
 }: {
-  readonly searchParams?: Promise<{ error?: string; next?: string }>
+  readonly searchParams?: Promise<{
+    error?: string | string[]
+    next?: string | string[]
+  }>
 }) {
   const params = await searchParams
 
@@ -63,7 +69,7 @@ async function LoginError({
 async function LoginNextInput({
   searchParams,
 }: {
-  readonly searchParams?: Promise<{ next?: string }>
+  readonly searchParams?: Promise<{ next?: string | string[] }>
 }) {
   const params = await searchParams
   const nextPath = getSafeAdminNextPath(params?.next)
@@ -75,7 +81,7 @@ async function loginAction(formData: FormData) {
   "use server"
 
   const password = String(formData.get("password") ?? "")
-  const nextPath = getSafeAdminNextPath(String(formData.get("next") ?? ""))
+  const nextPath = getSafeAdminNextPath(formData.get("next"))
 
   if (!verifyAdminPassword(password)) {
     redirect(`/admin/login?error=1&next=${encodeURIComponent(nextPath)}`)
