@@ -285,7 +285,28 @@ function createTables(database: DatabaseSync) {
       projection_table TEXT,
       projection_id INTEGER,
       created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
+      updated_at TEXT NOT NULL,
+      CHECK (
+        (projection_status = 'projected' AND projection_table IS NOT NULL AND projection_id IS NOT NULL)
+        OR (
+          projection_status IN ('pending_projection', 'failed')
+          AND projection_table IS NULL
+          AND projection_id IS NULL
+        )
+      ),
+      CHECK (
+        (target_type = 'memory' AND visibility IS NOT NULL AND status IS NULL)
+        OR (
+          target_type IN ('note', 'essay', 'project')
+          AND visibility IS NULL
+          AND status IS NOT NULL
+        )
+        OR (
+          target_type IN ('photo', 'list')
+          AND visibility IS NULL
+          AND status IS NULL
+        )
+      )
     );
 
     CREATE TABLE IF NOT EXISTS twin_identity (

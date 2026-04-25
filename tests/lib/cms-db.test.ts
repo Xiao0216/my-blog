@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { DatabaseSync } from "node:sqlite"
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -9,6 +10,16 @@ let tempDir = ""
 async function loadDb() {
   vi.resetModules()
   return import("@/lib/cms/db")
+}
+
+function openRawDatabase() {
+  const databasePath = process.env.BLOG_DATABASE_PATH
+
+  if (!databasePath) {
+    throw new Error("BLOG_DATABASE_PATH must be set for raw DB access")
+  }
+
+  return new DatabaseSync(databasePath)
 }
 
 beforeEach(() => {
@@ -319,6 +330,120 @@ describe("cms database", () => {
     )
   })
 
+  it("rejects records with inconsistent projection state", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+    const database = openRawDatabase()
+
+    expect(() =>
+      database
+        .prepare(
+          `INSERT INTO records (
+            source_text, target_type, title, body, summary, tags_json,
+            galaxy_slug, planet_id, occurred_at, visibility, status, confidence,
+            ai_reasoning, projection_status, projection_table, projection_id,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          "Source text",
+          "memory",
+          "Invalid projected record",
+          "Body",
+          "Summary",
+          "[]",
+          "work",
+          null,
+          "2026-04-25",
+          "assistant",
+          null,
+          50,
+          "Reasoning",
+          "projected",
+          null,
+          null,
+          "2026-04-25T00:00:00.000Z",
+          "2026-04-25T00:00:00.000Z"
+        )
+    ).toThrow(/CHECK constraint failed/)
+
+    database.close()
+  })
+
+  it("rejects records with target-specific visibility and status mismatches", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+    const database = openRawDatabase()
+
+    expect(() =>
+      database
+        .prepare(
+          `INSERT INTO records (
+            source_text, target_type, title, body, summary, tags_json,
+            galaxy_slug, planet_id, occurred_at, visibility, status, confidence,
+            ai_reasoning, projection_status, projection_table, projection_id,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          "Source text",
+          "memory",
+          "Invalid memory record",
+          "Body",
+          "Summary",
+          "[]",
+          "work",
+          null,
+          "2026-04-25",
+          "assistant",
+          "draft",
+          50,
+          "Reasoning",
+          "pending_projection",
+          null,
+          null,
+          "2026-04-25T00:00:00.000Z",
+          "2026-04-25T00:00:00.000Z"
+        )
+    ).toThrow(/CHECK constraint failed/)
+
+    expect(() =>
+      database
+        .prepare(
+          `INSERT INTO records (
+            source_text, target_type, title, body, summary, tags_json,
+            galaxy_slug, planet_id, occurred_at, visibility, status, confidence,
+            ai_reasoning, projection_status, projection_table, projection_id,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          "Source text",
+          "essay",
+          "Invalid essay record",
+          "Body",
+          "Summary",
+          "[]",
+          "writing",
+          null,
+          "2026-04-25",
+          "public",
+          "draft",
+          50,
+          "Reasoning",
+          "pending_projection",
+          null,
+          null,
+          "2026-04-25T00:00:00.000Z",
+          "2026-04-25T00:00:00.000Z"
+        )
+    ).toThrow(/CHECK constraint failed/)
+
+    database.close()
+  })
+
   it("seeds a draft stardust capture planet outside public homepage planets", async () => {
     const db = await loadDb()
 
@@ -345,9 +470,13 @@ describe("cms database", () => {
     const stardust = db
       .getAdminPlanets()
       .find((planet) => planet.slug === "stardust")
+    const stardustId = stardust?.id
+
+    expect(stardust).toBeDefined()
+    expect(stardustId).toBeTypeOf("number")
 
     db.saveMemory({
-      planetId: stardust?.id ?? 0,
+      planetId: stardustId ?? 0,
       title: "Unclassified assistant memory",
       content: "A low confidence record can still support the twin.",
       type: "diary",
