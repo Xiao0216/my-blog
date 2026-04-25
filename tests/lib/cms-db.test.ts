@@ -702,8 +702,9 @@ describe("cms database", () => {
       memoryType: "diary",
       importance: 5,
     })
+    const projectionId = record.projectionId ?? -1
 
-    db.deleteMemory(record.projectionId ?? -1)
+    db.deleteMemory(projectionId)
 
     expect(db.getRecentRecords(5)[0]).toMatchObject({
       title: "Deleted memory",
@@ -711,6 +712,14 @@ describe("cms database", () => {
       projectionTable: null,
       projectionId: null,
     })
+
+    const rawDatabase = openRawDatabase()
+    const deletedMemory = rawDatabase
+      .prepare("SELECT COUNT(*) AS count FROM memories WHERE id = ?")
+      .get(projectionId) as { count: number }
+    rawDatabase.close()
+
+    expect(deletedMemory.count).toBe(0)
   })
 
   it("marks note essay and project records as failed when their projections are deleted by slug", async () => {
@@ -766,17 +775,20 @@ describe("cms database", () => {
       stack: ["Next.js"],
       href: "/projects",
     })
+    const noteProjectionId = noteRecord.projectionId ?? -1
+    const essayProjectionId = essayRecord.projectionId ?? -1
+    const projectProjectionId = projectRecord.projectionId ?? -1
 
     const rawDatabase = openRawDatabase()
     const noteSlug = rawDatabase
       .prepare("SELECT slug FROM notes WHERE id = ?")
-      .get(noteRecord.projectionId) as { slug?: string } | undefined
+      .get(noteProjectionId) as { slug?: string } | undefined
     const essaySlug = rawDatabase
       .prepare("SELECT slug FROM essays WHERE id = ?")
-      .get(essayRecord.projectionId) as { slug?: string } | undefined
+      .get(essayProjectionId) as { slug?: string } | undefined
     const projectSlug = rawDatabase
       .prepare("SELECT slug FROM projects WHERE id = ?")
-      .get(projectRecord.projectionId) as { slug?: string } | undefined
+      .get(projectProjectionId) as { slug?: string } | undefined
     rawDatabase.close()
 
     expect(noteSlug?.slug).toBeDefined()
@@ -809,6 +821,125 @@ describe("cms database", () => {
         }),
       ])
     )
+
+    const afterDeleteDatabase = openRawDatabase()
+    const deletedNote = afterDeleteDatabase
+      .prepare("SELECT COUNT(*) AS count FROM notes WHERE id = ?")
+      .get(noteProjectionId) as { count: number }
+    const deletedEssay = afterDeleteDatabase
+      .prepare("SELECT COUNT(*) AS count FROM essays WHERE id = ?")
+      .get(essayProjectionId) as { count: number }
+    const deletedProject = afterDeleteDatabase
+      .prepare("SELECT COUNT(*) AS count FROM projects WHERE id = ?")
+      .get(projectProjectionId) as { count: number }
+    afterDeleteDatabase.close()
+
+    expect(deletedNote.count).toBe(0)
+    expect(deletedEssay.count).toBe(0)
+    expect(deletedProject.count).toBe(0)
+  })
+
+  it("rolls back record cleanup when projected row deletion fails", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+
+    const record = db.saveAiInboxRecord({
+      sourceText: "A note whose delete will fail",
+      targetType: "note",
+      title: "Delete failure note",
+      body: "Note body",
+      summary: "Note summary",
+      tags: ["inbox", "note"],
+      galaxySlug: "writing",
+      planetId: null,
+      occurredAt: "2026-04-25",
+      visibility: null,
+      status: "published",
+      confidence: 80,
+      aiReasoning: "Looks like a note.",
+    })
+    const projectionId = record.projectionId ?? -1
+    const rawDatabase = openRawDatabase()
+    const noteSlug = rawDatabase
+      .prepare("SELECT slug FROM notes WHERE id = ?")
+      .get(projectionId) as { slug?: string } | undefined
+
+    rawDatabase.exec(`
+      CREATE TRIGGER fail_note_delete
+      BEFORE DELETE ON notes
+      BEGIN
+        SELECT RAISE(ABORT, 'forced delete failure');
+      END;
+    `)
+    rawDatabase.close()
+
+    expect(noteSlug?.slug).toBeDefined()
+    expect(() => db.deleteNote(noteSlug?.slug ?? "")).toThrow(
+      "forced delete failure"
+    )
+
+    expect(db.getRecentRecords(5)[0]).toMatchObject({
+      title: "Delete failure note",
+      projectionStatus: "projected",
+      projectionTable: "notes",
+      projectionId,
+    })
+  })
+
+  it("marks projected memory records as failed when their planet is deleted", async () => {
+    const db = await loadDb()
+
+    db.initializeCmsDatabase()
+    db.savePlanet({
+      slug: "delete-planet",
+      name: "Delete Planet",
+      summary: "Temporary inbox planet",
+      description: "A temporary planet for delete cascade tests.",
+      x: 10,
+      y: 20,
+      size: "small",
+      theme: "cyan",
+      status: "draft",
+      sortOrder: 99,
+      weight: 1,
+    })
+    const planet = db
+      .getAdminPlanets()
+      .find((candidate) => candidate.slug === "delete-planet")
+
+    expect(planet).toBeDefined()
+
+    db.saveAiInboxRecord({
+      sourceText: "A memory whose planet will be deleted",
+      targetType: "memory",
+      title: "Deleted planet memory",
+      body: "Projected memory body.",
+      summary: "Memory summary",
+      tags: ["inbox", "memory"],
+      galaxySlug: "diary",
+      planetId: planet?.id ?? null,
+      occurredAt: "2026-04-25",
+      visibility: "assistant",
+      status: null,
+      confidence: 82,
+      aiReasoning: "Looks like a personal memory.",
+      memoryType: "diary",
+      importance: 5,
+    })
+
+    db.deletePlanet("delete-planet")
+
+    expect(db.getAdminMemories().map((memory) => memory.title)).not.toContain(
+      "Deleted planet memory"
+    )
+    expect(db.getRecentRecords(5)[0]).toMatchObject({
+      title: "Deleted planet memory",
+      projectionStatus: "failed",
+      projectionTable: null,
+      projectionId: null,
+      planetId: null,
+    })
   })
 
   it("uses AI inbox projection defaults and fallback slugs", async () => {

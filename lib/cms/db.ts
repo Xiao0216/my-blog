@@ -1841,15 +1841,36 @@ export function deleteNote(slug: string) {
 }
 
 export function deletePlanet(slug: string) {
-  deleteBySlug("planets", slug)
+  initializeCmsDatabase()
+
+  withDatabase((database) => {
+    const timestamp = nowText()
+
+    runInTransaction(database, () => {
+      const row = database
+        .prepare("SELECT id FROM planets WHERE slug = ? LIMIT 1")
+        .get(slug) as { id: number } | undefined
+
+      if (!row) {
+        return
+      }
+
+      clearMemoryRecordProjectionsForPlanet(database, row.id, timestamp)
+      run(database, "DELETE FROM planets WHERE id = ?", [row.id])
+    })
+  })
 }
 
 export function deleteMemory(id: number) {
   initializeCmsDatabase()
 
   withDatabase((database) => {
-    clearRecordProjectionForTarget(database, "memories", id, nowText())
-    run(database, "DELETE FROM memories WHERE id = ?", [id])
+    const timestamp = nowText()
+
+    runInTransaction(database, () => {
+      clearRecordProjectionForTarget(database, "memories", id, timestamp)
+      run(database, "DELETE FROM memories WHERE id = ?", [id])
+    })
   })
 }
 
@@ -1869,17 +1890,6 @@ export function togglePlanetStatus(slug: string) {
   toggleStatus("planets", slug)
 }
 
-function deleteBySlug(
-  table: "essays" | "projects" | "notes" | "planets",
-  slug: string
-) {
-  initializeCmsDatabase()
-
-  withDatabase((database) => {
-    run(database, `DELETE FROM ${table} WHERE slug = ?`, [slug])
-  })
-}
-
 function deleteProjectedBySlug(
   table: "essays" | "projects" | "notes",
   slug: string
@@ -1887,17 +1897,39 @@ function deleteProjectedBySlug(
   initializeCmsDatabase()
 
   withDatabase((database) => {
-    const row = database
-      .prepare(`SELECT id FROM ${table} WHERE slug = ? LIMIT 1`)
-      .get(slug) as { id: number } | undefined
+    const timestamp = nowText()
 
-    if (!row) {
-      return
+    runInTransaction(database, () => {
+      const row = database
+        .prepare(`SELECT id FROM ${table} WHERE slug = ? LIMIT 1`)
+        .get(slug) as { id: number } | undefined
+
+      if (!row) {
+        return
+      }
+
+      clearRecordProjectionForTarget(database, table, row.id, timestamp)
+      run(database, `DELETE FROM ${table} WHERE id = ?`, [row.id])
+    })
+  })
+}
+
+function runInTransaction(database: DatabaseSync, callback: () => void) {
+  let transactionOpen = false
+
+  try {
+    database.exec("BEGIN IMMEDIATE")
+    transactionOpen = true
+    callback()
+    database.exec("COMMIT")
+    transactionOpen = false
+  } catch (error) {
+    if (transactionOpen) {
+      database.exec("ROLLBACK")
     }
 
-    clearRecordProjectionForTarget(database, table, row.id, nowText())
-    run(database, `DELETE FROM ${table} WHERE id = ?`, [row.id])
-  })
+    throw error
+  }
 }
 
 function clearRecordProjectionForTarget(
@@ -1915,6 +1947,26 @@ function clearRecordProjectionForTarget(
          updated_at = ?
      WHERE projection_table = ? AND projection_id = ?`,
     [timestamp, table, projectionId]
+  )
+}
+
+function clearMemoryRecordProjectionsForPlanet(
+  database: DatabaseSync,
+  planetId: number,
+  timestamp: string
+) {
+  run(
+    database,
+    `UPDATE records
+     SET projection_status = 'failed',
+         projection_table = NULL,
+         projection_id = NULL,
+         updated_at = ?
+     WHERE projection_table = 'memories'
+       AND projection_id IN (
+         SELECT id FROM memories WHERE planet_id = ?
+       )`,
+    [timestamp, planetId]
   )
 }
 

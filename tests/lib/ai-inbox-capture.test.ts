@@ -47,7 +47,7 @@ describe("AI inbox capture", () => {
     const { captureAiInboxText } = await loadCapture()
     const db = await loadDb()
 
-    const result = await captureAiInboxText("raw text")
+    const result = await captureAiInboxText(" \nraw text\t ")
 
     expect(result).toMatchObject({
       targetType: "note",
@@ -65,6 +65,9 @@ describe("AI inbox capture", () => {
         instructions: expect.stringContaining("Return JSON only"),
       })
     )
+    expect(db.getRecentRecords(1)[0]).toMatchObject({
+      sourceText: "raw text",
+    })
   })
 
   it("does not write records when classification fails", async () => {
