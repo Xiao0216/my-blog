@@ -18,14 +18,11 @@ import {
   type PlanetInput,
   type ProfileInput,
   type ProjectInput,
-  type RecordProjectionStatus,
-  type RecordTargetType,
   type StoredMemory,
   type StoredNote,
   type StoredPlanet,
   type StoredProfile,
   type StoredProject,
-  type StoredRecord,
   type StoredEssay,
   type StoredTwinIdentity,
   type TwinIdentityInput,
@@ -107,29 +104,6 @@ type MemoryRow = {
   importance: number
   tags_json: string
   source: string
-}
-
-type RecordRow = {
-  id: number
-  source_text: string
-  target_type: string
-  title: string
-  body: string
-  summary: string
-  tags_json: string
-  galaxy_slug: string
-  planet_id: number | null
-  planet_name: string | null
-  occurred_at: string
-  visibility: string | null
-  status: string | null
-  confidence: number
-  ai_reasoning: string
-  projection_status: string
-  projection_table: string | null
-  projection_id: number | null
-  created_at: string
-  updated_at: string
 }
 
 type TwinIdentityRow = {
@@ -833,32 +807,6 @@ function mapMemoryRow(row: MemoryRow): StoredMemory {
     importance: row.importance,
     tags: parseStringArray(row.tags_json),
     source: row.source,
-  }
-}
-
-function mapRecordRow(row: RecordRow): StoredRecord {
-  return {
-    id: row.id,
-    sourceText: row.source_text,
-    targetType: row.target_type as RecordTargetType,
-    title: row.title,
-    body: row.body,
-    summary: row.summary,
-    tags: parseStringArray(row.tags_json),
-    galaxySlug: row.galaxy_slug,
-    planetId: row.planet_id,
-    planetName: row.planet_name,
-    occurredAt: row.occurred_at,
-    visibility:
-      row.visibility === null ? null : (row.visibility as StoredRecord["visibility"]),
-    status: row.status === null ? null : parseStatus(row.status),
-    confidence: row.confidence,
-    aiReasoning: row.ai_reasoning,
-    projectionStatus: row.projection_status as RecordProjectionStatus,
-    projectionTable: row.projection_table,
-    projectionId: row.projection_id,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
   }
 }
 
