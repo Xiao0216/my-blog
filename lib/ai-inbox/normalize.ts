@@ -122,6 +122,15 @@ function stardustPlanetId(planets: NormalizeAiInboxInput["planets"]): number {
   return stardustPlanet.id
 }
 
+function shouldResolvePlanetId(targetType: NormalizedAiInboxRecord["targetType"]): boolean {
+  return (
+    targetType === "memory" ||
+    targetType === "note" ||
+    targetType === "essay" ||
+    targetType === "project"
+  )
+}
+
 function fallbackMemory(
   input: NormalizeAiInboxInput,
   candidate: AiInboxRawCandidate,
@@ -183,7 +192,9 @@ export function normalizeAiInboxCandidate(
     summary: stringValue(candidate.summary) || body.slice(0, 160),
     tags: stringArray(candidate.tags),
     galaxySlug: stringValue(candidate.galaxySlug) || "diary",
-    planetId: findPlanetId(candidate, input.planets),
+    planetId: shouldResolvePlanetId(targetType)
+      ? findPlanetId(candidate, input.planets)
+      : null,
     occurredAt: isValidDate(occurredAt) ? occurredAt : input.today,
     visibility: targetType === "memory" ? "assistant" : null,
     status:
