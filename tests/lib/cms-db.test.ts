@@ -543,12 +543,12 @@ describe("cms database", () => {
     })
   })
 
-  it("saves note essay and project records as drafts", async () => {
+  it("normalizes note essay and project records to drafts", async () => {
     const db = await loadDb()
 
     db.initializeCmsDatabase()
 
-    db.saveAiInboxRecord({
+    const noteRecord = db.saveAiInboxRecord({
       sourceText: "A note from the inbox",
       targetType: "note",
       title: "Inbox note",
@@ -559,11 +559,11 @@ describe("cms database", () => {
       planetId: null,
       occurredAt: "2026-04-25",
       visibility: null,
-      status: "draft",
+      status: "published",
       confidence: 80,
       aiReasoning: "Looks like a note.",
     })
-    db.saveAiInboxRecord({
+    const essayRecord = db.saveAiInboxRecord({
       sourceText: "An essay from the inbox",
       targetType: "essay",
       title: "Inbox essay",
@@ -574,12 +574,12 @@ describe("cms database", () => {
       planetId: null,
       occurredAt: "2026-04-25",
       visibility: null,
-      status: "draft",
+      status: "published",
       confidence: 81,
       aiReasoning: "Looks like an essay.",
       readingTime: "1 min read",
     })
-    db.saveAiInboxRecord({
+    const projectRecord = db.saveAiInboxRecord({
       sourceText: "A project from the inbox",
       targetType: "project",
       title: "Inbox project",
@@ -590,12 +590,16 @@ describe("cms database", () => {
       planetId: null,
       occurredAt: "2026-04-25",
       visibility: null,
-      status: "draft",
+      status: "published",
       confidence: 83,
       aiReasoning: "Looks like a project.",
       stack: ["Next.js"],
       href: "/projects",
     })
+
+    expect(noteRecord.status).toBe("draft")
+    expect(essayRecord.status).toBe("draft")
+    expect(projectRecord.status).toBe("draft")
 
     expect(db.getAdminNotes()).toEqual(
       expect.arrayContaining([

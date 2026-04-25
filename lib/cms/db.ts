@@ -1636,7 +1636,7 @@ export function saveAiInboxRecord(input: AiInboxRecordInput): StoredRecord {
           ? {
               ...input,
               visibility: null,
-              status: input.status ?? "draft",
+              status: "draft",
             }
           : {
               ...input,
