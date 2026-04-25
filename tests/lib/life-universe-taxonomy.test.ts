@@ -49,13 +49,19 @@ describe("life universe taxonomy", () => {
       "碎片",
       "清单",
     ])
-    expect(LIFE_UNIVERSE_CONTENT_TYPES.find((type) => type.slug === "diary")?.label).toBe("日记")
+    expect(
+      LIFE_UNIVERSE_CONTENT_TYPES.find((type) => type.slug === "diary")?.label
+    ).toBe("日记")
     expect(getLifeUniverseGalaxy("diary")?.name).toBe("日记与自我")
-    expect(LIFE_UNIVERSE_CONTENT_TYPES.find((type) => type.slug === "diary")?.label).not.toBe(
-      getLifeUniverseGalaxy("diary")?.name,
+    expect(
+      LIFE_UNIVERSE_CONTENT_TYPES.find((type) => type.slug === "diary")?.label
+    ).not.toBe(getLifeUniverseGalaxy("diary")?.name)
+    const galaxyNames = new Set(
+      LIFE_UNIVERSE_GALAXIES.map((galaxy) => galaxy.name)
     )
-    const galaxyNames = new Set(LIFE_UNIVERSE_GALAXIES.map((galaxy) => galaxy.name))
-    expect(LIFE_UNIVERSE_CONTENT_TYPES.every((type) => !galaxyNames.has(type.label))).toBe(true)
+    expect(
+      LIFE_UNIVERSE_CONTENT_TYPES.every((type) => !galaxyNames.has(type.label))
+    ).toBe(true)
   })
 
   it("defines special holding areas for uncertain and private material", () => {
@@ -80,7 +86,8 @@ describe("life universe taxonomy", () => {
   it("returns defensive clones for mutable consumers", () => {
     const first = getLifeUniverseTaxonomy()
     first.galaxies[0].suggestedPlanets.push("mutated")
-    first.contentTypes[0].label = "mutated"
+    const mutableContentType = first.contentTypes[0] as { label: string }
+    mutableContentType.label = "mutated"
 
     const next = getLifeUniverseTaxonomy()
     expect(next.galaxies[0].suggestedPlanets).not.toContain("mutated")
