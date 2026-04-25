@@ -10,6 +10,7 @@ import { projects } from "@/data/projects"
 import type { ProjectEntry } from "@/data/projects"
 import { profile, siteConfig } from "@/data/site"
 import type { ProfileData } from "@/data/site"
+import { LIFE_UNIVERSE_GALAXIES } from "@/lib/life-universe/taxonomy"
 import {
   type EssayInput,
   type MemoryInput,
@@ -371,78 +372,73 @@ function seedNotes(database: DatabaseSync) {
   }
 }
 
-const lifeUniverseSeedPlanets: ReadonlyArray<PlanetInput> = [
-  {
-    slug: "life",
-    name: "Life",
-    summary: "Daily rhythm, relationships with the world, and lived texture.",
-    description:
-      "The life planet records ordinary days, choices, observations, and non-work context.",
-    x: -260,
-    y: 120,
-    size: "large",
-    theme: "teal",
+const lifeUniverseSeedPlanets: ReadonlyArray<PlanetInput> =
+  LIFE_UNIVERSE_GALAXIES.map((galaxy) => ({
+    slug: galaxy.slug,
+    name: galaxy.name,
+    summary: galaxy.summary,
+    description: galaxy.description,
+    x: galaxy.x,
+    y: galaxy.y,
+    size: galaxy.size,
+    theme: galaxy.theme,
     status: "published",
-    sortOrder: 1,
-    weight: 8,
-  },
-  {
-    slug: "work",
-    name: "Work",
-    summary: "Delivery habits, collaboration, and engineering judgment.",
-    description:
-      "The work planet captures how projects are understood, built, shipped, and maintained.",
-    x: 160,
-    y: -140,
-    size: "large",
-    theme: "cyan",
-    status: "published",
-    sortOrder: 2,
-    weight: 9,
-  },
-  {
-    slug: "diary",
-    name: "Diary",
-    summary: "Short reflections and personal state over time.",
-    description:
-      "The diary planet keeps small, timestamped fragments that explain mood, context, and change.",
-    x: 420,
-    y: 170,
-    size: "medium",
-    theme: "violet",
-    status: "published",
-    sortOrder: 3,
-    weight: 6,
-  },
-  {
-    slug: "technology",
-    name: "Technology",
-    summary: "Front-end systems, performance, AI, and product engineering.",
-    description:
-      "The technology planet connects articles, experiments, and engineering opinions.",
-    x: -40,
-    y: 320,
-    size: "large",
-    theme: "blue",
-    status: "published",
-    sortOrder: 4,
-    weight: 8,
-  },
-  {
-    slug: "health",
-    name: "Health",
-    summary: "Energy, habits, body signals, and sustainable pace.",
-    description:
-      "The health planet tracks routines and constraints that affect long-term output.",
-    x: -500,
-    y: -160,
-    size: "medium",
-    theme: "emerald",
-    status: "published",
-    sortOrder: 5,
-    weight: 5,
-  },
-]
+    sortOrder: galaxy.sortOrder,
+    weight: galaxy.weight,
+  }))
+
+const legacySeedPlanetSummaries: Record<string, string> = {
+  diary: "Short reflections and personal state over time.",
+  health: "Energy, habits, body signals, and sustainable pace.",
+  life: "Daily rhythm, relationships with the world, and lived texture.",
+  technology: "Front-end systems, performance, AI, and product engineering.",
+  work: "Delivery habits, collaboration, and engineering judgment.",
+}
+
+function updateLegacySeedPlanet(
+  database: DatabaseSync,
+  planet: PlanetInput,
+  timestamp: string
+) {
+  const legacySummary = legacySeedPlanetSummaries[planet.slug]
+
+  if (!legacySummary) {
+    return
+  }
+
+  run(
+    database,
+    `UPDATE planets
+     SET name = ?, summary = ?, description = ?, x = ?, y = ?, size = ?,
+         theme = ?, status = ?, sort_order = ?, weight = ?, updated_at = ?
+     WHERE slug = ? AND summary = ?`,
+    [
+      planet.name,
+      planet.summary,
+      planet.description,
+      planet.x,
+      planet.y,
+      planet.size,
+      planet.theme,
+      planet.status,
+      planet.sortOrder,
+      planet.weight,
+      timestamp,
+      planet.slug,
+      legacySummary,
+    ]
+  )
+}
+
+function retireLegacyHealthSeedPlanet(database: DatabaseSync, timestamp: string) {
+  run(
+    database,
+    `UPDATE planets
+     SET status = 'draft', updated_at = ?
+     WHERE slug = 'health' AND summary = ?`,
+    [timestamp, legacySeedPlanetSummaries.health]
+  )
+}
 
 function seedLifeUniverse(database: DatabaseSync) {
   const timestamp = nowText()
@@ -470,6 +466,12 @@ function seedLifeUniverse(database: DatabaseSync) {
       timestamp
     )
   }
+
+  for (const planet of lifeUniverseSeedPlanets) {
+    updateLegacySeedPlanet(database, planet, timestamp)
+  }
+
+  retireLegacyHealthSeedPlanet(database, timestamp)
 
   const work = database
     .prepare("SELECT id FROM planets WHERE slug = 'work'")

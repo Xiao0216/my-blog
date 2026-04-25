@@ -83,11 +83,22 @@ describe("cms database", () => {
     db.initializeCmsDatabase()
 
     expect(db.getPublicPlanets().map((planet) => planet.slug)).toEqual([
-      "life",
       "work",
-      "diary",
       "technology",
-      "health",
+      "writing",
+      "diary",
+      "relationships",
+      "life",
+      "interests",
+    ])
+    expect(db.getPublicPlanets().map((planet) => planet.name)).toEqual([
+      "工作与职业",
+      "技术与学习",
+      "写作与表达",
+      "日记与自我",
+      "关系与情感",
+      "生活与体验",
+      "兴趣与娱乐",
     ])
     expect(db.getPublicMemories()).toEqual(
       expect.arrayContaining([
@@ -192,5 +203,35 @@ describe("cms database", () => {
     db.initializeCmsDatabase()
 
     expect(db.getAdminMemories()).toHaveLength(firstCount)
+  })
+
+  it("retires the untouched legacy health seed planet during initialization", async () => {
+    let db = await loadDb()
+
+    db.initializeCmsDatabase()
+    db.savePlanet({
+      slug: "health",
+      name: "Health",
+      summary: "Energy, habits, body signals, and sustainable pace.",
+      description:
+        "The health planet tracks routines and constraints that affect long-term output.",
+      x: -500,
+      y: -160,
+      size: "medium",
+      theme: "emerald",
+      status: "published",
+      sortOrder: 5,
+      weight: 5,
+    })
+
+    expect(db.getPublicPlanets().map((planet) => planet.slug)).toContain("health")
+
+    db = await loadDb()
+    db.initializeCmsDatabase()
+
+    expect(db.getPublicPlanets().map((planet) => planet.slug)).not.toContain("health")
+    expect(db.getAdminPlanets().find((planet) => planet.slug === "health")).toMatchObject({
+      status: "draft",
+    })
   })
 })
