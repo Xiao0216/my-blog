@@ -46,6 +46,10 @@ describe("life universe admin UI", () => {
     expect(
       within(navigation).getByRole("link", { name: "Memories" })
     ).toHaveAttribute("href", "/admin/memories")
+    expect(within(navigation).getByRole("link", { name: "Inbox" })).toHaveAttribute(
+      "href",
+      "/admin/inbox"
+    )
     expect(within(navigation).getByRole("link", { name: "Twin" })).toHaveAttribute(
       "href",
       "/admin/twin"
@@ -53,11 +57,16 @@ describe("life universe admin UI", () => {
   })
 
   it("renders life universe admin pages", async () => {
-    const [{ default: AdminPlanetsPage }, { default: AdminMemoriesPage }, { default: AdminTwinPage }] =
-      await Promise.all([
+    const [
+      { default: AdminPlanetsPage },
+      { default: AdminMemoriesPage },
+      { default: AdminTwinPage },
+      { default: AdminInboxPage },
+    ] = await Promise.all([
         import("@/app/admin/(protected)/planets/page"),
         import("@/app/admin/(protected)/memories/page"),
         import("@/app/admin/(protected)/twin/page"),
+        import("@/app/admin/(protected)/inbox/page"),
       ])
 
     const { rerender } = render(
@@ -73,6 +82,10 @@ describe("life universe admin UI", () => {
     expect(
       screen.getByRole("heading", { name: "Twin Identity" })
     ).toBeInTheDocument()
+
+    rerender(await AdminInboxPage())
+    expect(screen.getByRole("heading", { name: "AI Inbox" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "AI 保存" })).toBeInTheDocument()
   })
 
   it("guards protected admin pages with route-specific return paths", async () => {
@@ -81,6 +94,7 @@ describe("life universe admin UI", () => {
       { default: AdminPlanetsPage },
       { default: AdminMemoriesPage },
       { default: AdminTwinPage },
+      { default: AdminInboxPage },
       { default: AdminProfilePage },
       { default: AdminEssaysPage },
       { default: AdminProjectsPage },
@@ -90,6 +104,7 @@ describe("life universe admin UI", () => {
       import("@/app/admin/(protected)/planets/page"),
       import("@/app/admin/(protected)/memories/page"),
       import("@/app/admin/(protected)/twin/page"),
+      import("@/app/admin/(protected)/inbox/page"),
       import("@/app/admin/(protected)/profile/page"),
       import("@/app/admin/(protected)/essays/page"),
       import("@/app/admin/(protected)/projects/page"),
@@ -109,6 +124,10 @@ describe("life universe admin UI", () => {
       {
         path: "/admin/twin",
         load: () => AdminTwinPage({ searchParams: emptySearchParams }),
+      },
+      {
+        path: "/admin/inbox",
+        load: () => AdminInboxPage(),
       },
       {
         path: "/admin/profile",

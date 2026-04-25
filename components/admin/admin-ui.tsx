@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 
 const navItems = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/inbox", label: "Inbox" },
   { href: "/admin/profile", label: "Profile" },
   { href: "/admin/planets", label: "Planets" },
   { href: "/admin/memories", label: "Memories" },
@@ -128,9 +129,19 @@ export function StatusSelect({ defaultValue }: { readonly defaultValue: string }
   )
 }
 
-export function SubmitButton({ children = "保存" }: { readonly children?: ReactNode }) {
+export function SubmitButton({
+  children = "保存",
+  disabled = false,
+}: {
+  readonly children?: ReactNode
+  readonly disabled?: boolean
+}) {
   return (
-    <button className="rounded-md bg-zinc-950 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200">
+    <button
+      type="submit"
+      disabled={disabled}
+      className="rounded-md bg-zinc-950 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+    >
       {children}
     </button>
   )
