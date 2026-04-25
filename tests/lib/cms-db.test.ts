@@ -271,4 +271,51 @@ describe("cms database", () => {
       weight: 6,
     })
   })
+
+  it("keeps data-bearing legacy health planets published during initialization", async () => {
+    let db = await loadDb()
+
+    db.initializeCmsDatabase()
+    db.savePlanet({
+      slug: "health",
+      name: "Health",
+      summary: "Energy, habits, body signals, and sustainable pace.",
+      description:
+        "The health planet tracks routines and constraints that affect long-term output.",
+      x: -500,
+      y: -160,
+      size: "medium",
+      theme: "emerald",
+      status: "published",
+      sortOrder: 5,
+      weight: 5,
+    })
+    const healthPlanet = db
+      .getAdminPlanets()
+      .find((planet) => planet.slug === "health")
+
+    db.saveMemory({
+      planetId: healthPlanet?.id ?? 0,
+      title: "Public health memory",
+      content: "This health memory should remain public.",
+      type: "diary",
+      occurredAt: "2026-04-24",
+      visibility: "public",
+      importance: 6,
+      tags: ["health"],
+      source: "manual",
+    })
+
+    db = await loadDb()
+    db.initializeCmsDatabase()
+
+    expect(
+      db.getAdminPlanets().find((planet) => planet.slug === "health")
+    ).toMatchObject({
+      status: "published",
+    })
+    expect(db.getPublicMemories().map((memory) => memory.title)).toContain(
+      "Public health memory"
+    )
+  })
 })

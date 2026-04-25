@@ -525,7 +525,10 @@ function retireLegacyHealthSeedPlanet(
     `UPDATE planets
      SET status = 'draft', updated_at = ?
      WHERE slug = ? AND name = ? AND summary = ? AND description = ? AND x = ? AND y = ?
-       AND size = ? AND theme = ? AND status = ? AND sort_order = ? AND weight = ?`,
+       AND size = ? AND theme = ? AND status = ? AND sort_order = ? AND weight = ?
+       AND NOT EXISTS (
+         SELECT 1 FROM memories WHERE memories.planet_id = planets.id
+       )`,
     [
       timestamp,
       legacyPlanet.slug,
