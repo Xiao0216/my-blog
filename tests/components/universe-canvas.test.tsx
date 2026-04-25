@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 
-import { render } from "@testing-library/react"
+import { act, render } from "@testing-library/react"
 import { memo } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
@@ -103,6 +103,8 @@ function buildProps(
 
 afterEach(() => {
   renderCounts.clear()
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe("UniverseCanvas", () => {
@@ -136,5 +138,45 @@ describe("UniverseCanvas", () => {
     expect(getByTestId("universe-viewport")).toHaveAttribute("data-related-scope", "true")
     expect(container.querySelector('[data-related="true"]')).toBeTruthy()
     expect(container.querySelector('[data-related="false"]')).toBeTruthy()
+  })
+
+  it("cancels trackpad pinch wheel events on the canvas before the browser can zoom the page", () => {
+    const addEventListenerSpy = vi.spyOn(HTMLElement.prototype, "addEventListener")
+    const onWheelZoom = vi.fn()
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      callback(0)
+      return 1
+    })
+
+    const { getByRole } = render(
+      <UniverseCanvas {...buildProps({ onWheelZoom })} />
+    )
+    const canvas = getByRole("region", { name: "Null Space universe canvas" })
+
+    const hasNonPassiveCanvasWheelListener = addEventListenerSpy.mock.calls.some(
+      ([eventName, , options], index) =>
+        addEventListenerSpy.mock.contexts[index] === canvas &&
+        eventName === "wheel" &&
+        typeof options === "object" &&
+        options !== null &&
+        "passive" in options &&
+        options.passive === false
+    )
+    expect(hasNonPassiveCanvasWheelListener).toBe(true)
+
+    const event = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+      deltaY: -40,
+    })
+    let dispatchResult = true
+    act(() => {
+      dispatchResult = canvas.dispatchEvent(event)
+    })
+
+    expect(dispatchResult).toBe(false)
+    expect(event.defaultPrevented).toBe(true)
+    expect(onWheelZoom).toHaveBeenCalledWith(-40)
   })
 })

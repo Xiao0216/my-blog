@@ -25,7 +25,7 @@ import { UniverseTopbar } from "@/components/site/life-universe/universe-topbar"
 import type { TwinChatResponse } from "@/lib/twin/types"
 
 const DEFAULT_ZOOM = 78
-const WHEEL_ZOOM_STEP = 8
+const WHEEL_DELTA_PER_ZOOM_POINT = 15
 const MIN_ZOOM = 50
 const MAX_ZOOM = 150
 const DEFAULT_PAN: CanvasPan = { x: 0, y: 0 }
@@ -110,9 +110,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   }
 
   function zoomFromWheel(deltaY: number) {
-    setZoom((current) =>
-      clampZoom(current + (deltaY < 0 ? WHEEL_ZOOM_STEP : -WHEEL_ZOOM_STEP))
-    )
+    setZoom((current) => clampZoom(current - deltaY / WHEEL_DELTA_PER_ZOOM_POINT))
   }
 
   function resetCanvas() {

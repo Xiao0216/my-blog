@@ -1,4 +1,4 @@
-import type { MouseEvent, WheelEvent } from "react"
+import type { CSSProperties, MouseEvent } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import type {
@@ -9,13 +9,15 @@ import type {
 } from "@/components/site/life-universe/types"
 import { UniverseCard } from "@/components/site/life-universe/universe-card"
 
-const VIEWPORT_WIDTH = 960
-const VIEWPORT_HEIGHT = 660
-const ACTION_GROUP_WIDTH = 180
-const ACTION_GROUP_HEIGHT = 48
-const ACTION_GROUP_GAP = 14
-const ACTION_GROUP_TOP_MARGIN = 8
 const BASE_ZOOM = 78
+const AMBIENT_STARS = [
+  { delay: "0s", dx: "18px", dy: "-14px", left: "12%", size: 5, top: "18%" },
+  { delay: "1.1s", dx: "-16px", dy: "10px", left: "24%", size: 3, top: "72%" },
+  { delay: "2.3s", dx: "12px", dy: "18px", left: "42%", size: 4, top: "28%" },
+  { delay: "0.7s", dx: "-20px", dy: "-8px", left: "62%", size: 5, top: "66%" },
+  { delay: "1.8s", dx: "14px", dy: "-18px", left: "76%", size: 3, top: "22%" },
+  { delay: "3.2s", dx: "-12px", dy: "16px", left: "88%", size: 4, top: "48%" },
+] as const
 
 export function UniverseCanvas({
   cards,
@@ -50,13 +52,7 @@ export function UniverseCanvas({
   readonly onShowRelated: (cardId: string) => void
   readonly onWheelZoom: (deltaY: number) => void
 }) {
-  const [hoveredCardId, setHoveredCardId] = useState<string | undefined>(undefined)
-  const hoveredCard = hoveredCardId
-    ? cards.find((card) => card.id === hoveredCardId)
-    : undefined
-  const actionGroupLayoutPosition = hoveredCard
-    ? getActionGroupPosition(hoveredCard)
-    : undefined
+  const [isCameraGestureActive, setIsCameraGestureActive] = useState(false)
   const cameraScale = detail ? 1.28 : zoom / BASE_ZOOM
   const cameraPan = detail
     ? {
@@ -65,9 +61,7 @@ export function UniverseCanvas({
       }
     : pan
   const cameraTransform = `translate(${cameraPan.x}px, ${cameraPan.y}px) scale(${cameraScale})`
-  const actionGroupPosition = actionGroupLayoutPosition
-    ? projectCameraPosition(actionGroupLayoutPosition, cameraPan, cameraScale)
-    : undefined
+  const canvasRef = useRef<HTMLElement | null>(null)
   const dragStartRef = useRef<
     | {
         readonly clientX: number
@@ -78,11 +72,58 @@ export function UniverseCanvas({
   >(undefined)
   const panFrameRef = useRef<number | undefined>(undefined)
   const wheelFrameRef = useRef<number | undefined>(undefined)
+  const wheelDeltaRef = useRef(0)
+  const cameraGestureActiveRef = useRef(false)
+  const cameraGestureTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  )
   const onPanChangeRef = useRef(onPanChange)
   const onWheelZoomRef = useRef(onWheelZoom)
   const onEnterCardRef = useRef(onEnterCard)
   const onSelectCardRef = useRef(onSelectCard)
+  const onAskTwinRef = useRef(onAskTwin)
+  const onShowRelatedRef = useRef(onShowRelated)
   const isRelatedScopeActive = Boolean(relatedScopeCardId)
+
+  const activateCameraGesture = useCallback(() => {
+    if (!cameraGestureActiveRef.current) {
+      cameraGestureActiveRef.current = true
+      setIsCameraGestureActive(true)
+    }
+
+    if (cameraGestureTimeoutRef.current !== undefined) {
+      clearTimeout(cameraGestureTimeoutRef.current)
+    }
+
+    cameraGestureTimeoutRef.current = setTimeout(() => {
+      cameraGestureActiveRef.current = false
+      cameraGestureTimeoutRef.current = undefined
+      setIsCameraGestureActive(false)
+    }, 140)
+  }, [])
+
+  const scheduleWheel = useCallback((deltaY: number) => {
+    activateCameraGesture()
+
+    if (typeof requestAnimationFrame === "undefined") {
+      onWheelZoomRef.current(deltaY)
+      return
+    }
+
+    if (wheelFrameRef.current !== undefined) {
+      wheelDeltaRef.current += deltaY
+      return
+    }
+
+    wheelDeltaRef.current += deltaY
+    wheelFrameRef.current = requestAnimationFrame(() => {
+      const nextDelta = wheelDeltaRef.current
+
+      wheelDeltaRef.current = 0
+      wheelFrameRef.current = undefined
+      onWheelZoomRef.current(nextDelta)
+    })
+  }, [activateCameraGesture])
 
   useEffect(() => {
     onPanChangeRef.current = onPanChange
@@ -101,6 +142,31 @@ export function UniverseCanvas({
   }, [onSelectCard])
 
   useEffect(() => {
+    onAskTwinRef.current = onAskTwin
+  }, [onAskTwin])
+
+  useEffect(() => {
+    onShowRelatedRef.current = onShowRelated
+  }, [onShowRelated])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+
+    if (!canvas) {
+      return
+    }
+
+    function handleNativeWheel(event: globalThis.WheelEvent) {
+      event.preventDefault()
+      scheduleWheel(event.deltaY)
+    }
+
+    // Trackpad pinch zoom must be canceled by a non-passive native listener.
+    canvas.addEventListener("wheel", handleNativeWheel, { passive: false })
+    return () => canvas.removeEventListener("wheel", handleNativeWheel)
+  }, [scheduleWheel])
+
+  useEffect(() => {
     return () => {
       if (
         panFrameRef.current !== undefined &&
@@ -114,10 +180,15 @@ export function UniverseCanvas({
       ) {
         cancelAnimationFrame(wheelFrameRef.current)
       }
+      if (cameraGestureTimeoutRef.current !== undefined) {
+        clearTimeout(cameraGestureTimeoutRef.current)
+      }
     }
   }, [])
 
   function schedulePan(nextPan: CanvasPan) {
+    activateCameraGesture()
+
     if (typeof requestAnimationFrame === "undefined") {
       onPanChangeRef.current(nextPan)
       return
@@ -133,22 +204,6 @@ export function UniverseCanvas({
     })
   }
 
-  function scheduleWheel(deltaY: number) {
-    if (typeof requestAnimationFrame === "undefined") {
-      onWheelZoomRef.current(deltaY)
-      return
-    }
-
-    if (wheelFrameRef.current !== undefined) {
-      cancelAnimationFrame(wheelFrameRef.current)
-    }
-
-    wheelFrameRef.current = requestAnimationFrame(() => {
-      wheelFrameRef.current = undefined
-      onWheelZoomRef.current(deltaY)
-    })
-  }
-
   const handleCardEnter = useCallback((cardId: string) => {
     onEnterCardRef.current(cardId)
   }, [])
@@ -157,14 +212,13 @@ export function UniverseCanvas({
     onSelectCardRef.current(cardId)
   }, [])
 
-  const handleCardHover = useCallback((cardId: string) => {
-    setHoveredCardId(cardId)
+  const handleCardAskTwin = useCallback((cardId: string) => {
+    onAskTwinRef.current(cardId)
   }, [])
 
-  function handleWheel(event: WheelEvent<HTMLElement>) {
-    event.preventDefault()
-    scheduleWheel(event.deltaY)
-  }
+  const handleCardShowRelated = useCallback((cardId: string) => {
+    onShowRelatedRef.current(cardId)
+  }, [])
 
   function handleMouseDown(event: MouseEvent<HTMLElement>) {
     if (isInteractiveTarget(event.target)) {
@@ -179,10 +233,6 @@ export function UniverseCanvas({
   }
 
   function handleMouseMove(event: MouseEvent<HTMLElement>) {
-    if (!isHoverTarget(event.target)) {
-      setHoveredCardId(undefined)
-    }
-
     const dragStart = dragStartRef.current
 
     if (!dragStart) {
@@ -201,16 +251,16 @@ export function UniverseCanvas({
 
   function handleMouseLeave() {
     stopDrag()
-    setHoveredCardId(undefined)
   }
 
   return (
     <section
+      ref={canvasRef}
       role="region"
       aria-label="Null Space universe canvas"
+      data-camera-gesture={isCameraGestureActive ? "true" : "false"}
       data-related-scope={isRelatedScopeActive ? "true" : "false"}
       data-view-state={viewState}
-      onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={stopDrag}
@@ -218,6 +268,27 @@ export function UniverseCanvas({
       className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 cursor-grab overflow-hidden active:cursor-grabbing md:left-20 md:right-6 md:top-20 md:bottom-20"
     >
       <div className="absolute inset-0 rounded-[2rem] border border-[var(--ns-glass-border)] bg-[var(--ns-canvas-wash)]" />
+      <div
+        data-testid="universe-ambient-field"
+        aria-hidden="true"
+        className="universe-ambient-field"
+      >
+        {AMBIENT_STARS.map((star) => (
+          <span
+            key={`${star.left}-${star.top}`}
+            style={
+              {
+                "--star-dx": star.dx,
+                "--star-dy": star.dy,
+                "--star-size": `${star.size}px`,
+                animationDelay: star.delay,
+                left: star.left,
+                top: star.top,
+              } as CSSProperties
+            }
+          />
+        ))}
+      </div>
 
       {!hasPlanets ? (
         <div className="null-space-panel absolute left-1/2 top-1/2 z-30 w-72 -translate-x-1/2 -translate-y-1/2 p-4 text-center text-sm text-[var(--ns-text-tertiary)]">
@@ -268,13 +339,19 @@ export function UniverseCanvas({
               [426, 455],
               [260, 360],
               [445, 315],
-            ].map(([cx, cy]) => (
+            ].map(([cx, cy], index) => (
               <circle
                 key={`${cx}-${cy}`}
                 cx={cx}
                 cy={cy}
                 r="3"
+                className="constellation-node"
                 fill="var(--ns-accent-secondary)"
+                style={
+                  {
+                    "--node-delay": `${index * 0.34}s`,
+                  } as CSSProperties
+                }
               />
             ))}
           </svg>
@@ -286,53 +363,13 @@ export function UniverseCanvas({
               isEntered={card.id === enteredCardId}
               isRelated={!relatedScopeCardId || card.id === relatedScopeCardId}
               isSelected={card.id === selectedCardId}
+              onAskTwin={handleCardAskTwin}
               onEnter={handleCardEnter}
-              onHover={handleCardHover}
               onSelect={handleCardSelect}
+              onShowRelated={handleCardShowRelated}
             />
           ))}
         </div>
-
-        {hoveredCard && actionGroupPosition && !detail ? (
-          <div
-            data-testid="planet-action-group"
-            data-anchor-card-id={hoveredCard.id}
-            data-layer="top"
-            data-layout-x={actionGroupPosition?.x}
-            data-layout-y={actionGroupPosition?.y}
-            className="planet-action-group"
-            onMouseEnter={() => setHoveredCardId(hoveredCard.id)}
-            style={{
-              left: actionGroupPosition?.x,
-              top: actionGroupPosition?.y,
-              width: ACTION_GROUP_WIDTH,
-              zIndex: 240,
-            }}
-          >
-            <button
-              type="button"
-              aria-label={`进入 ${hoveredCard.title}`}
-              onClick={() => onEnterCard(hoveredCard.id)}
-            >
-              进入
-            </button>
-            <button
-              type="button"
-              aria-label={`询问 ${hoveredCard.title}`}
-              onClick={() => onAskTwin(hoveredCard.id)}
-            >
-              问 AI
-            </button>
-            <button
-              type="button"
-              aria-label={`查看 ${hoveredCard.title} 关联`}
-              onClick={() => onShowRelated(hoveredCard.id)}
-            >
-              关联
-            </button>
-          </div>
-        ) : null}
-
       </div>
 
       <div className="grid gap-3 md:hidden">
@@ -389,52 +426,13 @@ function isInteractiveTarget(target: EventTarget) {
     return false
   }
 
+  if (target.closest('[data-universe-card-menu="true"]')) {
+    return true
+  }
+
   if (target.closest('[data-testid="universe-card"]')) {
     return false
   }
 
   return Boolean(target.closest("button,input,textarea,a"))
-}
-
-function isHoverTarget(target: EventTarget) {
-  return target instanceof HTMLElement
-    ? Boolean(
-        target.closest('[data-testid="universe-card"],[data-testid="planet-action-group"]')
-      )
-    : false
-}
-
-function getActionGroupPosition(selectedCard: UniverseCardModel) {
-  const preferredRightX =
-    selectedCard.x + selectedCard.width + ACTION_GROUP_GAP
-  const shouldFlipLeft =
-    preferredRightX + ACTION_GROUP_WIDTH > VIEWPORT_WIDTH
-  const x = shouldFlipLeft
-    ? selectedCard.x - ACTION_GROUP_WIDTH - ACTION_GROUP_GAP
-    : preferredRightX
-  const y = selectedCard.y + ACTION_GROUP_TOP_MARGIN
-
-  return {
-    x: clamp(x, 0, VIEWPORT_WIDTH - ACTION_GROUP_WIDTH),
-    y: clamp(y, 0, VIEWPORT_HEIGHT - ACTION_GROUP_HEIGHT),
-  }
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value))
-}
-
-function projectCameraPosition(
-  position: { readonly x: number; readonly y: number },
-  pan: CanvasPan,
-  scale: number
-) {
-  const x = VIEWPORT_WIDTH / 2 + (position.x - VIEWPORT_WIDTH / 2) * scale + pan.x
-  const y =
-    VIEWPORT_HEIGHT / 2 + (position.y - VIEWPORT_HEIGHT / 2) * scale + pan.y
-
-  return {
-    x: clamp(x, 0, VIEWPORT_WIDTH - ACTION_GROUP_WIDTH),
-    y: clamp(y, 0, VIEWPORT_HEIGHT - ACTION_GROUP_HEIGHT),
-  }
 }

@@ -284,7 +284,7 @@ describe("HomePageView", () => {
     )
   })
 
-  it("shows persistent 3D posture and focus actions for the selected card", () => {
+  it("shows persistent 3D posture and opens selected card actions from the menu button", () => {
     render(<HomePageView {...buildProps()} />)
 
     const workCard = screen.getByRole("button", { name: "聚焦 Work" })
@@ -297,20 +297,20 @@ describe("HomePageView", () => {
 
     expect(screen.queryByTestId("planet-action-group")).not.toBeInTheDocument()
     fireEvent.mouseEnter(workCard)
+    expect(screen.queryByTestId("planet-action-group")).not.toBeInTheDocument()
 
+    fireEvent.click(screen.getByRole("button", { name: "打开 Work 操作菜单" }))
+
+    expect(screen.getByRole("menu", { name: "Work 操作" })).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "进入 Work" })
+      screen.getByRole("menuitem", { name: "进入 Work" })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "询问 Work" })
+      screen.getByRole("menuitem", { name: "询问 Work" })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "查看 Work 关联" })
+      screen.getByRole("menuitem", { name: "查看 Work 关联" })
     ).toBeInTheDocument()
-    expect(screen.getByTestId("planet-action-group")).toHaveAttribute(
-      "data-layer",
-      "top"
-    )
   })
 
   it("enters a planet detail overlay on double click and returns to the universe", () => {
@@ -535,33 +535,28 @@ describe("HomePageView", () => {
     ).toBeNull()
   })
 
-  it("keeps the hovered card action group inside the top viewport layer", () => {
+  it("does not show hover action groups over the universe", () => {
     render(<HomePageView {...buildProps()} />)
 
     expect(screen.queryByTestId("planet-action-group")).not.toBeInTheDocument()
 
-    const cards = screen.getAllByTestId("universe-card")
-    const rightMostCard = cards.reduce((currentRightMost, card) => {
-      const currentRightEdge =
-        Number(currentRightMost.getAttribute("data-layout-x")) +
-        Number(currentRightMost.getAttribute("data-layout-width"))
-      const nextRightEdge =
-        Number(card.getAttribute("data-layout-x")) +
-        Number(card.getAttribute("data-layout-width"))
+    for (const card of screen.getAllByTestId("universe-card")) {
+      fireEvent.mouseEnter(card)
+      expect(
+        screen.queryByTestId("planet-action-group")
+      ).not.toBeInTheDocument()
+    }
+  })
 
-      return nextRightEdge > currentRightEdge ? card : currentRightMost
-    })
+  it("keeps card dates in the card content flow", () => {
+    render(<HomePageView {...buildProps()} />)
 
-    fireEvent.mouseEnter(rightMostCard)
+    const dateNodes = screen.getAllByTestId("universe-card-date")
 
-    const actionGroup = screen.getByTestId("planet-action-group")
-    const actionGroupX = Number(actionGroup.getAttribute("data-layout-x"))
-    const actionGroupWidth = 180
-
-    expect(actionGroup).toHaveAttribute("data-layer", "top")
-    expect(actionGroupX).toBeGreaterThanOrEqual(0)
-    expect(actionGroupX).toBeLessThanOrEqual(960 - actionGroupWidth)
-    expect(actionGroupX + actionGroupWidth).toBeLessThanOrEqual(960)
+    expect(dateNodes.length).toBeGreaterThan(0)
+    expect(
+      dateNodes.every((dateNode) => !dateNode.className.includes("absolute"))
+    ).toBe(true)
   })
 
   it("zooms and resets the universe canvas", () => {
@@ -596,6 +591,35 @@ describe("HomePageView", () => {
       }
     )
 
+    expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
+
+    await act(async () => {
+      frameQueue.shift()?.(16.7)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
+    })
+  })
+
+  it("accumulates trackpad wheel deltas before zooming once per animation frame", async () => {
+    const frameQueue: FrameRequestCallback[] = []
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      frameQueue.push(callback)
+      return frameQueue.length
+    })
+    vi.stubGlobal("cancelAnimationFrame", vi.fn())
+
+    render(<HomePageView {...buildProps()} />)
+
+    const canvas = screen.getByRole("region", {
+      name: "Null Space universe canvas",
+    })
+
+    fireEvent.wheel(canvas, { deltaY: -30 })
+    fireEvent.wheel(canvas, { deltaY: -90 })
+
+    expect(frameQueue).toHaveLength(1)
     expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
 
     await act(async () => {
@@ -714,6 +738,28 @@ describe("HomePageView", () => {
       "--tilt-x": "0deg",
       "--tilt-y": "0deg",
     })
+  })
+
+  it("scales card typography so compact cards still show their middle text", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const noteCard = screen.getByRole("button", { name: "聚焦 Note fixture" })
+    const noteTitle = within(noteCard).getByText("Note fixture")
+
+    expect(noteCard).toHaveAttribute("data-compact", "true")
+    expect(noteTitle.className).toContain("text-[0.72rem]")
+    expect(within(noteCard).getByText("A short note body")).toBeInTheDocument()
+  })
+
+  it("renders a CSS-driven ambient field so the constellation is not static", () => {
+    render(<HomePageView {...buildProps()} />)
+
+    const ambientField = screen.getByTestId("universe-ambient-field")
+    const nodes = document.querySelectorAll(".constellation-node")
+
+    expect(ambientField).toHaveAttribute("aria-hidden", "true")
+    expect(ambientField.querySelectorAll("span").length).toBeGreaterThan(3)
+    expect(nodes.length).toBeGreaterThan(3)
   })
 
   it("renders layout-driven cards without overlap metadata collisions", () => {

@@ -28,7 +28,7 @@ export function UniverseToolbar({
         data-testid="zoom-value"
         className="min-w-14 rounded-xl border border-[var(--ns-glass-border)] bg-[var(--ns-control-bg)] px-3 py-2 text-center font-mono text-xs text-[var(--ns-text-secondary)]"
       >
-        {zoom}%
+        {Math.round(zoom)}%
       </span>
       <ToolbarButton label="放大画布" onClick={onZoomIn}>
         <Plus className="h-4 w-4" />
