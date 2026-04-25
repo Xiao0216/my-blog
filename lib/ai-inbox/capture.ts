@@ -1,6 +1,6 @@
 import { classifyAiInboxText } from "@/lib/ai-inbox/model"
 import { normalizeAiInboxCandidate } from "@/lib/ai-inbox/normalize"
-import { buildAiInboxPrompt } from "@/lib/ai-inbox/prompt"
+import { buildAiInboxInstructions } from "@/lib/ai-inbox/prompt"
 import { getLifeUniverseTaxonomy } from "@/lib/content"
 import { getAdminPlanets, saveAiInboxRecord } from "@/lib/cms/db"
 import type { StoredRecord } from "@/lib/cms/schema"
@@ -19,12 +19,14 @@ export async function captureAiInboxText(
   }
 
   const planets = getAdminPlanets()
-  const prompt = buildAiInboxPrompt({
-    sourceText: trimmed,
+  const instructions = buildAiInboxInstructions({
     planets,
     taxonomy: getLifeUniverseTaxonomy(),
   })
-  const candidate = await classifyAiInboxText(prompt)
+  const candidate = await classifyAiInboxText({
+    instructions,
+    sourceText: trimmed,
+  })
   const normalized = normalizeAiInboxCandidate({
     candidate,
     planets,

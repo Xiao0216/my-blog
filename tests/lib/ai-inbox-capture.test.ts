@@ -30,18 +30,19 @@ afterEach(() => {
 
 describe("AI inbox capture", () => {
   it("classifies normalizes and saves projected records", async () => {
+    const classifyAiInboxText = vi.fn(async () => ({
+      targetType: "note",
+      title: "Captured note",
+      body: "Captured body",
+      summary: "Captured summary",
+      tags: ["capture"],
+      galaxySlug: "writing",
+      occurredAt: "2026-04-25",
+      confidence: 90,
+      reasoning: "Short note.",
+    }))
     vi.doMock("@/lib/ai-inbox/model", () => ({
-      classifyAiInboxText: vi.fn(async () => ({
-        targetType: "note",
-        title: "Captured note",
-        body: "Captured body",
-        summary: "Captured summary",
-        tags: ["capture"],
-        galaxySlug: "writing",
-        occurredAt: "2026-04-25",
-        confidence: 90,
-        reasoning: "Short note.",
-      })),
+      classifyAiInboxText,
     }))
     const { captureAiInboxText } = await loadCapture()
     const db = await loadDb()
@@ -57,6 +58,12 @@ describe("AI inbox capture", () => {
       expect.arrayContaining([
         expect.objectContaining({ title: "Captured note", status: "draft" }),
       ])
+    )
+    expect(classifyAiInboxText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceText: "raw text",
+        instructions: expect.stringContaining("Return JSON only"),
+      })
     )
   })
 

@@ -5,9 +5,13 @@ type OpenAIResponse = {
   readonly output_text?: unknown
 }
 
-export async function classifyAiInboxText(
-  prompt: string
-): Promise<AiInboxRawCandidate> {
+export async function classifyAiInboxText({
+  instructions,
+  sourceText,
+}: {
+  readonly instructions: string
+  readonly sourceText: string
+}): Promise<AiInboxRawCandidate> {
   const apiKey = process.env.OPENAI_API_KEY?.trim()
   const model = process.env.OPENAI_MODEL?.trim()
 
@@ -26,8 +30,20 @@ export async function classifyAiInboxText(
       },
       body: JSON.stringify({
         model,
-        input: prompt,
+        instructions,
+        input: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "input_text",
+                text: sourceText,
+              },
+            ],
+          },
+        ],
         temperature: 0.2,
+        store: false,
       }),
     })
   } catch {

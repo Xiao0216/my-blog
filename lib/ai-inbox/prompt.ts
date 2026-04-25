@@ -1,12 +1,10 @@
 import type { StoredPlanet } from "@/lib/cms/schema"
 import type { LifeUniverseTaxonomy } from "@/lib/content"
 
-export function buildAiInboxPrompt({
-  sourceText,
+export function buildAiInboxInstructions({
   planets,
   taxonomy,
 }: {
-  readonly sourceText: string
   readonly planets: ReadonlyArray<Pick<StoredPlanet, "id" | "slug" | "name">>
   readonly taxonomy: LifeUniverseTaxonomy
 }): string {
@@ -55,8 +53,7 @@ export function buildAiInboxPrompt({
       stack: ["Next.js"],
       href: "/projects",
     }),
-    "",
-    "Source text:",
-    sourceText,
   ].join("\n")
 }
+
+export const buildAiInboxPrompt = buildAiInboxInstructions
