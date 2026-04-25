@@ -20,7 +20,7 @@ export type AiInboxRawCandidate = {
 }
 
 export type NormalizeAiInboxInput = {
-  readonly candidate: AiInboxRawCandidate
+  readonly candidate: unknown
   readonly planets: ReadonlyArray<{
     readonly id: number
     readonly slug: string

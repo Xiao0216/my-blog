@@ -1,6 +1,7 @@
 import type { MemoryType } from "@/lib/cms/schema"
 
 import {
+  type AiInboxRawCandidate,
   type NormalizeAiInboxInput,
   type NormalizedAiInboxRecord,
   isRecordTargetType,
@@ -24,7 +25,17 @@ function stringArray(value: unknown): ReadonlyArray<string> {
 }
 
 function numberValue(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value.trim())
+
+    return Number.isFinite(parsed) ? parsed : fallback
+  }
+
+  return fallback
 }
 
 function isValidDate(value: string): boolean {
@@ -68,8 +79,16 @@ function isMemoryType(value: string): value is MemoryType {
   )
 }
 
+function candidateObject(value: unknown): AiInboxRawCandidate {
+  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+    return value as AiInboxRawCandidate
+  }
+
+  return {}
+}
+
 function findPlanetId(
-  candidate: NormalizeAiInboxInput["candidate"],
+  candidate: AiInboxRawCandidate,
   planets: NormalizeAiInboxInput["planets"],
 ): number | null {
   const candidatePlanetId = numberValue(candidate.planetId, NaN)
@@ -92,17 +111,26 @@ function findPlanetId(
 }
 
 function stardustPlanetId(planets: NormalizeAiInboxInput["planets"]): number {
-  return planets.find((planet) => planet.slug === "stardust")?.id ?? planets[0]?.id ?? 0
+  const stardustPlanet = planets.find((planet) => planet.slug === "stardust")
+
+  if (!stardustPlanet) {
+    throw new Error(
+      "A stardust planet is required for fallback AI inbox memory normalization.",
+    )
+  }
+
+  return stardustPlanet.id
 }
 
 function fallbackMemory(
   input: NormalizeAiInboxInput,
+  candidate: AiInboxRawCandidate,
   reason: string,
 ): NormalizedAiInboxRecord {
-  const title = stringValue(input.candidate.title) || "未命名记录"
-  const body = stringValue(input.candidate.body) || input.sourceText
-  const summary = stringValue(input.candidate.summary) || input.sourceText.slice(0, 120)
-  const reasoning = stringValue(input.candidate.reasoning) || reason
+  const title = stringValue(candidate.title) || "未命名记录"
+  const body = stringValue(candidate.body) || input.sourceText
+  const summary = stringValue(candidate.summary) || input.sourceText.slice(0, 120)
+  const reasoning = stringValue(candidate.reasoning) || reason
 
   return {
     sourceText: input.sourceText,
@@ -110,15 +138,15 @@ function fallbackMemory(
     title,
     body,
     summary,
-    tags: stringArray(input.candidate.tags),
-    galaxySlug: stringValue(input.candidate.galaxySlug) || "diary",
+    tags: stringArray(candidate.tags),
+    galaxySlug: stringValue(candidate.galaxySlug) || "diary",
     planetId: stardustPlanetId(input.planets),
-    occurredAt: isValidDate(stringValue(input.candidate.occurredAt))
-      ? stringValue(input.candidate.occurredAt)
+    occurredAt: isValidDate(stringValue(candidate.occurredAt))
+      ? stringValue(candidate.occurredAt)
       : input.today,
     visibility: "assistant",
     status: null,
-    confidence: clampConfidence(input.candidate.confidence),
+    confidence: clampConfidence(candidate.confidence),
     aiReasoning: `${reasoning} 降级为星尘记忆。`,
     memoryType: "diary",
     importance: 5,
@@ -128,12 +156,13 @@ function fallbackMemory(
 export function normalizeAiInboxCandidate(
   input: NormalizeAiInboxInput,
 ): NormalizedAiInboxRecord {
-  const candidateTargetType = stringValue(input.candidate.targetType)
+  const candidate = candidateObject(input.candidate)
+  const candidateTargetType = stringValue(candidate.targetType)
   const hasValidTargetType = isRecordTargetType(candidateTargetType)
   const targetType = hasValidTargetType ? candidateTargetType : "memory"
-  const confidence = clampConfidence(input.candidate.confidence)
-  const title = stringValue(input.candidate.title)
-  const body = stringValue(input.candidate.body)
+  const confidence = clampConfidence(candidate.confidence)
+  const title = stringValue(candidate.title)
+  const body = stringValue(candidate.body)
 
   if (
     confidence < LOW_CONFIDENCE_THRESHOLD ||
@@ -141,20 +170,20 @@ export function normalizeAiInboxCandidate(
     body.length === 0 ||
     !hasValidTargetType
   ) {
-    return fallbackMemory(input, "AI 分类置信度不足或字段不完整")
+    return fallbackMemory(input, candidate, "AI 分类置信度不足或字段不完整")
   }
 
-  const occurredAt = stringValue(input.candidate.occurredAt)
-  const memoryType = stringValue(input.candidate.memoryType)
+  const occurredAt = stringValue(candidate.occurredAt)
+  const memoryType = stringValue(candidate.memoryType)
   const normalized: NormalizedAiInboxRecord = {
     sourceText: input.sourceText,
     targetType,
     title,
     body,
-    summary: stringValue(input.candidate.summary) || body.slice(0, 160),
-    tags: stringArray(input.candidate.tags),
-    galaxySlug: stringValue(input.candidate.galaxySlug) || "diary",
-    planetId: findPlanetId(input.candidate, input.planets),
+    summary: stringValue(candidate.summary) || body.slice(0, 160),
+    tags: stringArray(candidate.tags),
+    galaxySlug: stringValue(candidate.galaxySlug) || "diary",
+    planetId: findPlanetId(candidate, input.planets),
     occurredAt: isValidDate(occurredAt) ? occurredAt : input.today,
     visibility: targetType === "memory" ? "assistant" : null,
     status:
@@ -162,16 +191,16 @@ export function normalizeAiInboxCandidate(
         ? "draft"
         : null,
     confidence,
-    aiReasoning: stringValue(input.candidate.reasoning) || "AI 自动分类。",
+    aiReasoning: stringValue(candidate.reasoning) || "AI 自动分类。",
     memoryType: isMemoryType(memoryType) ? memoryType : "diary",
-    importance: clampImportance(input.candidate.importance),
-    readingTime: stringValue(input.candidate.readingTime) || "1 min read",
-    stack: stringArray(input.candidate.stack),
-    href: stringValue(input.candidate.href) || "/projects",
+    importance: clampImportance(candidate.importance),
+    readingTime: stringValue(candidate.readingTime) || "1 min read",
+    stack: stringArray(candidate.stack),
+    href: stringValue(candidate.href) || "/projects",
   }
 
   if (targetType === "memory" && normalized.planetId === null) {
-    return fallbackMemory(input, "记忆缺少有效星球")
+    return fallbackMemory(input, candidate, "记忆缺少有效星球")
   }
 
   return normalized
