@@ -23,6 +23,7 @@ beforeEach(() => {
 afterEach(() => {
   delete process.env.BLOG_DATABASE_PATH
   rmSync(tempDir, { recursive: true, force: true })
+  vi.doUnmock("@/lib/ai-inbox/model")
   vi.resetModules()
   vi.restoreAllMocks()
 })
@@ -69,6 +70,22 @@ describe("AI inbox capture", () => {
     const db = await loadDb()
 
     await expect(captureAiInboxText("raw text")).rejects.toThrow("model down")
+    expect(db.getRecentRecords(10)).toHaveLength(0)
+  })
+
+  it("rejects blank input without classifying or writing records", async () => {
+    const classifyAiInboxText = vi.fn()
+
+    vi.doMock("@/lib/ai-inbox/model", () => ({
+      classifyAiInboxText,
+    }))
+    const { captureAiInboxText } = await loadCapture()
+    const db = await loadDb()
+
+    await expect(captureAiInboxText(" \n\t ")).rejects.toThrow(
+      "请输入要保存的文本"
+    )
+    expect(classifyAiInboxText).not.toHaveBeenCalled()
     expect(db.getRecentRecords(10)).toHaveLength(0)
   })
 })
