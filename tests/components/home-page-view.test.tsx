@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { HomePageView } from "@/components/site/home-page-view"
+import { LIFE_UNIVERSE_GALAXIES } from "@/lib/life-universe/taxonomy"
 
 type HomePageViewProps = ComponentProps<typeof HomePageView>
 type LayoutRect = {
@@ -179,6 +180,23 @@ function buildProps(
   }
 }
 
+function buildGalaxyPlanets(): HomePageViewProps["planets"] {
+  return LIFE_UNIVERSE_GALAXIES.map((galaxy, index) => ({
+    id: index + 1,
+    slug: galaxy.slug,
+    name: galaxy.name,
+    summary: galaxy.summary,
+    description: galaxy.description,
+    x: galaxy.x,
+    y: galaxy.y,
+    size: galaxy.size,
+    theme: galaxy.theme,
+    status: "published",
+    sortOrder: galaxy.sortOrder,
+    weight: galaxy.weight,
+  }))
+}
+
 afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
@@ -208,6 +226,25 @@ function cardsOverlap(
 }
 
 describe("HomePageView", () => {
+  it("renders the seven taxonomy galaxies without changing homepage controls", () => {
+    render(<HomePageView {...buildProps({ planets: buildGalaxyPlanets() })} />)
+
+    for (const galaxy of LIFE_UNIVERSE_GALAXIES) {
+      expect(
+        screen.getByRole("button", { name: `聚焦 ${galaxy.name}` })
+      ).toBeInTheDocument()
+    }
+
+    expect(screen.getByRole("button", { name: "搜索空间" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "筛选空间" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "抓手模式" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "画布搜索" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "连接视图" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "展开 Null AI" })
+    ).toBeInTheDocument()
+  })
+
   it("renders the Null Space workbench and embedded twin orb", () => {
     const { container } = render(<HomePageView {...buildProps()} />)
 
