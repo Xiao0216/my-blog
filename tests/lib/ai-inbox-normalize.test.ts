@@ -198,6 +198,40 @@ describe("AI inbox normalization", () => {
     })
   })
 
+  it("downgrades an array candidate to stardust memory", () => {
+    const normalized = normalizeAiInboxCandidate({
+      candidate: [],
+      planets,
+      sourceText: "array model output",
+      today: "2026-04-25",
+    })
+
+    expect(normalized).toMatchObject({
+      targetType: "memory",
+      body: "array model output",
+      visibility: "assistant",
+      planetId: 1,
+    })
+    expect(normalized.aiReasoning).toContain("降级为星尘记忆")
+  })
+
+  it("downgrades a scalar candidate to stardust memory", () => {
+    const normalized = normalizeAiInboxCandidate({
+      candidate: "bad output",
+      planets,
+      sourceText: "scalar model output",
+      today: "2026-04-25",
+    })
+
+    expect(normalized).toMatchObject({
+      targetType: "memory",
+      body: "scalar model output",
+      visibility: "assistant",
+      planetId: 1,
+    })
+    expect(normalized.aiReasoning).toContain("降级为星尘记忆")
+  })
+
   it("falls back from invalid planetId to a valid planetSlug", () => {
     const normalized = normalizeAiInboxCandidate({
       candidate: {
