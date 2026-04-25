@@ -49,6 +49,11 @@ describe("life universe taxonomy", () => {
       "碎片",
       "清单",
     ])
+    expect(LIFE_UNIVERSE_CONTENT_TYPES.find((type) => type.slug === "diary")?.label).toBe("日记")
+    expect(getLifeUniverseGalaxy("diary")?.name).toBe("日记与自我")
+    expect(LIFE_UNIVERSE_CONTENT_TYPES.find((type) => type.slug === "diary")?.label).not.toBe(
+      getLifeUniverseGalaxy("diary")?.name,
+    )
     const galaxyNames = new Set(LIFE_UNIVERSE_GALAXIES.map((galaxy) => galaxy.name))
     expect(LIFE_UNIVERSE_CONTENT_TYPES.every((type) => !galaxyNames.has(type.label))).toBe(true)
   })
