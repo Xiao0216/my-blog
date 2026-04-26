@@ -1,6 +1,8 @@
 import type { ComponentProps } from "react"
 
 import { act, render } from "@testing-library/react"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { memo } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
@@ -125,6 +127,28 @@ afterEach(() => {
 })
 
 describe("UniverseCanvas", () => {
+  it("keeps minimal planet canvas styles available before the full visual pass", () => {
+    const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8")
+
+    expect(css).toMatch(/\.planet-orbit-system\s*{[\s\S]*?position:\s*absolute/)
+    expect(css).toMatch(/\.planet-orbit-system\s*{[\s\S]*?inset:\s*0/)
+    expect(css).toMatch(
+      /\.planet-orbit-path\s*{[\s\S]*?--planet-orbit-diameter:\s*calc\(var\(--planet-orbit-radius\)\s*\*\s*2\)/
+    )
+    expect(css).toMatch(/\.planet-orbit-path\s*{[\s\S]*?border:/)
+    expect(css).toMatch(/\.planet-body\s*{[\s\S]*?position:\s*absolute/)
+    expect(css).toMatch(
+      /\.planet-body\s*{[\s\S]*?width:\s*var\(--planet-size\)/
+    )
+    expect(css).toMatch(
+      /\.planet-body\s*{[\s\S]*?transform:\s*rotate\(var\(--planet-start-angle\)\)\s*translateX\(var\(--planet-orbit-radius\)\)/
+    )
+    expect(css).toMatch(/\.planet-sphere\s*{[\s\S]*?display:\s*block/)
+    expect(css).toMatch(/\.planet-sphere-cyan\s*{/)
+    expect(css).toMatch(/\.planet-shade\s*{[\s\S]*?position:\s*absolute/)
+    expect(css).toMatch(/\.planet-hover-preview\s*{[\s\S]*?position:\s*fixed/)
+  })
+
   it("does not rerender memoized planets when parent callbacks change but planet state is stable", () => {
     const { rerender } = render(<UniverseCanvas {...buildProps()} />)
 

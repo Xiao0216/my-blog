@@ -500,6 +500,116 @@
     transform-style: preserve-3d;
   }
 
+  .planet-orbit-system {
+    position: absolute;
+    inset: 0;
+  }
+
+  .planet-orbit {
+    position: absolute;
+    inset: 0;
+  }
+
+  .planet-orbit-path {
+    --planet-orbit-diameter: calc(var(--planet-orbit-radius) * 2);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--planet-orbit-diameter);
+    height: var(--planet-orbit-diameter);
+    border: 1px solid color-mix(in srgb, var(--ns-accent-secondary) 24%, transparent);
+    border-radius: 9999px;
+    transform: translate(-50%, -50%);
+  }
+
+  .planet-body {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: var(--planet-size);
+    height: var(--planet-size);
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--ns-accent-primary);
+    cursor: pointer;
+    transform: rotate(var(--planet-start-angle)) translateX(var(--planet-orbit-radius)) rotate(calc(var(--planet-start-angle) * -1)) translate(-50%, -50%);
+  }
+
+  .planet-sphere {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, currentColor 54%, white 12%);
+    border-radius: 9999px;
+    background: currentColor;
+    box-shadow:
+      0 0 22px color-mix(in srgb, currentColor 46%, transparent),
+      inset -14px -18px 28px rgba(0, 0, 0, 0.32);
+  }
+
+  .planet-sphere-blue {
+    color: #60a5fa;
+  }
+
+  .planet-sphere-cyan {
+    color: #22d3ee;
+  }
+
+  .planet-sphere-emerald {
+    color: #34d399;
+  }
+
+  .planet-sphere-neutral {
+    color: #94a3b8;
+  }
+
+  .planet-sphere-teal {
+    color: #2dd4bf;
+  }
+
+  .planet-sphere-violet {
+    color: #a78bfa;
+  }
+
+  .planet-shade {
+    position: absolute;
+    inset: 12% 18% auto 16%;
+    height: 34%;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.42);
+    filter: blur(7px);
+  }
+
+  .planet-hover-preview {
+    position: fixed;
+    z-index: 180;
+    display: grid;
+    gap: 0.55rem;
+    border: 1px solid var(--ns-glass-border);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--ns-bg-secondary) 92%, transparent);
+    box-shadow: var(--ns-glass-shadow);
+    padding: 0.9rem;
+    color: var(--ns-text-primary);
+    backdrop-filter: blur(20px) saturate(160%);
+  }
+
+  .planet-hover-preview button {
+    display: inline-flex;
+    min-height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--ns-glass-border);
+    border-radius: 9999px;
+    background: var(--ns-control-bg);
+    padding: 0.45rem 0.75rem;
+    color: var(--ns-text-secondary);
+  }
+
   .planet-action-group {
     position: absolute;
     z-index: 130;
