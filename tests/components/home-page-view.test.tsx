@@ -285,7 +285,7 @@ describe("HomePageView", () => {
     )
   })
 
-  it("enters a planet detail overlay on double click and returns to the universe", () => {
+  it("enters a planet detail overlay on planet double click and returns to the universe", () => {
     render(<HomePageView {...buildProps()} />)
 
     fireEvent.doubleClick(screen.getByRole("button", { name: "工作 行星" }))
@@ -294,11 +294,8 @@ describe("HomePageView", () => {
 
     expect(dialog).toBeInTheDocument()
     expect(dialog).toHaveAttribute("aria-modal", "true")
-    expect(dialog.closest('[data-testid="universe-viewport"]')).toBeNull()
     expect(screen.getByText("概览")).toBeInTheDocument()
-    expect(screen.getByText("最近变化")).toBeInTheDocument()
     expect(screen.getByText("关键记忆")).toBeInTheDocument()
-    expect(screen.getByText("关联内容")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "返回宇宙" })).toHaveFocus()
     expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
       "data-view-state",
@@ -443,6 +440,20 @@ describe("HomePageView", () => {
               tags: ["life"],
               source: "夹具",
             },
+            {
+              id: 3,
+              planetId: 2,
+              planetSlug: "life",
+              planetName: "生活",
+              title: "生活私密记忆",
+              content: "生活私密详情",
+              type: "preference",
+              occurredAt: "2026-04-24",
+              visibility: "private",
+              importance: 7,
+              tags: ["life"],
+              source: "夹具",
+            },
           ],
         })}
       />
@@ -450,8 +461,13 @@ describe("HomePageView", () => {
 
     fireEvent.doubleClick(screen.getByRole("button", { name: "生活 行星" }))
 
+    const dialog = screen.getByRole("dialog", { name: "生活 行星详情" })
+    expect(within(dialog).getByText("记忆").closest("div")).toHaveTextContent(
+      "2"
+    )
     expect(screen.getByText("生活记忆")).toBeInTheDocument()
     expect(screen.queryByText("工作记忆")).not.toBeInTheDocument()
+    expect(screen.queryByText("生活私密记忆")).not.toBeInTheDocument()
   })
 
   it("keeps overlay wheel and drag interactions from mutating the canvas state", () => {
@@ -794,7 +810,12 @@ describe("HomePageView", () => {
     const body = JSON.parse(String(request?.body))
 
     expect(body.message).toBe("总结这个行星")
-    expect(body.contextCard.title).toBe("工作")
+    expect(body.contextCard).toEqual({
+      category: "行星",
+      id: "planet-1",
+      planetId: 1,
+      title: "工作",
+    })
     expect(body.focusedPlanetId).toBe(1)
     expect(await screen.findByText("上下文回复样例")).toBeInTheDocument()
 

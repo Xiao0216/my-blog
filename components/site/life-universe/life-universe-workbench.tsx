@@ -71,19 +71,19 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   ])
   const interactiveShellRef = useRef<HTMLDivElement | null>(null)
   const focusedPlanet = useMemo(
-    () =>
-      universe.planets.find((planet) => planet.id === focusedPlanetId) ??
-      universe.planets[0],
+    () => universe.planets.find((planet) => planet.id === focusedPlanetId),
     [focusedPlanetId, universe.planets]
   )
   const enteredPlanet = useMemo(
     () => universe.planets.find((planet) => planet.id === enteredPlanetId),
     [enteredPlanetId, universe.planets]
   )
+  const activeContextPlanet = enteredPlanet ?? focusedPlanet
   const contextCard = useMemo(() => {
-    const activePlanet = enteredPlanet ?? focusedPlanet
-    return activePlanet ? buildContextCard(activePlanet) : undefined
-  }, [enteredPlanet, focusedPlanet])
+    return activeContextPlanet
+      ? buildContextCard(activeContextPlanet)
+      : undefined
+  }, [activeContextPlanet])
   const detail = useMemo(
     () => (enteredPlanet ? buildPlanetDetail(enteredPlanet, props) : undefined),
     [enteredPlanet, props]
@@ -234,15 +234,15 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          contextCard: contextCard
+          contextCard: activeContextPlanet
             ? {
-                category: contextCard.category,
-                id: contextCard.id,
-                planetId: contextCard.planetId,
-                title: contextCard.title,
+                category: "行星",
+                id: activeContextPlanet.id,
+                planetId: activeContextPlanet.planetId,
+                title: activeContextPlanet.name,
               }
             : undefined,
-          focusedPlanetId: contextCard?.planetId,
+          focusedPlanetId: activeContextPlanet?.planetId,
           history,
           message,
         }),
@@ -370,11 +370,13 @@ function buildPlanetDetail(
   { essays, memories, notes, projects }: HomePageViewProps
 ): PlanetDetailModel {
   const card = buildContextCard(planet)
+  const planetMemories = memories.filter(
+    (memory) => memory.planetId === planet.planetId
+  )
   const keyMemories = memories
-    .filter((memory) =>
-      card.planetId
-        ? memory.visibility === "public" && memory.planetId === card.planetId
-        : memory.visibility === "public"
+    .filter(
+      (memory) =>
+        memory.visibility === "public" && memory.planetId === planet.planetId
     )
     .slice(0, 3)
     .map((memory) => memory.title)
@@ -386,7 +388,7 @@ function buildPlanetDetail(
     card,
     counts: {
       essays: essays.length,
-      memories: memories.length,
+      memories: planetMemories.length,
       notes: notes.length,
       projects: projects.length,
     },
