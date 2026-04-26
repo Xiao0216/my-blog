@@ -21,14 +21,20 @@ type PlanetRenderLevelInput = {
   readonly totalPlanets: number
 }
 
+const toneByTheme: Record<string, PlanetUniverseBodyModel["tone"]> = {
+  blue: "blue",
+  cyan: "cyan",
+  emerald: "emerald",
+  teal: "teal",
+  violet: "violet",
+}
+
 export function buildPlanetUniverseModel({
   memories,
   planets,
 }: BuildPlanetUniverseModelInput): PlanetUniverseModel {
   return {
-    planets: planets.map((planet, index) =>
-      buildPlanetUniverseBodyModel(planet, memories, index)
-    ),
+    planets: planets.map((planet) => buildPlanetUniverseBodyModel(planet, memories)),
   }
 }
 
@@ -53,11 +59,14 @@ export function getPlanetRenderLevel({
     return "full"
   }
 
-  if (distanceFromFocus >= 720 || totalPlanets >= 36) {
+  const isDistant = distanceFromFocus > 760
+  const isCrowded = totalPlanets > 30
+
+  if (isDistant && isCrowded) {
     return "point"
   }
 
-  if (distanceFromFocus >= 320 || totalPlanets >= 16) {
+  if (isDistant || isCrowded) {
     return "simple"
   }
 
@@ -66,8 +75,7 @@ export function getPlanetRenderLevel({
 
 function buildPlanetUniverseBodyModel(
   planet: StoredPlanet,
-  memories: ReadonlyArray<StoredMemory>,
-  level: number
+  memories: ReadonlyArray<StoredMemory>
 ): PlanetUniverseBodyModel {
   const publicMemoryCount = countPlanetMemories(planet.id, memories, "public")
   const assistantMemoryCount = countPlanetMemories(planet.id, memories, "assistant")
@@ -77,22 +85,21 @@ function buildPlanetUniverseBodyModel(
     assistantMemoryCount,
     description: planet.description,
     id: `planet-${planet.id}`,
-    level,
+    level: 0,
     name: planet.name,
-    orbit: buildOrbitModel(planet, level, publicMemoryCount, assistantMemoryCount),
+    orbit: buildOrbitModel(planet, publicMemoryCount, assistantMemoryCount),
     planetId: planet.id,
     publicMemoryCount,
     rotation: buildRotationModel(planet, publicMemoryCount, assistantMemoryCount),
     size,
     slug: planet.slug,
     summary: planet.summary,
-    tone: planet.theme,
+    tone: toneByTheme[planet.theme] ? toneByTheme[planet.theme] : "violet",
   }
 }
 
 function buildOrbitModel(
   planet: StoredPlanet,
-  level: number,
   publicMemoryCount: number,
   assistantMemoryCount: number
 ): PlanetOrbitModel {
@@ -101,12 +108,12 @@ function buildOrbitModel(
   const memoryLoad = publicMemoryCount * 7 + assistantMemoryCount * 5
 
   return {
-    delaySeconds: roundToTwo((level * 0.65 + (seed % 17) / 20) % 6),
+    delaySeconds: roundToTwo(((seed % 17) / 20) % 6),
     durationSeconds: roundToTwo(
-      24 + level * 1.5 + size / 18 + memoryLoad / 10 + (seed % 11) / 10
+      24 + size / 18 + memoryLoad / 10 + (seed % 11) / 10
     ),
     radius: roundToTwo(
-      Math.max(168, 170 + level * 42 + size + memoryLoad * 2 + (seed % 29))
+      Math.max(168, 170 + size + memoryLoad * 2 + (seed % 29))
     ),
     startAngle: roundToTwo(((seed % 360) * Math.PI) / 180),
   }
@@ -137,13 +144,7 @@ function countPlanetMemories(
 }
 
 function formatPlanetMeta(publicCount: number, assistantCount: number) {
-  const segments: string[] = [`${publicCount} 条公开记忆`]
-
-  if (assistantCount > 0) {
-    segments.push(`${assistantCount} 条助手记忆`)
-  }
-
-  return segments.join(" · ")
+  return `${publicCount} 条公开记忆 · ${assistantCount} 条助手记忆`
 }
 
 function resolvePlanetSize(size: StoredPlanet["size"]) {

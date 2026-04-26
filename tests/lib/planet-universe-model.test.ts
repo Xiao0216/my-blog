@@ -36,6 +36,20 @@ const planets: StoredPlanet[] = [
     sortOrder: 6,
     weight: 7,
   },
+  {
+    id: 3,
+    slug: "mystery",
+    name: "未知星球",
+    summary: "未分类内容。",
+    description: "更完整的未知描述。",
+    x: -40,
+    y: 80,
+    size: "small",
+    theme: "magenta",
+    status: "published",
+    sortOrder: 9,
+    weight: 4,
+  },
 ]
 
 const memories: StoredMemory[] = [
@@ -73,12 +87,28 @@ describe("planet universe model", () => {
   it("represents every supplied planet as an orbiting planet", () => {
     const model = buildPlanetUniverseModel({ memories, planets })
 
-    expect(model.planets.map((planet) => planet.slug)).toEqual(["work", "life"])
+    expect(model.planets.map((planet) => planet.slug)).toEqual([
+      "work",
+      "life",
+      "mystery",
+    ])
     expect(model.planets[0]).toMatchObject({
       id: "planet-1",
       name: "工作与职业",
       level: 0,
       tone: "cyan",
+    })
+    expect(model.planets[1]).toMatchObject({
+      id: "planet-2",
+      name: "生活与体验",
+      level: 0,
+      tone: "teal",
+    })
+    expect(model.planets[2]).toMatchObject({
+      id: "planet-3",
+      name: "未知星球",
+      level: 0,
+      tone: "violet",
     })
     expect(model.planets[0].orbit.radius).toBeGreaterThan(150)
     expect(model.planets[0].orbit.durationSeconds).toBeGreaterThan(20)
@@ -95,11 +125,13 @@ describe("planet universe model", () => {
   it("counts only public memories in hover preview content", () => {
     const model = buildPlanetUniverseModel({ memories, planets })
     const preview = buildPlanetPreview(model.planets[0])
+    const emptyPreview = buildPlanetPreview(model.planets[1])
 
     expect(preview.title).toBe("工作与职业")
     expect(preview.summary).toBe("工作、项目和职业成长。")
-    expect(preview.meta).toContain("1 条公开记忆")
+    expect(preview.meta).toBe("1 条公开记忆 · 1 条助手记忆")
     expect(preview.hint).toBe("双击进入行星")
+    expect(emptyPreview.meta).toBe("0 条公开记忆 · 0 条助手记忆")
   })
 
   it("downgrades distant or crowded planets to lightweight render levels", () => {
@@ -113,10 +145,18 @@ describe("planet universe model", () => {
     ).toBe("point")
     expect(
       getPlanetRenderLevel({
-        distanceFromFocus: 420,
+        distanceFromFocus: 900,
         isFocused: false,
         isHovered: false,
         totalPlanets: 18,
+      }),
+    ).toBe("simple")
+    expect(
+      getPlanetRenderLevel({
+        distanceFromFocus: 420,
+        isFocused: false,
+        isHovered: false,
+        totalPlanets: 42,
       }),
     ).toBe("simple")
     expect(
@@ -125,6 +165,22 @@ describe("planet universe model", () => {
         isFocused: false,
         isHovered: true,
         totalPlanets: 42,
+      }),
+    ).toBe("full")
+    expect(
+      getPlanetRenderLevel({
+        distanceFromFocus: 120,
+        isFocused: false,
+        isHovered: false,
+        totalPlanets: 42,
+      }),
+    ).toBe("simple")
+    expect(
+      getPlanetRenderLevel({
+        distanceFromFocus: 120,
+        isFocused: false,
+        isHovered: false,
+        totalPlanets: 5,
       }),
     ).toBe("full")
   })
