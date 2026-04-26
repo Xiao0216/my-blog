@@ -503,6 +503,7 @@
   .planet-orbit-system {
     position: absolute;
     inset: 0;
+    transform-style: preserve-3d;
   }
 
   .planet-orbit {
@@ -519,6 +520,10 @@
     height: var(--planet-orbit-diameter);
     border: 1px solid color-mix(in srgb, var(--ns-accent-secondary) 24%, transparent);
     border-radius: 9999px;
+    opacity: 0.6;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--ns-accent-primary) 8%, transparent),
+      inset 0 0 28px color-mix(in srgb, var(--ns-accent-secondary) 8%, transparent);
     transform: translate(-50%, -50%);
   }
 
@@ -527,14 +532,24 @@
     top: 50%;
     left: 50%;
     z-index: 2;
+    display: grid;
+    place-items: center;
     width: var(--planet-size);
     height: var(--planet-size);
     border: 0;
     background: transparent;
+    border-radius: 9999px;
     padding: 0;
     color: var(--ns-accent-primary);
     cursor: pointer;
+    transform-origin: center;
     transform: rotate(var(--planet-start-angle)) translateX(var(--planet-orbit-radius)) rotate(calc(var(--planet-start-angle) * -1)) translate(-50%, -50%);
+    animation: planet-orbit var(--planet-orbit-duration) linear infinite;
+    animation-delay: var(--planet-orbit-delay);
+    transition:
+      filter 180ms ease,
+      opacity 180ms ease,
+      box-shadow 180ms ease;
   }
 
   .planet-sphere {
@@ -545,10 +560,15 @@
     overflow: hidden;
     border: 1px solid color-mix(in srgb, currentColor 54%, white 12%);
     border-radius: 9999px;
-    background: currentColor;
+    background:
+      radial-gradient(circle at 28% 26%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.3) 16%, transparent 28%),
+      radial-gradient(circle at 34% 32%, color-mix(in srgb, white 18%, currentColor 82%), currentColor 58%, color-mix(in srgb, black 24%, currentColor 76%) 100%);
     box-shadow:
       0 0 22px color-mix(in srgb, currentColor 46%, transparent),
+      0 0 46px color-mix(in srgb, currentColor 18%, transparent),
       inset -14px -18px 28px rgba(0, 0, 0, 0.32);
+    animation: planet-self-rotate var(--planet-rotation-duration) linear infinite;
+    transform-origin: center;
   }
 
   .planet-sphere-blue {
@@ -584,18 +604,104 @@
     filter: blur(7px);
   }
 
+  .planet-body:hover,
+  .planet-body:focus-visible,
+  .planet-body[data-focused="true"],
+  .planet-body[data-hovered="true"] {
+    outline: none;
+    filter: brightness(1.16) saturate(1.1);
+  }
+
+  .planet-body:hover .planet-sphere,
+  .planet-body:focus-visible .planet-sphere,
+  .planet-body[data-focused="true"] .planet-sphere,
+  .planet-body[data-hovered="true"] .planet-sphere {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, currentColor 62%, white 12%),
+      0 0 30px color-mix(in srgb, currentColor 55%, transparent),
+      0 0 58px color-mix(in srgb, currentColor 24%, transparent),
+      inset -14px -18px 28px rgba(0, 0, 0, 0.24);
+  }
+
+  .planet-body[data-render-level="full"] .planet-sphere {
+    opacity: 1;
+  }
+
+  .planet-body[data-render-level="simple"] {
+    opacity: 0.9;
+    filter: saturate(0.9);
+  }
+
+  .planet-body[data-render-level="simple"] .planet-sphere {
+    box-shadow:
+      0 0 14px color-mix(in srgb, currentColor 30%, transparent),
+      inset -10px -12px 18px rgba(0, 0, 0, 0.28);
+  }
+
+  .planet-body[data-render-level="simple"] .planet-shade {
+    opacity: 0.75;
+    filter: blur(5px);
+  }
+
+  .planet-body[data-render-level="point"] {
+    width: max(0.45rem, calc(var(--planet-size) * 0.18));
+    height: max(0.45rem, calc(var(--planet-size) * 0.18));
+    opacity: 0.78;
+    filter: saturate(0.78);
+  }
+
+  .planet-body[data-render-level="point"] .planet-sphere {
+    border-color: color-mix(in srgb, currentColor 65%, white 20%);
+    box-shadow:
+      0 0 10px color-mix(in srgb, currentColor 58%, transparent),
+      0 0 22px color-mix(in srgb, currentColor 24%, transparent);
+  }
+
+  .planet-body[data-render-level="point"] .planet-shade {
+    display: none;
+  }
+
   .planet-hover-preview {
     position: fixed;
     z-index: 180;
     display: grid;
-    gap: 0.55rem;
-    border: 1px solid var(--ns-glass-border);
+    gap: 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--ns-accent-primary) 16%, var(--ns-glass-border));
     border-radius: 1rem;
-    background: color-mix(in srgb, var(--ns-bg-secondary) 92%, transparent);
-    box-shadow: var(--ns-glass-shadow);
-    padding: 0.9rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 30%),
+      color-mix(in srgb, var(--ns-bg-secondary) 94%, transparent);
+    box-shadow:
+      0 22px 70px rgba(0, 0, 0, 0.34),
+      0 0 0 1px rgba(255, 255, 255, 0.04),
+      var(--ns-glass-shadow);
+    padding: 1rem;
     color: var(--ns-text-primary);
     backdrop-filter: blur(20px) saturate(160%);
+  }
+
+  .planet-hover-preview > :first-child {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ns-text-muted);
+  }
+
+  .planet-hover-preview > :nth-child(2) {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ns-text-primary);
+  }
+
+  .planet-hover-preview > :nth-child(3) {
+    color: var(--ns-text-secondary);
+    line-height: 1.55;
+  }
+
+  .planet-hover-preview > :nth-child(4) {
+    color: var(--ns-accent-primary);
+    font-size: 0.8rem;
   }
 
   .planet-hover-preview button {
@@ -603,11 +709,29 @@
     min-height: 2.25rem;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--ns-glass-border);
+    border: 1px solid color-mix(in srgb, var(--ns-accent-primary) 22%, var(--ns-glass-border));
     border-radius: 9999px;
-    background: var(--ns-control-bg);
-    padding: 0.45rem 0.75rem;
-    color: var(--ns-text-secondary);
+    background: color-mix(in srgb, var(--ns-accent-primary) 12%, var(--ns-control-bg));
+    padding: 0.5rem 0.85rem;
+    color: var(--ns-text-primary);
+    font-size: 0.82rem;
+    transition:
+      transform 160ms ease,
+      background 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .planet-hover-preview button:hover,
+  .planet-hover-preview button:focus-visible {
+    outline: none;
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--ns-accent-primary) 20%, var(--ns-control-bg));
+    border-color: color-mix(in srgb, var(--ns-accent-primary) 34%, var(--ns-glass-border));
+  }
+
+  .null-space-shell[data-motion-paused="true"] .planet-body,
+  .null-space-shell[data-motion-paused="true"] .planet-sphere {
+    animation-play-state: paused;
   }
 
   .planet-action-group {
@@ -1086,6 +1210,26 @@
     }
   }
 
+  @keyframes planet-orbit {
+    from {
+      transform: rotate(var(--planet-start-angle)) translateX(var(--planet-orbit-radius)) rotate(calc(var(--planet-start-angle) * -1)) translate(-50%, -50%);
+    }
+
+    to {
+      transform: rotate(calc(var(--planet-start-angle) + 1turn)) translateX(var(--planet-orbit-radius)) rotate(calc((var(--planet-start-angle) + 1turn) * -1)) translate(-50%, -50%);
+    }
+  }
+
+  @keyframes planet-self-rotate {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   @keyframes caret-blink {
     50% {
       opacity: 0;
@@ -1138,6 +1282,8 @@
   .connection-line.animated,
   .constellation-node,
   .universe-ambient-field span,
+  .planet-body,
+  .planet-sphere,
   .message-ai.thinking .message-bubble::after,
   .null-ai-avatar[data-state="thinking"],
   [data-testid="universe-camera"],

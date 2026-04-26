@@ -694,6 +694,36 @@ describe("HomePageView", () => {
     expect(screen.getAllByTestId("planet-body")).toHaveLength(6)
   })
 
+  it("marks planet render levels and pauses animation while preview is active", () => {
+    const galaxyPlanets = buildGalaxyPlanets()
+    const crowdedPlanets = Array.from({ length: 36 }, (_, index) => ({
+      ...galaxyPlanets[index % galaxyPlanets.length],
+      id: index + 1,
+      slug: `planet-${index + 1}`,
+      name: `行星 ${index + 1}`,
+      sortOrder: index + 1,
+    }))
+
+    render(<HomePageView {...buildProps({ planets: crowdedPlanets })} />)
+
+    expect(screen.getAllByTestId("planet-body")).toHaveLength(36)
+    expect(
+      screen
+        .getAllByTestId("planet-body")
+        .some((planet) => planet.getAttribute("data-render-level") === "simple")
+    ).toBe(true)
+
+    fireEvent.pointerMove(screen.getByRole("button", { name: "行星 1 行星" }), {
+      clientX: 180,
+      clientY: 220,
+    })
+
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
+      "data-motion-paused",
+      "true"
+    )
+  })
+
   it("renders stable localized empty states when planets and memories are empty", () => {
     render(
       <HomePageView

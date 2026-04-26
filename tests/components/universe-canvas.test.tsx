@@ -140,19 +140,44 @@ describe("UniverseCanvas", () => {
     expect(css).toMatch(
       /\.planet-body\s*{[\s\S]*?width:\s*var\(--planet-size\)/
     )
+    expect(css).toMatch(/\.planet-body\s*{[\s\S]*?animation:\s*planet-orbit/)
     expect(css).toMatch(
       /\.planet-body\s*{[\s\S]*?transform:\s*rotate\(var\(--planet-start-angle\)\)\s*translateX\(var\(--planet-orbit-radius\)\)/
     )
     expect(css).toMatch(/\.planet-sphere\s*{[\s\S]*?display:\s*block/)
+    expect(css).toMatch(/\.planet-sphere\s*{[\s\S]*?animation:\s*planet-self-rotate/)
     expect(css).toMatch(/\.planet-sphere-cyan\s*{/)
+    expect(css).toMatch(
+      /\.planet-body\[data-render-level="point"\]\s*{[\s\S]*?(width|height|opacity|filter):/
+    )
+    expect(css).toMatch(
+      /\.planet-body\[data-render-level="simple"\]\s*{[\s\S]*?(width|height|opacity|filter):/
+    )
     expect(css).toMatch(/\.planet-shade\s*{[\s\S]*?position:\s*absolute/)
     expect(css).toMatch(/\.planet-hover-preview\s*{[\s\S]*?position:\s*fixed/)
+    expect(css).toMatch(
+      /\.null-space-shell\[data-motion-paused="true"\]\s+\.planet-body\s*,[\s\S]*?animation-play-state:\s*paused/
+    )
+    expect(css).toMatch(
+      /\.null-space-shell\[data-motion-paused="true"\]\s+\.planet-sphere[\s\S]*?animation-play-state:\s*paused/
+    )
+    expect(css).toMatch(/@keyframes\s+planet-orbit/)
+    expect(css).toMatch(/@keyframes\s+planet-self-rotate/)
     expect(css).toMatch(/\[data-testid="mobile-planet-card"\]\s*{/)
     expect(css).toMatch(
       /\.null-space-shell\[data-related-scope="true"\]\s*\[data-testid="mobile-planet-card"\]\[data-related="false"\]\s*{[\s\S]*?display:\s*none/
     )
     expect(css).toMatch(/\[data-testid="mobile-planet-card"\]\s+button\s*{/)
     expect(css).not.toContain('data-testid="mobile-universe-card"')
+    expect(css).toMatch(
+      /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*{[\s\S]*?\.planet-body/
+    )
+    expect(css).toMatch(
+      /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*{[\s\S]*?\.planet-sphere/
+    )
+    expect(css).toMatch(
+      /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*{[\s\S]*?animation:\s*none/
+    )
   })
 
   it("does not rerender memoized planets when parent callbacks change but planet state is stable", () => {
