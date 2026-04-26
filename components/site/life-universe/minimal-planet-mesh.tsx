@@ -15,29 +15,29 @@ import type { PlanetRenderLevel } from "@/components/site/life-universe/types"
 
 const COLOR_SCHEMES = {
   mist: {
-    atmosphere: "#9d9aa8",
-    ring: "#7d7884",
-    surface: "#64606d",
+    atmosphere: "#c2b5d8",
+    ring: "#9f91bd",
+    surface: "#8f7db0",
   },
   rose: {
-    atmosphere: "#a68f8a",
-    ring: "#8d7470",
-    surface: "#6f5955",
+    atmosphere: "#d6abb2",
+    ring: "#bd8f98",
+    surface: "#a87882",
   },
   sage: {
-    atmosphere: "#9aa68e",
-    ring: "#7f8a75",
-    surface: "#5f6a58",
+    atmosphere: "#a9c0b8",
+    ring: "#83a196",
+    surface: "#6f968b",
   },
   slate: {
-    atmosphere: "#8a97a5",
-    ring: "#6f7a86",
-    surface: "#55606c",
+    atmosphere: "#a9c3d8",
+    ring: "#83a5bd",
+    surface: "#6d91aa",
   },
   warm: {
-    atmosphere: "#b39f87",
-    ring: "#95816b",
-    surface: "#746352",
+    atmosphere: "#d7c0aa",
+    ring: "#bca08b",
+    surface: "#a88772",
   },
 } as const
 
@@ -186,19 +186,11 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
           <meshStandardMaterial
             color={colors.surface}
             emissive={isActive ? colors.atmosphere : colors.surface}
-            emissiveIntensity={isActive ? 0.12 : isDimmed ? 0.015 : 0.03}
-            metalness={0.08}
-            opacity={isDimmed ? 0.72 : 1}
+            emissiveIntensity={isActive ? 0.18 : isDimmed ? 0.025 : 0.05}
+            metalness={0.04}
+            opacity={isDimmed ? 0.6 : 1}
             transparent={isDimmed}
-            roughness={0.94}
-          />
-        </mesh>
-        <mesh position={[-radius * 0.2, radius * 0.12, radius * 0.5]}>
-          <sphereGeometry args={[radius * 1.01, widthSegments, heightSegments]} />
-          <meshBasicMaterial
-            color={colors.atmosphere}
-            opacity={isDimmed ? 0.04 : body.renderLevel === "point" ? 0.14 : 0.08}
-            transparent
+            roughness={0.9}
           />
         </mesh>
         {body.hasRing && body.renderLevel !== "point" ? (

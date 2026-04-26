@@ -199,7 +199,7 @@ describe("UniverseCanvas", () => {
 
     expect(css).toMatch(/\.minimal-three-scene\s*{[\s\S]*?width:\s*100%/)
     expect(css).toMatch(/\.minimal-three-scene\s*{[\s\S]*?height:\s*100%/)
-    expect(css).toMatch(/\.minimal-three-scene\s*{[\s\S]*?radial-gradient/)
+    expect(css).toMatch(/\.minimal-three-scene\s*{[\s\S]*?background:\s*transparent/)
     expect(css).toMatch(
       /\.planet-accessibility-controls\s*{[\s\S]*?position:\s*absolute/
     )
@@ -250,6 +250,12 @@ describe("UniverseCanvas", () => {
     )
     expect(css).toMatch(
       /\.planet-accessibility-controls\s+\.planet-body:focus-visible\s*{[\s\S]*?(opacity|outline|filter):/
+    )
+    expect(css).not.toMatch(
+      /\.planet-accessibility-controls\s+\.planet-body\[data-hovered="true"\]/
+    )
+    expect(css).not.toMatch(
+      /\.planet-accessibility-controls\s+\.planet-body\[data-focused="true"\]/
     )
     expect(css).not.toMatch(/\.connection-line\s*{/)
     expect(css).not.toMatch(/\.constellation-node\s*{/)

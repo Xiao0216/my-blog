@@ -333,10 +333,7 @@ export function UniverseCanvas({
         data-camera-mode={viewState === "inside" ? "inside" : "overview"}
         data-motion-paused={isMotionPaused ? "true" : "false"}
         data-related-scope={isRelatedScopeActive ? "true" : "false"}
-        className="universe-scene-3d absolute top-1/2 left-1/2 h-[660px] w-[960px] origin-center"
-        style={{
-          transform: "translate(-50%, -50%)",
-        }}
+        className="universe-scene-3d absolute inset-0 origin-center"
       >
         <div
           data-testid="universe-camera"

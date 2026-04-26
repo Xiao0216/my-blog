@@ -777,7 +777,7 @@ describe("HomePageView", () => {
       expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
     })
 
-    expect(viewport).toHaveStyle({
+    expect(viewport).not.toHaveStyle({
       transform: "translate(-50%, -50%)",
     })
     expect(camera).toHaveStyle({

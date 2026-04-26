@@ -488,10 +488,7 @@
     height: 100%;
     overflow: hidden;
     border-radius: 2rem;
-    background:
-      radial-gradient(circle at 20% 18%, rgba(148, 163, 184, 0.18), transparent 24%),
-      radial-gradient(circle at 78% 26%, rgba(59, 130, 246, 0.12), transparent 28%),
-      radial-gradient(circle at 50% 50%, rgba(17, 24, 39, 0.42), rgba(9, 11, 13, 0.96) 72%);
+    background: transparent;
   }
 
   .minimal-three-scene canvas {
@@ -571,10 +568,7 @@
     transition: none;
   }
 
-  .planet-accessibility-controls .planet-body:hover,
-  .planet-accessibility-controls .planet-body:focus-visible,
-  .planet-accessibility-controls .planet-body[data-focused="true"],
-  .planet-accessibility-controls .planet-body[data-hovered="true"] {
+  .planet-accessibility-controls .planet-body:focus-visible {
     opacity: 1;
     filter: brightness(1.16) saturate(1.08);
   }
@@ -589,10 +583,7 @@
     outline-offset: 4px;
   }
 
-  .planet-accessibility-controls .planet-orbit:has(.planet-body:hover) .planet-orbit-path,
-  .planet-accessibility-controls .planet-orbit:has(.planet-body:focus-visible) .planet-orbit-path,
-  .planet-accessibility-controls .planet-orbit:has(.planet-body[data-focused="true"]) .planet-orbit-path,
-  .planet-accessibility-controls .planet-orbit:has(.planet-body[data-hovered="true"]) .planet-orbit-path {
+  .planet-accessibility-controls .planet-orbit:has(.planet-body:focus-visible) .planet-orbit-path {
     opacity: 0.22;
   }
 

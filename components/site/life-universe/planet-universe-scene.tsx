@@ -40,7 +40,6 @@ export function PlanetUniverseScene({
         dpr={[1, 1.5]}
         gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
       >
-        <color args={["#090b0d"]} attach="background" />
         <ambientLight intensity={0.75} />
         <directionalLight color="#d9d1c6" intensity={0.8} position={[180, 220, 260]} />
         <pointLight color="#8c949f" intensity={0.4} position={[-240, -180, 180]} />
