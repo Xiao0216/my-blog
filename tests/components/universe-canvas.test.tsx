@@ -191,6 +191,9 @@ describe("UniverseCanvas", () => {
       /\.planet-accessibility-controls\s*{[\s\S]*?position:\s*absolute/
     )
     expect(css).toMatch(/\.planet-accessibility-controls\s*{[\s\S]*?inset:\s*0/)
+    expect(css).toMatch(
+      /\.planet-accessibility-controls\s*{[\s\S]*?pointer-events:\s*none/
+    )
     expect(css).toMatch(/\.planet-orbit-system\s*{[\s\S]*?position:\s*absolute/)
     expect(css).toMatch(/\.planet-orbit-system\s*{[\s\S]*?inset:\s*0/)
     expect(css).toMatch(
@@ -215,11 +218,19 @@ describe("UniverseCanvas", () => {
       /\.planet-body\[data-render-level="simple"\]\s*{[\s\S]*?(width|height|opacity|filter):/
     )
     expect(css).toMatch(
-      /\.planet-accessibility-controls\s+\.planet-body\s*{[\s\S]*?opacity:/
+      /\.planet-accessibility-controls\s+\.planet-orbit-path\s*{[\s\S]*?opacity:\s*0/
+    )
+    expect(css).toMatch(
+      /\.planet-accessibility-controls\s+\.planet-body\s*{[\s\S]*?pointer-events:\s*auto/
+    )
+    expect(css).toMatch(
+      /\.planet-accessibility-controls\s+\.planet-body\s*{[\s\S]*?opacity:\s*0/
     )
     expect(css).toMatch(
       /\.planet-accessibility-controls\s+\.planet-body:focus-visible\s*{[\s\S]*?(opacity|outline|filter):/
     )
+    expect(css).not.toMatch(/\.connection-line\s*{/)
+    expect(css).not.toMatch(/\.constellation-node\s*{/)
     expect(css).toMatch(/\.planet-shade\s*{[\s\S]*?position:\s*absolute/)
     expect(css).toMatch(/\.planet-hover-preview\s*{[\s\S]*?position:\s*fixed/)
     expect(css).toMatch(

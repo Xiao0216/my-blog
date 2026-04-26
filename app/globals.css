@@ -278,25 +278,6 @@
     box-shadow: 0 0 26px color-mix(in srgb, var(--ns-accent-secondary) 35%, transparent);
   }
 
-  .connection-line {
-    stroke: var(--ns-link-line);
-    stroke-linecap: round;
-    opacity: 0.72;
-  }
-
-  .connection-line.animated {
-    stroke: var(--ns-link-line-active);
-    stroke-dasharray: 8 4;
-    animation: connection-flow 2s linear infinite;
-  }
-
-  .constellation-node {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: constellation-node-pulse 4.6s ease-in-out infinite;
-    animation-delay: var(--node-delay, 0s);
-  }
-
   .universe-ambient-field {
     pointer-events: none;
     position: absolute;
@@ -579,12 +560,12 @@
   }
 
   .planet-accessibility-controls .planet-orbit-path {
-    opacity: 0.16;
+    opacity: 0;
   }
 
   .planet-accessibility-controls .planet-body {
     pointer-events: auto;
-    opacity: 0.14;
+    opacity: 0;
     filter: saturate(0.72);
   }
 
@@ -599,6 +580,13 @@
   .planet-accessibility-controls .planet-body:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--ns-accent-primary) 72%, white 12%);
     outline-offset: 4px;
+  }
+
+  .planet-accessibility-controls .planet-orbit:has(.planet-body:hover) .planet-orbit-path,
+  .planet-accessibility-controls .planet-orbit:has(.planet-body:focus-visible) .planet-orbit-path,
+  .planet-accessibility-controls .planet-orbit:has(.planet-body[data-focused="true"]) .planet-orbit-path,
+  .planet-accessibility-controls .planet-orbit:has(.planet-body[data-hovered="true"]) .planet-orbit-path {
+    opacity: 0.22;
   }
 
   .planet-sphere {
@@ -1227,19 +1215,6 @@
     }
   }
 
-  @keyframes constellation-node-pulse {
-    0%,
-    100% {
-      opacity: 0.48;
-      transform: scale(0.82);
-    }
-
-    50% {
-      opacity: 1;
-      transform: scale(1.35);
-    }
-  }
-
   @keyframes card-signal {
     0%,
     100% {
@@ -1250,12 +1225,6 @@
     50% {
       opacity: 1;
       scale: 1.35;
-    }
-  }
-
-  @keyframes connection-flow {
-    to {
-      stroke-dashoffset: -24;
     }
   }
 
@@ -1328,8 +1297,6 @@
 
   .null-space-card,
   .null-space-card::before,
-  .connection-line.animated,
-  .constellation-node,
   .universe-ambient-field span,
   .planet-body,
   .planet-sphere,

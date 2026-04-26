@@ -352,50 +352,6 @@ export function UniverseCanvas({
             onHoverPlanet={handlePlanetHover}
             onLeavePlanet={handlePlanetLeave}
           />
-          <svg
-            data-universe-lines="true"
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full opacity-70"
-            viewBox="0 0 960 660"
-          >
-            <path
-              d="M135 134 L365 245 L505 112 L742 256 L623 454 L426 455 L260 360 L135 134"
-              fill="none"
-              className="connection-line"
-              strokeWidth="1"
-            />
-            <path
-              d="M260 360 L445 315 L623 454 M445 315 L742 256 M365 245 L445 315"
-              fill="none"
-              className="connection-line animated"
-              strokeWidth="1"
-            />
-            {[
-              [135, 134],
-              [365, 245],
-              [505, 112],
-              [742, 256],
-              [623, 454],
-              [426, 455],
-              [260, 360],
-              [445, 315],
-            ].map(([cx, cy], index) => (
-              <circle
-                key={`${cx}-${cy}`}
-                cx={cx}
-                cy={cy}
-                r="3"
-                className="constellation-node"
-                fill="var(--ns-accent-secondary)"
-                style={
-                  {
-                    "--node-delay": `${index * 0.34}s`,
-                  } as CSSProperties
-                }
-              />
-            ))}
-          </svg>
-
           <div className="planet-accessibility-controls absolute inset-0">
             <div className="planet-orbit-system absolute inset-0">
               {planets.map((planet) => {

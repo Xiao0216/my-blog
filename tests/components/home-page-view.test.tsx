@@ -272,7 +272,7 @@ describe("HomePageView", () => {
   })
 
   it("renders the localized workbench and embedded twin orb", () => {
-    const { container } = render(<HomePageView {...buildProps()} />)
+    render(<HomePageView {...buildProps()} />)
 
     expect(screen.getByText("空境")).toBeInTheDocument()
     expect(screen.getByText("思考型博客")).toBeInTheDocument()
@@ -290,9 +290,11 @@ describe("HomePageView", () => {
     expect(
       screen.getByRole("button", { name: "展开数字分身" })
     ).toBeInTheDocument()
-    expect(
-      container.querySelector('[data-universe-lines="true"]')
-    ).toHaveAttribute("aria-hidden", "true")
+    expect(screen.getByTestId("universe-ambient-field")).toHaveAttribute(
+      "aria-hidden",
+      "true"
+    )
+    expect(screen.getByTestId("minimal-three-scene")).toBeInTheDocument()
   })
 
   it("focuses planets when they are selected", () => {
@@ -718,15 +720,15 @@ describe("HomePageView", () => {
     })
   })
 
-  it("renders a CSS-driven ambient field so the constellation is not static", () => {
+  it("renders a CSS-driven ambient field around the minimal three scene", () => {
     render(<HomePageView {...buildProps()} />)
 
     const ambientField = screen.getByTestId("universe-ambient-field")
-    const nodes = document.querySelectorAll(".constellation-node")
+    const scene = screen.getByTestId("minimal-three-scene")
 
     expect(ambientField).toHaveAttribute("aria-hidden", "true")
     expect(ambientField.querySelectorAll("span").length).toBeGreaterThan(3)
-    expect(nodes.length).toBeGreaterThan(3)
+    expect(scene).toBeInTheDocument()
   })
 
   it("renders orbit paths for planet bodies", () => {
