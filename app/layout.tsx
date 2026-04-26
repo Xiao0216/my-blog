@@ -40,6 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={cn(headingFont.variable, bodyFont.variable, monoFont.variable)}
     >

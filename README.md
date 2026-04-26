@@ -71,7 +71,20 @@ Run these before merging or deploying:
 npm test
 npm run typecheck
 npm run lint
+npm run test:e2e
 NEXT_PUBLIC_SITE_URL=https://blog.wenshuai.site npm run build
+```
+
+Install the Playwright browser once on a new machine:
+
+```bash
+npx playwright install chromium
+```
+
+On a minimal Linux host or CI image, also install Chromium system dependencies:
+
+```bash
+npx playwright install-deps chromium
 ```
 
 ## Docker

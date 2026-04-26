@@ -206,7 +206,15 @@ Run before deployment:
 npm test
 npm run typecheck
 npm run lint
+npm run test:e2e
 NEXT_PUBLIC_SITE_URL=https://blog.wenshuai.site npm run build
+```
+
+On a new Linux runner, prepare Playwright once before `npm run test:e2e`:
+
+```bash
+npx playwright install chromium
+npx playwright install-deps chromium
 ```
 
 Back up the database:
