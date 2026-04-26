@@ -134,37 +134,42 @@ function latestFrameCallback() {
 describe("PlanetUniverseScene", () => {
   it("marks reduced motion on the scene wrapper and passes paused motion to children", () => {
     const scene = buildMinimalThreeScene(planets)
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
-    render(
-      <PlanetUniverseScene
-        scene={scene}
-        hoveredPlanetId="planet-1"
-        focusedPlanetId="planet-1"
-        isMotionPaused={false}
-        isReducedMotion
-        onHoverPlanet={vi.fn()}
-        onLeavePlanet={vi.fn()}
-        onEnterPlanet={vi.fn()}
-      />
-    )
+    try {
+      render(
+        <PlanetUniverseScene
+          scene={scene}
+          hoveredPlanetId="planet-1"
+          focusedPlanetId="planet-1"
+          isMotionPaused={false}
+          isReducedMotion
+          onHoverPlanet={vi.fn()}
+          onLeavePlanet={vi.fn()}
+          onEnterPlanet={vi.fn()}
+        />
+      )
 
-    expect(screen.getByTestId("minimal-three-scene")).toHaveAttribute(
-      "data-reduced-motion",
-      "true"
-    )
-    expect(screen.getByTestId("minimal-connections")).toHaveAttribute(
-      "data-motion-paused",
-      "true"
-    )
-    expect(screen.getByTestId("minimal-connections")).toHaveAttribute(
-      "data-active-planet-id",
-      "planet-1"
-    )
+      expect(screen.getByTestId("minimal-three-scene")).toHaveAttribute(
+        "data-reduced-motion",
+        "true"
+      )
+      expect(screen.getByTestId("minimal-connections")).toHaveAttribute(
+        "data-motion-paused",
+        "true"
+      )
+      expect(screen.getByTestId("minimal-connections")).toHaveAttribute(
+        "data-active-planet-id",
+        "planet-1"
+      )
 
-    for (const body of scene.bodies) {
-      expect(
-        screen.getByTestId(`minimal-planet-mesh-${body.id}`)
-      ).toHaveAttribute("data-motion-paused", "true")
+      for (const body of scene.bodies) {
+        expect(
+          screen.getByTestId(`minimal-planet-mesh-${body.id}`)
+        ).toHaveAttribute("data-motion-paused", "true")
+      }
+    } finally {
+      consoleErrorSpy.mockRestore()
     }
   })
 

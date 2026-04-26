@@ -253,6 +253,26 @@ function stubReducedMotionMatchMedia(matches: boolean) {
   )
 }
 
+function stubLegacyReducedMotionMatchMedia(matches: boolean) {
+  const addListener = vi.fn()
+  const removeListener = vi.fn()
+
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation((query: string) => ({
+      matches:
+        query === "(prefers-reduced-motion: reduce)" ? matches : false,
+      media: query,
+      onchange: null,
+      addListener,
+      removeListener,
+      dispatchEvent: vi.fn(),
+    }))
+  )
+
+  return { addListener, removeListener }
+}
+
 describe("HomePageView", () => {
   it("reads prefers-reduced-motion and keeps preview interactions usable", () => {
     stubReducedMotionMatchMedia(true)
@@ -357,6 +377,24 @@ describe("HomePageView", () => {
     })
 
     expect(screen.getByRole("dialog", { name: "工作 预览" })).toBeInTheDocument()
+  })
+
+  it("uses legacy media query listeners when addEventListener is unavailable", () => {
+    const { addListener, removeListener } = stubLegacyReducedMotionMatchMedia(true)
+
+    const { unmount } = render(<HomePageView {...buildProps()} />)
+
+    expect(screen.getByTestId("minimal-three-scene")).toHaveAttribute(
+      "data-reduced-motion",
+      "true"
+    )
+    expect(addListener).toHaveBeenCalledTimes(1)
+    expect(addListener).toHaveBeenCalledWith(expect.any(Function))
+
+    unmount()
+
+    expect(removeListener).toHaveBeenCalledTimes(1)
+    expect(removeListener).toHaveBeenCalledWith(addListener.mock.calls[0]?.[0])
   })
 
   it("focuses planets when they are selected", () => {
