@@ -705,10 +705,36 @@ describe("HomePageView", () => {
       name: `行星 ${index + 1}`,
       sortOrder: index + 1,
     }))
+    const crowdedMemories = Array.from({ length: 72 }, (_, index) => ({
+      id: index + 1,
+      planetId: 36,
+      planetSlug: "planet-36",
+      planetName: "行星 36",
+      title: `远端记忆 ${index + 1}`,
+      content: "为远端行星增加轨道半径。",
+      type: "preference" as const,
+      occurredAt: "2026-04-24",
+      visibility: "public" as const,
+      importance: 9,
+      tags: ["远端"],
+      source: "夹具",
+    }))
 
-    render(<HomePageView {...buildProps({ planets: crowdedPlanets })} />)
+    render(
+      <HomePageView
+        {...buildProps({
+          planets: crowdedPlanets,
+          memories: crowdedMemories,
+        })}
+      />
+    )
 
     expect(screen.getAllByTestId("planet-body")).toHaveLength(36)
+    expect(
+      screen
+        .getAllByTestId("planet-body")
+        .some((planet) => planet.getAttribute("data-render-level") === "point")
+    ).toBe(true)
     expect(
       screen
         .getAllByTestId("planet-body")
