@@ -172,6 +172,6 @@ describe("PlanetHoverPreview", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "进入 工作与职业" }))
 
-    expect(onEnter).toHaveBeenCalled()
+    expect(onEnter).toHaveBeenCalledWith()
   })
 })

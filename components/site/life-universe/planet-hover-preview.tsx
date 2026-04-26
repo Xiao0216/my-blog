@@ -10,7 +10,7 @@ type PlanetHoverPreviewProps = {
     readonly y: number
   }
   readonly preview: PlanetPreviewModel
-  readonly onEnter: (title: string) => void
+  readonly onEnter: () => void
 }
 
 const PREVIEW_WIDTH = 280
@@ -60,7 +60,7 @@ export function PlanetHoverPreview({
       <button
         type="button"
         aria-label={`进入 ${preview.title}`}
-        onClick={() => onEnter(preview.title)}
+        onClick={() => onEnter()}
       >
         进入 {preview.title}
       </button>
