@@ -15,6 +15,7 @@ import type {
 } from "@/components/site/life-universe/types"
 import type { PlanetPoint } from "@/components/site/life-universe/planet-body"
 import { PlanetDetailOverlay } from "@/components/site/life-universe/planet-detail-overlay"
+import { buildMinimalThreeScene } from "@/components/site/life-universe/minimal-three-scene-model"
 import { buildPlanetUniverseModel } from "@/components/site/life-universe/planet-universe-model"
 import { TwinOrb } from "@/components/site/life-universe/twin-orb"
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
@@ -37,6 +38,10 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         planets: props.planets,
       }),
     [props.memories, props.planets]
+  )
+  const threeScene = useMemo(
+    () => buildMinimalThreeScene(universe.planets),
+    [universe.planets]
   )
   const [focusedPlanetId, setFocusedPlanetId] = useState<string | undefined>(
     universe.planets[0]?.id
@@ -295,6 +300,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         <UniverseTopbar theme={theme} onToggleTheme={toggleTheme} />
         <UniverseCanvas
           planets={universe.planets}
+          threeScene={threeScene}
           focusedPlanetId={effectiveFocusedPlanetId}
           hoveredPlanetId={hoveredPlanetId}
           relatedScopePlanetId={relatedScopePlanetId}

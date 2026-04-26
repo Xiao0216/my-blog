@@ -9,6 +9,44 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { HomePageView } from "@/components/site/home-page-view"
 import { LIFE_UNIVERSE_GALAXIES } from "@/lib/life-universe/taxonomy"
 
+vi.mock("@/components/site/life-universe/planet-universe-scene", () => ({
+  PlanetUniverseScene({
+    scene,
+    onEnterPlanet,
+    onHoverPlanet,
+    onLeavePlanet,
+  }: {
+    readonly scene: { readonly bodies: ReadonlyArray<{ readonly id: string }> }
+    readonly onEnterPlanet: (planetId: string) => void
+    readonly onHoverPlanet: (planetId: string, point: { x: number; y: number }) => void
+    readonly onLeavePlanet: (planetId: string) => void
+  }) {
+    return (
+      <div
+        className="minimal-three-scene"
+        data-body-count={scene.bodies.length}
+        data-testid="minimal-three-scene"
+      >
+        {scene.bodies.map((body) => (
+          <button
+            key={body.id}
+            data-testid={`mock-scene-planet-${body.id}`}
+            onDoubleClick={() => onEnterPlanet(body.id)}
+            onPointerLeave={() => onLeavePlanet(body.id)}
+            onPointerMove={(event) =>
+              onHoverPlanet(body.id, {
+                x: event.clientX,
+                y: event.clientY,
+              })
+            }
+            type="button"
+          />
+        ))}
+      </div>
+    )
+  },
+}))
+
 type HomePageViewProps = ComponentProps<typeof HomePageView>
 
 function buildProps(
@@ -199,6 +237,8 @@ describe("HomePageView", () => {
   it("renders planets as the default universe bodies instead of homepage cards", () => {
     render(<HomePageView {...buildProps({ planets: buildGalaxyPlanets() })} />)
 
+    expect(screen.getByTestId("minimal-three-scene")).toBeInTheDocument()
+
     for (const galaxy of LIFE_UNIVERSE_GALAXIES) {
       expect(
         screen.getByRole("button", { name: `${galaxy.name} 行星` })
@@ -239,6 +279,7 @@ describe("HomePageView", () => {
     expect(
       screen.getByRole("region", { name: "空境宇宙画布" })
     ).toBeInTheDocument()
+    expect(screen.getByTestId("minimal-three-scene")).toBeInTheDocument()
     expect(
       screen.queryByRole("complementary", { name: "数字分身" })
     ).not.toBeInTheDocument()

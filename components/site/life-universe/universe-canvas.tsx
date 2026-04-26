@@ -1,6 +1,7 @@
 import type { CSSProperties, MouseEvent } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import type { MinimalThreeScene } from "@/components/site/life-universe/minimal-three-scene-model"
 import type {
   CanvasPan,
   PlanetUniverseBodyModel,
@@ -12,6 +13,7 @@ import {
   type PlanetPoint,
 } from "@/components/site/life-universe/planet-body"
 import { PlanetHoverPreview } from "@/components/site/life-universe/planet-hover-preview"
+import { PlanetUniverseScene } from "@/components/site/life-universe/planet-universe-scene"
 import {
   buildPlanetPreview,
   getPlanetRenderLevel,
@@ -29,6 +31,7 @@ const AMBIENT_STARS = [
 
 export function UniverseCanvas({
   planets,
+  threeScene,
   focusedPlanetId,
   hoveredPlanetId,
   relatedScopePlanetId,
@@ -49,6 +52,7 @@ export function UniverseCanvas({
   onWheelZoom,
 }: {
   readonly planets: ReadonlyArray<PlanetUniverseBodyModel>
+  readonly threeScene: MinimalThreeScene
   readonly focusedPlanetId?: string
   readonly hoveredPlanetId?: string
   readonly relatedScopePlanetId?: string
@@ -339,6 +343,15 @@ export function UniverseCanvas({
             transform: cameraTransform,
           }}
         >
+          <PlanetUniverseScene
+            scene={threeScene}
+            focusedPlanetId={focusedPlanetId}
+            hoveredPlanetId={hoveredPlanetId}
+            isMotionPaused={isMotionPaused}
+            onEnterPlanet={handlePlanetEnter}
+            onHoverPlanet={handlePlanetHover}
+            onLeavePlanet={handlePlanetLeave}
+          />
           <svg
             data-universe-lines="true"
             aria-hidden="true"
@@ -383,55 +396,57 @@ export function UniverseCanvas({
             ))}
           </svg>
 
-          <div className="planet-orbit-system absolute inset-0">
-            {planets.map((planet) => {
-              const isFocused = planet.id === focusedPlanetId
-              const isHovered = planet.id === hoveredPlanetId
-              const isRelated =
-                !relatedScopePlanetId || planet.id === relatedScopePlanetId
-              const renderLevel = getPlanetRenderLevel({
-                distanceFromFocus: Math.abs(
-                  planet.orbit.radius -
-                    (planets.find((item) => item.id === focusedPlanetId)?.orbit
-                      .radius ?? planet.orbit.radius)
-                ),
-                isFocused,
-                isHovered,
-                totalPlanets: planets.length,
-              })
+          <div className="planet-accessibility-controls absolute inset-0">
+            <div className="planet-orbit-system absolute inset-0">
+              {planets.map((planet) => {
+                const isFocused = planet.id === focusedPlanetId
+                const isHovered = planet.id === hoveredPlanetId
+                const isRelated =
+                  !relatedScopePlanetId || planet.id === relatedScopePlanetId
+                const renderLevel = getPlanetRenderLevel({
+                  distanceFromFocus: Math.abs(
+                    planet.orbit.radius -
+                      (planets.find((item) => item.id === focusedPlanetId)?.orbit
+                        .radius ?? planet.orbit.radius)
+                  ),
+                  isFocused,
+                  isHovered,
+                  totalPlanets: planets.length,
+                })
 
-              return (
-                <div
-                  key={planet.id}
-                  data-planet-orbit-id={planet.id}
-                  data-entered={
-                    planet.id === enteredPlanetId ? "true" : "false"
-                  }
-                  data-related={isRelated ? "true" : "false"}
-                  className="planet-orbit"
-                >
+                return (
                   <div
-                    aria-hidden="true"
-                    className="planet-orbit-path"
-                    style={
-                      {
-                        "--planet-orbit-radius": `${planet.orbit.radius}px`,
-                      } as CSSProperties
+                    key={planet.id}
+                    data-planet-orbit-id={planet.id}
+                    data-entered={
+                      planet.id === enteredPlanetId ? "true" : "false"
                     }
-                  />
-                  <PlanetBody
-                    planet={planet}
-                    isFocused={isFocused}
-                    isHovered={isHovered}
-                    renderLevel={renderLevel}
-                    onEnter={handlePlanetEnter}
-                    onHover={handlePlanetHover}
-                    onLeave={handlePlanetLeave}
-                    onSelect={handlePlanetSelect}
-                  />
-                </div>
-              )
-            })}
+                    data-related={isRelated ? "true" : "false"}
+                    className="planet-orbit"
+                  >
+                    <div
+                      aria-hidden="true"
+                      className="planet-orbit-path"
+                      style={
+                        {
+                          "--planet-orbit-radius": `${planet.orbit.radius}px`,
+                        } as CSSProperties
+                      }
+                    />
+                    <PlanetBody
+                      planet={planet}
+                      isFocused={isFocused}
+                      isHovered={isHovered}
+                      renderLevel={renderLevel}
+                      onEnter={handlePlanetEnter}
+                      onHover={handlePlanetHover}
+                      onLeave={handlePlanetLeave}
+                      onSelect={handlePlanetSelect}
+                    />
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>

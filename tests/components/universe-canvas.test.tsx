@@ -1,11 +1,12 @@
 import type { ComponentProps } from "react"
 
-import { act, render } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { memo } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
+import { buildMinimalThreeScene } from "@/components/site/life-universe/minimal-three-scene-model"
 import type {
   PlanetRenderLevel,
   PlanetUniverseBodyModel,
@@ -22,6 +23,10 @@ vi.mock("@/components/site/life-universe/planet-body", () => ({
     isHovered,
     planet,
     renderLevel,
+    onEnter,
+    onHover,
+    onLeave,
+    onSelect,
   }: {
     readonly planet: PlanetUniverseBodyModel
     readonly isFocused: boolean
@@ -36,16 +41,64 @@ vi.mock("@/components/site/life-universe/planet-body", () => ({
 
     return (
       <button
+        aria-label={`${planet.name} 行星`}
         type="button"
         data-focused={isFocused ? "true" : "false"}
         data-hovered={isHovered ? "true" : "false"}
+        data-testid="planet-body"
         data-planet-id={planet.id}
         data-render-level={renderLevel}
+        onBlur={() => onLeave(planet.id)}
+        onClick={() => onSelect(planet.id, { x: 0, y: 0 })}
+        onDoubleClick={() => onEnter(planet.id)}
+        onFocus={() => onHover(planet.id, { x: 0, y: 0 })}
+        onPointerLeave={() => onLeave(planet.id)}
+        onPointerMove={(event) =>
+          onHover(planet.id, { x: event.clientX, y: event.clientY })
+        }
       >
         {planet.name}
       </button>
     )
   }),
+}))
+
+vi.mock("@/components/site/life-universe/planet-universe-scene", () => ({
+  PlanetUniverseScene({
+    scene,
+    onEnterPlanet,
+    onHoverPlanet,
+    onLeavePlanet,
+  }: {
+    readonly scene: { readonly bodies: ReadonlyArray<{ readonly id: string }> }
+    readonly onEnterPlanet: (planetId: string) => void
+    readonly onHoverPlanet: (planetId: string, point: PlanetPoint) => void
+    readonly onLeavePlanet: (planetId: string) => void
+  }) {
+    return (
+      <div
+        className="minimal-three-scene"
+        data-body-count={scene.bodies.length}
+        data-testid="mock-minimal-three-scene"
+      >
+        {scene.bodies.map((body) => (
+          <button
+            key={body.id}
+            data-testid={`mock-scene-planet-${body.id}`}
+            onDoubleClick={() => onEnterPlanet(body.id)}
+            onPointerLeave={() => onLeavePlanet(body.id)}
+            onPointerMove={(event) =>
+              onHoverPlanet(body.id, {
+                x: event.clientX,
+                y: event.clientY,
+              })
+            }
+            type="button"
+          />
+        ))}
+      </div>
+    )
+  },
 }))
 
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
@@ -98,6 +151,7 @@ function buildProps(
 ): ComponentProps<typeof UniverseCanvas> {
   return {
     planets,
+    threeScene: buildMinimalThreeScene(planets),
     focusedPlanetId: "planet-1",
     hoveredPlanetId: undefined,
     relatedScopePlanetId: undefined,
@@ -127,9 +181,16 @@ afterEach(() => {
 })
 
 describe("UniverseCanvas", () => {
-  it("keeps minimal planet canvas styles available before the full visual pass", () => {
+  it("keeps WebGL scene and fallback accessibility styles available", () => {
     const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8")
 
+    expect(css).toMatch(/\.minimal-three-scene\s*{[\s\S]*?width:\s*100%/)
+    expect(css).toMatch(/\.minimal-three-scene\s*{[\s\S]*?height:\s*100%/)
+    expect(css).toMatch(/\.minimal-three-scene\s*{[\s\S]*?radial-gradient/)
+    expect(css).toMatch(
+      /\.planet-accessibility-controls\s*{[\s\S]*?position:\s*absolute/
+    )
+    expect(css).toMatch(/\.planet-accessibility-controls\s*{[\s\S]*?inset:\s*0/)
     expect(css).toMatch(/\.planet-orbit-system\s*{[\s\S]*?position:\s*absolute/)
     expect(css).toMatch(/\.planet-orbit-system\s*{[\s\S]*?inset:\s*0/)
     expect(css).toMatch(
@@ -152,6 +213,12 @@ describe("UniverseCanvas", () => {
     )
     expect(css).toMatch(
       /\.planet-body\[data-render-level="simple"\]\s*{[\s\S]*?(width|height|opacity|filter):/
+    )
+    expect(css).toMatch(
+      /\.planet-accessibility-controls\s+\.planet-body\s*{[\s\S]*?opacity:/
+    )
+    expect(css).toMatch(
+      /\.planet-accessibility-controls\s+\.planet-body:focus-visible\s*{[\s\S]*?(opacity|outline|filter):/
     )
     expect(css).toMatch(/\.planet-shade\s*{[\s\S]*?position:\s*absolute/)
     expect(css).toMatch(/\.planet-hover-preview\s*{[\s\S]*?position:\s*fixed/)
@@ -217,7 +284,7 @@ describe("UniverseCanvas", () => {
     expect(container.querySelector('[data-related="false"]')).toBeTruthy()
   })
 
-  it("renders planet orbit paths and hover preview", () => {
+  it("renders the mocked three scene with all scene bodies and keeps DOM fallback controls", () => {
     const { container, getByRole, getByTestId } = render(
       <UniverseCanvas
         {...buildProps({
@@ -228,6 +295,12 @@ describe("UniverseCanvas", () => {
       />
     )
 
+    expect(getByTestId("mock-minimal-three-scene")).toHaveAttribute(
+      "data-body-count",
+      "2"
+    )
+    expect(container.querySelector(".minimal-three-scene")).toBeTruthy()
+    expect(container.querySelector(".planet-accessibility-controls")).toBeTruthy()
     expect(container.querySelector(".planet-orbit-system")).toBeTruthy()
     expect(container.querySelectorAll(".planet-orbit-path")).toHaveLength(2)
     expect(getByTestId("universe-viewport")).toHaveAttribute(
@@ -237,6 +310,65 @@ describe("UniverseCanvas", () => {
     expect(getByRole("dialog", { name: "工作 预览" })).toHaveTextContent(
       "工作与交付"
     )
+  })
+
+  it("bridges hover, leave, and enter events from the scene mock", () => {
+    const onHoverPlanet = vi.fn()
+    const onLeavePlanet = vi.fn()
+    const onEnterPlanet = vi.fn()
+
+    render(
+      <UniverseCanvas
+        {...buildProps({
+          onHoverPlanet,
+          onLeavePlanet,
+          onEnterPlanet,
+        })}
+      />
+    )
+
+    fireEvent.pointerMove(screen.getByTestId("mock-scene-planet-planet-1"), {
+      clientX: 123,
+      clientY: 234,
+    })
+    fireEvent.pointerLeave(screen.getByTestId("mock-scene-planet-planet-1"))
+    fireEvent.doubleClick(screen.getByTestId("mock-scene-planet-planet-1"))
+
+    expect(onHoverPlanet).toHaveBeenCalledWith("planet-1", { x: 123, y: 234 })
+    expect(onLeavePlanet).toHaveBeenCalledWith("planet-1")
+    expect(onEnterPlanet).toHaveBeenCalledWith("planet-1")
+  })
+
+  it("keeps hover preview and detail behavior through the DOM fallback controls", () => {
+    const onHoverPlanet = vi.fn()
+    const onLeavePlanet = vi.fn()
+    const onEnterPlanet = vi.fn()
+    const onSelectPlanet = vi.fn()
+
+    render(
+      <UniverseCanvas
+        {...buildProps({
+          onHoverPlanet,
+          onLeavePlanet,
+          onEnterPlanet,
+          onSelectPlanet,
+        })}
+      />
+    )
+
+    const fallbackPlanet = screen.getByRole("button", { name: "工作 行星" })
+
+    fireEvent.focus(fallbackPlanet)
+    fireEvent.pointerMove(fallbackPlanet, { clientX: 321, clientY: 222 })
+    fireEvent.click(fallbackPlanet)
+    fireEvent.doubleClick(fallbackPlanet)
+    fireEvent.blur(fallbackPlanet)
+
+    expect(onHoverPlanet).toHaveBeenCalledWith("planet-1", { x: 0, y: 0 })
+    expect(onHoverPlanet).toHaveBeenCalledWith("planet-1", { x: 321, y: 222 })
+    expect(onSelectPlanet).toHaveBeenCalledWith("planet-1", { x: 0, y: 0 })
+    expect(onEnterPlanet).toHaveBeenCalledWith("planet-1")
+    expect(onLeavePlanet).toHaveBeenCalledWith("planet-1")
   })
 
   it("cancels trackpad pinch wheel events on the canvas before the browser can zoom the page", () => {
