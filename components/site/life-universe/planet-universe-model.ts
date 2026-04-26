@@ -108,14 +108,14 @@ function buildOrbitModel(
   const memoryLoad = publicMemoryCount * 7 + assistantMemoryCount * 5
 
   return {
-    delaySeconds: roundToTwo(((seed % 17) / 20) % 6),
+    delaySeconds: roundToTwo(((seed % 19) - 9) / 10),
     durationSeconds: roundToTwo(
       24 + size / 18 + memoryLoad / 10 + (seed % 11) / 10
     ),
     radius: roundToTwo(
       Math.max(168, 170 + size + memoryLoad * 2 + (seed % 29))
     ),
-    startAngle: roundToTwo(((seed % 360) * Math.PI) / 180),
+    startAngle: seed % 360,
   }
 }
 
@@ -149,14 +149,14 @@ function formatPlanetMeta(publicCount: number, assistantCount: number) {
 
 function resolvePlanetSize(size: StoredPlanet["size"]) {
   if (size === "large") {
-    return 168
+    return 86
   }
 
   if (size === "medium") {
-    return 132
+    return 68
   }
 
-  return 104
+  return 48
 }
 
 function hashPlanetSeed(slug: string, id: number) {

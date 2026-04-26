@@ -97,22 +97,28 @@ describe("planet universe model", () => {
       name: "工作与职业",
       level: 0,
       tone: "cyan",
+      size: 86,
     })
     expect(model.planets[1]).toMatchObject({
       id: "planet-2",
       name: "生活与体验",
       level: 0,
       tone: "teal",
+      size: 68,
     })
     expect(model.planets[2]).toMatchObject({
       id: "planet-3",
       name: "未知星球",
       level: 0,
       tone: "violet",
+      size: 48,
     })
     expect(model.planets[0].orbit.radius).toBeGreaterThan(150)
     expect(model.planets[0].orbit.durationSeconds).toBeGreaterThan(20)
     expect(model.planets[0].rotation.durationSeconds).toBeGreaterThan(10)
+    expect(model.planets[0].orbit.startAngle).toBeGreaterThanOrEqual(0)
+    expect(model.planets[0].orbit.startAngle).toBeLessThan(360)
+    expect(Number.isInteger(model.planets[0].orbit.startAngle)).toBe(true)
   })
 
   it("uses stable deterministic orbit values for identical input", () => {
