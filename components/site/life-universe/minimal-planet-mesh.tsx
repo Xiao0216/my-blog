@@ -87,6 +87,7 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
   isFocused,
   isHovered,
   isMotionPaused,
+  isReducedMotion,
   onEnterPlanet,
   onHoverPlanet,
   onLeavePlanet,
@@ -96,6 +97,7 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
   readonly isFocused: boolean
   readonly isHovered: boolean
   readonly isMotionPaused: boolean
+  readonly isReducedMotion: boolean
   readonly onEnterPlanet: (planetId: string) => void
   readonly onHoverPlanet: (planetId: string, point: { x: number; y: number }) => void
   readonly onLeavePlanet: (planetId: string) => void
@@ -117,6 +119,7 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
   const orbitTilt = useMemo(() => (12 * Math.PI) / 180, [])
   const orbitSeed = useMemo(() => getMinimalOrbitSeed(body), [body])
   const isActive = isHovered || isFocused
+  const isAnimationFrozen = isMotionPaused || isReducedMotion
 
   useEffect(() => {
     currentOrbitAngleRef.current = orbitSeed
@@ -134,7 +137,7 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
     const orbitSpeed = getMinimalOrbitAngularSpeed(body)
     const rotationSpeed = getMinimalRotationAngularSpeed(body)
 
-    if (!isMotionPaused) {
+    if (!isAnimationFrozen) {
       currentOrbitAngleRef.current += safeDelta * orbitSpeed
       currentRotationAngleRef.current += safeDelta * rotationSpeed
       currentRingRotationAngleRef.current += safeDelta * rotationSpeed * 0.35

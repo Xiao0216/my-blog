@@ -13,6 +13,7 @@ export function PlanetUniverseScene({
   focusedPlanetId,
   hoveredPlanetId,
   isMotionPaused,
+  isReducedMotion,
   onEnterPlanet,
   onHoverPlanet,
   onLeavePlanet,
@@ -21,6 +22,7 @@ export function PlanetUniverseScene({
   readonly focusedPlanetId?: string
   readonly hoveredPlanetId?: string
   readonly isMotionPaused: boolean
+  readonly isReducedMotion: boolean
   readonly onEnterPlanet: (planetId: string) => void
   readonly onHoverPlanet: (planetId: string, point: { x: number; y: number }) => void
   readonly onLeavePlanet: (planetId: string) => void
@@ -28,7 +30,11 @@ export function PlanetUniverseScene({
   const activePlanetId = hoveredPlanetId ?? focusedPlanetId
 
   return (
-    <div className="minimal-three-scene" data-testid="minimal-three-scene">
+    <div
+      className="minimal-three-scene"
+      data-reduced-motion={isReducedMotion ? "true" : "false"}
+      data-testid="minimal-three-scene"
+    >
       <Canvas
         camera={{ fov: 42, position: [0, 0, 760] }}
         data-testid="planet-universe-scene"
@@ -44,7 +50,7 @@ export function PlanetUniverseScene({
           <MinimalConnections
             activePlanetId={activePlanetId}
             bodies={scene.bodies}
-            isMotionPaused={isMotionPaused}
+            isMotionPaused={isMotionPaused || isReducedMotion}
           />
           {scene.bodies.map((body) => (
             <group key={body.id}>
@@ -53,7 +59,8 @@ export function PlanetUniverseScene({
                 isDimmed={Boolean(activePlanetId) && activePlanetId !== body.id}
                 isFocused={focusedPlanetId === body.id}
                 isHovered={hoveredPlanetId === body.id}
-                isMotionPaused={isMotionPaused}
+                isMotionPaused={isMotionPaused || isReducedMotion}
+                isReducedMotion={isReducedMotion}
                 onEnterPlanet={onEnterPlanet}
                 onHoverPlanet={onHoverPlanet}
                 onLeavePlanet={onLeavePlanet}

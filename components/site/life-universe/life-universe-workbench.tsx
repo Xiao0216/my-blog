@@ -1,7 +1,7 @@
 "use client"
 
 import type { FormEvent } from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 
 import type {
   CanvasPan,
@@ -29,8 +29,14 @@ const WHEEL_DELTA_PER_ZOOM_POINT = 15
 const MIN_ZOOM = 50
 const MAX_ZOOM = 150
 const DEFAULT_PAN: CanvasPan = { x: 0, y: 0 }
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
 
 export function LifeUniverseWorkbench(props: HomePageViewProps) {
+  const isReducedMotion = useSyncExternalStore(
+    subscribeToReducedMotionPreference,
+    getReducedMotionPreferenceSnapshot,
+    getReducedMotionPreferenceServerSnapshot
+  )
   const universe = useMemo(
     () =>
       buildPlanetUniverseModel({
@@ -310,6 +316,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
           zoom={zoom}
           pan={pan}
           isMotionPaused={isMotionPaused}
+          isReducedMotion={isReducedMotion}
           viewState={viewState}
           onSelectPlanet={selectPlanet}
           onAskTwinPlanet={askTwin}
@@ -361,6 +368,47 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
 
 function clampZoom(value: number) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value))
+}
+
+function subscribeToReducedMotionPreference(onStoreChange: () => void) {
+  const mediaQueryList = getReducedMotionMediaQueryList()
+
+  if (!mediaQueryList) {
+    return () => {}
+  }
+
+  if (typeof mediaQueryList.addEventListener === "function") {
+    mediaQueryList.addEventListener("change", onStoreChange)
+
+    return () => mediaQueryList.removeEventListener("change", onStoreChange)
+  }
+
+  if (typeof mediaQueryList.addListener === "function") {
+    mediaQueryList.addListener(onStoreChange)
+
+    return () => mediaQueryList.removeListener(onStoreChange)
+  }
+
+  return () => {}
+}
+
+function getReducedMotionPreferenceSnapshot() {
+  return getReducedMotionMediaQueryList()?.matches ?? false
+}
+
+function getReducedMotionPreferenceServerSnapshot() {
+  return false
+}
+
+function getReducedMotionMediaQueryList() {
+  if (
+    typeof window === "undefined" ||
+    typeof window.matchMedia !== "function"
+  ) {
+    return undefined
+  }
+
+  return window.matchMedia(REDUCED_MOTION_QUERY)
 }
 
 function buildPlanetDetail(

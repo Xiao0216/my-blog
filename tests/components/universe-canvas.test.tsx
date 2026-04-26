@@ -75,11 +75,13 @@ vi.mock("@/components/site/life-universe/planet-body", () => ({
 vi.mock("@/components/site/life-universe/planet-universe-scene", () => ({
   PlanetUniverseScene({
     scene,
+    isReducedMotion,
     onEnterPlanet,
     onHoverPlanet,
     onLeavePlanet,
   }: {
     readonly scene: { readonly bodies: ReadonlyArray<{ readonly id: string }> }
+    readonly isReducedMotion: boolean
     readonly onEnterPlanet: (planetId: string) => void
     readonly onHoverPlanet: (planetId: string, point: PlanetPoint) => void
     readonly onLeavePlanet: (planetId: string) => void
@@ -88,6 +90,7 @@ vi.mock("@/components/site/life-universe/planet-universe-scene", () => ({
       <div
         className="minimal-three-scene"
         data-body-count={scene.bodies.length}
+        data-reduced-motion={isReducedMotion ? "true" : "false"}
         data-testid="mock-minimal-three-scene"
       >
         {scene.bodies.map((body) => (
@@ -170,6 +173,7 @@ function buildProps(
     zoom: 78,
     pan: { x: 0, y: 0 },
     isMotionPaused: false,
+    isReducedMotion: false,
     viewState: "overview",
     onSelectPlanet: () => {},
     onAskTwinPlanet: () => {},
@@ -328,6 +332,10 @@ describe("UniverseCanvas", () => {
       "data-body-count",
       "2"
     )
+    expect(getByTestId("mock-minimal-three-scene")).toHaveAttribute(
+      "data-reduced-motion",
+      "false"
+    )
     expect(container.querySelector(".minimal-three-scene")).toBeTruthy()
     expect(container.querySelector(".planet-accessibility-controls")).toBeTruthy()
     expect(container.querySelector(".planet-orbit-system")).toBeTruthy()
@@ -338,6 +346,15 @@ describe("UniverseCanvas", () => {
     )
     expect(getByRole("dialog", { name: "工作 预览" })).toHaveTextContent(
       "工作与交付"
+    )
+  })
+
+  it("passes reduced motion through to the three scene", () => {
+    render(<UniverseCanvas {...buildProps({ isReducedMotion: true })} />)
+
+    expect(screen.getByTestId("mock-minimal-three-scene")).toHaveAttribute(
+      "data-reduced-motion",
+      "true"
     )
   })
 

@@ -12,11 +12,13 @@ import { LIFE_UNIVERSE_GALAXIES } from "@/lib/life-universe/taxonomy"
 vi.mock("@/components/site/life-universe/planet-universe-scene", () => ({
   PlanetUniverseScene({
     scene,
+    isReducedMotion,
     onEnterPlanet,
     onHoverPlanet,
     onLeavePlanet,
   }: {
     readonly scene: { readonly bodies: ReadonlyArray<{ readonly id: string }> }
+    readonly isReducedMotion: boolean
     readonly onEnterPlanet: (planetId: string) => void
     readonly onHoverPlanet: (planetId: string, point: { x: number; y: number }) => void
     readonly onLeavePlanet: (planetId: string) => void
@@ -25,6 +27,7 @@ vi.mock("@/components/site/life-universe/planet-universe-scene", () => ({
       <div
         className="minimal-three-scene"
         data-body-count={scene.bodies.length}
+        data-reduced-motion={isReducedMotion ? "true" : "false"}
         data-testid="minimal-three-scene"
       >
         {scene.bodies.map((body) => (
@@ -233,7 +236,48 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+function stubReducedMotionMatchMedia(matches: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation((query: string) => ({
+      matches:
+        query === "(prefers-reduced-motion: reduce)" ? matches : false,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }))
+  )
+}
+
 describe("HomePageView", () => {
+  it("reads prefers-reduced-motion and keeps preview interactions usable", () => {
+    stubReducedMotionMatchMedia(true)
+
+    render(<HomePageView {...buildProps()} />)
+
+    expect(screen.getByTestId("minimal-three-scene")).toHaveAttribute(
+      "data-reduced-motion",
+      "true"
+    )
+
+    fireEvent.pointerMove(screen.getByRole("button", { name: "工作 行星" }), {
+      clientX: 320,
+      clientY: 220,
+    })
+
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
+      "data-motion-paused",
+      "true"
+    )
+    expect(screen.getByRole("dialog", { name: "工作 预览" })).toHaveTextContent(
+      "工作与交付"
+    )
+  })
+
   it("renders planets as the default universe bodies instead of homepage cards", () => {
     render(<HomePageView {...buildProps({ planets: buildGalaxyPlanets() })} />)
 
@@ -295,6 +339,24 @@ describe("HomePageView", () => {
       "true"
     )
     expect(screen.getByTestId("minimal-three-scene")).toBeInTheDocument()
+  })
+
+  it("stays usable when matchMedia is unavailable", () => {
+    vi.stubGlobal("matchMedia", undefined)
+
+    render(<HomePageView {...buildProps()} />)
+
+    expect(screen.getByTestId("minimal-three-scene")).toHaveAttribute(
+      "data-reduced-motion",
+      "false"
+    )
+
+    fireEvent.pointerMove(screen.getByRole("button", { name: "工作 行星" }), {
+      clientX: 240,
+      clientY: 180,
+    })
+
+    expect(screen.getByRole("dialog", { name: "工作 预览" })).toBeInTheDocument()
   })
 
   it("focuses planets when they are selected", () => {

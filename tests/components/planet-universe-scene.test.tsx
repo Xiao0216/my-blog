@@ -28,19 +28,33 @@ vi.mock("@/components/site/life-universe/minimal-orbit-paths", () => ({
 }))
 
 vi.mock("@/components/site/life-universe/minimal-connections", () => ({
-  MinimalConnections() {
-    return <div data-testid="minimal-connections" />
+  MinimalConnections({
+    activePlanetId,
+    isMotionPaused,
+  }: {
+    readonly activePlanetId?: string
+    readonly isMotionPaused: boolean
+  }) {
+    return (
+      <div
+        data-testid="minimal-connections"
+        data-active-planet-id={activePlanetId}
+        data-motion-paused={isMotionPaused ? "true" : "false"}
+      />
+    )
   },
 }))
 
 vi.mock("@/components/site/life-universe/minimal-planet-mesh", () => ({
   MinimalPlanetMesh({
     body,
+    isMotionPaused,
     onEnterPlanet,
     onHoverPlanet,
     onLeavePlanet,
   }: {
     readonly body: { readonly id: string }
+    readonly isMotionPaused: boolean
     readonly onEnterPlanet: (planetId: string) => void
     readonly onHoverPlanet: (planetId: string, point: { x: number; y: number }) => void
     readonly onLeavePlanet: (planetId: string) => void
@@ -48,6 +62,7 @@ vi.mock("@/components/site/life-universe/minimal-planet-mesh", () => ({
     return (
       <button
         data-testid={`minimal-planet-mesh-${body.id}`}
+        data-motion-paused={isMotionPaused ? "true" : "false"}
         onDoubleClick={() => onEnterPlanet(body.id)}
         onPointerLeave={() => onLeavePlanet(body.id)}
         onPointerMove={(event) =>
@@ -117,6 +132,42 @@ function latestFrameCallback() {
 }
 
 describe("PlanetUniverseScene", () => {
+  it("marks reduced motion on the scene wrapper and passes paused motion to children", () => {
+    const scene = buildMinimalThreeScene(planets)
+
+    render(
+      <PlanetUniverseScene
+        scene={scene}
+        hoveredPlanetId="planet-1"
+        focusedPlanetId="planet-1"
+        isMotionPaused={false}
+        isReducedMotion
+        onHoverPlanet={vi.fn()}
+        onLeavePlanet={vi.fn()}
+        onEnterPlanet={vi.fn()}
+      />
+    )
+
+    expect(screen.getByTestId("minimal-three-scene")).toHaveAttribute(
+      "data-reduced-motion",
+      "true"
+    )
+    expect(screen.getByTestId("minimal-connections")).toHaveAttribute(
+      "data-motion-paused",
+      "true"
+    )
+    expect(screen.getByTestId("minimal-connections")).toHaveAttribute(
+      "data-active-planet-id",
+      "planet-1"
+    )
+
+    for (const body of scene.bodies) {
+      expect(
+        screen.getByTestId(`minimal-planet-mesh-${body.id}`)
+      ).toHaveAttribute("data-motion-paused", "true")
+    }
+  })
+
   it("renders the canvas, wires scene counts, and bridges planet events", () => {
     const scene = buildMinimalThreeScene(planets)
     const onHoverPlanet = vi.fn()
@@ -131,6 +182,7 @@ describe("PlanetUniverseScene", () => {
           hoveredPlanetId="planet-1"
           focusedPlanetId="planet-1"
           isMotionPaused={false}
+          isReducedMotion={false}
           onHoverPlanet={onHoverPlanet}
           onLeavePlanet={onLeavePlanet}
           onEnterPlanet={onEnterPlanet}

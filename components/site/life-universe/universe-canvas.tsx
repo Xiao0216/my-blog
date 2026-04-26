@@ -41,6 +41,7 @@ export function UniverseCanvas({
   zoom,
   pan,
   isMotionPaused,
+  isReducedMotion,
   viewState,
   onSelectPlanet,
   onAskTwinPlanet,
@@ -62,6 +63,7 @@ export function UniverseCanvas({
   readonly zoom: number
   readonly pan: CanvasPan
   readonly isMotionPaused: boolean
+  readonly isReducedMotion: boolean
   readonly viewState: UniverseViewState
   readonly onSelectPlanet: (planetId: string, point: PlanetPoint) => void
   readonly onAskTwinPlanet: (planetId: string) => void
@@ -348,6 +350,7 @@ export function UniverseCanvas({
             focusedPlanetId={focusedPlanetId}
             hoveredPlanetId={hoveredPlanetId}
             isMotionPaused={isMotionPaused}
+            isReducedMotion={isReducedMotion}
             onEnterPlanet={handlePlanetEnter}
             onHoverPlanet={handlePlanetHover}
             onLeavePlanet={handlePlanetLeave}
