@@ -454,6 +454,20 @@ describe("HomePageView", () => {
               tags: ["life"],
               source: "夹具",
             },
+            {
+              id: 4,
+              planetId: 2,
+              planetSlug: "life",
+              planetName: "生活",
+              title: "生活助手记忆",
+              content: "生活助手详情",
+              type: "preference",
+              occurredAt: "2026-04-24",
+              visibility: "assistant",
+              importance: 6,
+              tags: ["life"],
+              source: "夹具",
+            },
           ],
         })}
       />
@@ -463,11 +477,12 @@ describe("HomePageView", () => {
 
     const dialog = screen.getByRole("dialog", { name: "生活 行星详情" })
     expect(within(dialog).getByText("记忆").closest("div")).toHaveTextContent(
-      "2"
+      "1"
     )
     expect(screen.getByText("生活记忆")).toBeInTheDocument()
     expect(screen.queryByText("工作记忆")).not.toBeInTheDocument()
     expect(screen.queryByText("生活私密记忆")).not.toBeInTheDocument()
+    expect(screen.queryByText("生活助手记忆")).not.toBeInTheDocument()
   })
 
   it("keeps overlay wheel and drag interactions from mutating the canvas state", () => {

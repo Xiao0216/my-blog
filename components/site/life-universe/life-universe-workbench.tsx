@@ -370,14 +370,12 @@ function buildPlanetDetail(
   { essays, memories, notes, projects }: HomePageViewProps
 ): PlanetDetailModel {
   const card = buildContextCard(planet)
-  const planetMemories = memories.filter(
-    (memory) => memory.planetId === planet.planetId
-  )
-  const keyMemories = memories
+  const publicPlanetMemories = memories
     .filter(
       (memory) =>
         memory.visibility === "public" && memory.planetId === planet.planetId
     )
+  const keyMemories = publicPlanetMemories
     .slice(0, 3)
     .map((memory) => memory.title)
   const relatedTitles = [...essays, ...projects, ...notes]
@@ -388,7 +386,7 @@ function buildPlanetDetail(
     card,
     counts: {
       essays: essays.length,
-      memories: planetMemories.length,
+      memories: publicPlanetMemories.length,
       notes: notes.length,
       projects: projects.length,
     },
