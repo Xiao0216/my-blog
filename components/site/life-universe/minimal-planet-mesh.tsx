@@ -5,6 +5,12 @@ import { memo, useEffect, useMemo, useRef } from "react"
 import { useFrame } from "@react-three/fiber"
 
 import type { MinimalThreeBody } from "@/components/site/life-universe/minimal-three-scene-model"
+import {
+  getMinimalOrbitAngularSpeed,
+  getMinimalOrbitPosition,
+  getMinimalOrbitSeed,
+  getMinimalRotationAngularSpeed,
+} from "@/components/site/life-universe/minimal-three-orbit"
 import type { PlanetRenderLevel } from "@/components/site/life-universe/types"
 
 const COLOR_SCHEMES = {
@@ -75,10 +81,6 @@ function getPlanetRadius(body: MinimalThreeBody) {
   return baseRadius
 }
 
-function degreesToRadians(value: number) {
-  return (value * Math.PI) / 180
-}
-
 export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
   body,
   isDimmed,
@@ -105,27 +107,22 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
   const bodyRef = useRef<{ scale: { setScalar: (value: number) => void } } | null>(null)
   const sphereRef = useRef<{ rotation: { y: number; z: number } } | null>(null)
   const ringRef = useRef<{ rotation: { z: number } } | null>(null)
-  const currentOrbitAngleRef = useRef(0)
+  const currentOrbitAngleRef = useRef(getMinimalOrbitSeed(body))
   const currentRotationAngleRef = useRef(0)
   const currentRingRotationAngleRef = useRef(0)
 
   const colors = COLOR_SCHEMES[body.colorScheme]
   const radius = useMemo(() => getPlanetRadius(body), [body])
   const [widthSegments, heightSegments] = SEGMENTS_BY_LEVEL[body.renderLevel]
-  const orbitTilt = useMemo(() => degreesToRadians(12), [])
-  const orbitStart = useMemo(
-    () => degreesToRadians(body.orbit.startAngle),
-    [body.orbit.startAngle]
-  )
-  const orbitOffset = useMemo(() => body.orbit.delaySeconds * 0.15, [body.orbit.delaySeconds])
-  const zOffset = body.position[2]
+  const orbitTilt = useMemo(() => (12 * Math.PI) / 180, [])
+  const orbitSeed = useMemo(() => getMinimalOrbitSeed(body), [body])
   const isActive = isHovered || isFocused
 
   useEffect(() => {
-    currentOrbitAngleRef.current = orbitStart + orbitOffset
+    currentOrbitAngleRef.current = orbitSeed
     currentRotationAngleRef.current = 0
     currentRingRotationAngleRef.current = 0
-  }, [body.id, orbitOffset, orbitStart])
+  }, [body.id, orbitSeed])
 
   useFrame((_, delta = 0) => {
     if (!orbitRef.current || !bodyRef.current || !sphereRef.current) {
@@ -134,11 +131,8 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
 
     const quietScale = isActive ? 1.08 : isDimmed ? 0.9 : 1
     const safeDelta = Math.max(0, delta)
-    const orbitSpeed = (Math.PI * 2) / Math.max(body.orbit.durationSeconds, 0.001)
-    const rotationSpeed =
-      body.rotation.durationSeconds <= 0
-        ? 0
-        : (Math.PI * 2) / body.rotation.durationSeconds
+    const orbitSpeed = getMinimalOrbitAngularSpeed(body)
+    const rotationSpeed = getMinimalRotationAngularSpeed(body)
 
     if (!isMotionPaused) {
       currentOrbitAngleRef.current += safeDelta * orbitSpeed
@@ -147,10 +141,11 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
     }
 
     const orbitAngle = currentOrbitAngleRef.current
+    const [x, y, z] = getMinimalOrbitPosition(body, orbitAngle)
 
-    orbitRef.current.position.x = Math.cos(orbitAngle) * body.orbit.radius
-    orbitRef.current.position.y = Math.sin(orbitAngle) * body.orbit.radius * 0.72
-    orbitRef.current.position.z = zOffset
+    orbitRef.current.position.x = x
+    orbitRef.current.position.y = y
+    orbitRef.current.position.z = z
     orbitRef.current.rotation.z = orbitTilt
 
     bodyRef.current.scale.setScalar(quietScale)

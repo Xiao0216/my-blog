@@ -41,7 +41,11 @@ export function PlanetUniverseScene({
         <group>
           <MinimalStarField stars={scene.stars} />
           <MinimalOrbitPaths bodies={scene.bodies} />
-          <MinimalConnections activePlanetId={activePlanetId} bodies={scene.bodies} />
+          <MinimalConnections
+            activePlanetId={activePlanetId}
+            bodies={scene.bodies}
+            isMotionPaused={isMotionPaused}
+          />
           {scene.bodies.map((body) => (
             <group key={body.id}>
               <MinimalPlanetMesh

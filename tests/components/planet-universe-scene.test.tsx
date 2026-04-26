@@ -94,6 +94,28 @@ const planets: PlanetUniverseBodyModel[] = [
   },
 ]
 
+function readConnection(value: string | null) {
+  return (value ?? "").split(",").filter(Boolean).map(Number)
+}
+
+function expectPointCloseTo(
+  actual: ReadonlyArray<number>,
+  expected: readonly [number, number, number]
+) {
+  expect(actual).toHaveLength(3)
+  actual.forEach((value, index) => {
+    expect(value).toBeCloseTo(expected[index], 4)
+  })
+}
+
+function latestFrameCallback() {
+  const callback = useFrameMock.mock.calls.at(-1)?.[0]
+
+  expect(callback).toEqual(expect.any(Function))
+
+  return callback as (state: unknown, delta?: number) => void
+}
+
 describe("PlanetUniverseScene", () => {
   it("renders the canvas, wires scene counts, and bridges planet events", () => {
     const scene = buildMinimalThreeScene(planets)
@@ -137,6 +159,97 @@ describe("PlanetUniverseScene", () => {
       expect(onHoverPlanet).toHaveBeenCalledWith("planet-1", { x: 123, y: 456 })
       expect(onLeavePlanet).toHaveBeenCalledWith("planet-1")
       expect(onEnterPlanet).toHaveBeenCalledWith("planet-1")
+    } finally {
+      consoleErrorSpy.mockRestore()
+    }
+  })
+
+  it("keeps real connection endpoints aligned with shared orbit positions and pause state", async () => {
+    const scene = buildMinimalThreeScene(planets)
+    const [activeBody, connectedBody] = scene.bodies
+    const {
+      getMinimalOrbitAngularSpeed,
+      getMinimalOrbitPosition,
+      getMinimalOrbitSeed,
+    } = await import("@/components/site/life-universe/minimal-three-orbit")
+    const { MinimalConnections } = await vi.importActual<
+      typeof import("@/components/site/life-universe/minimal-connections")
+    >("@/components/site/life-universe/minimal-connections")
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+
+    useFrameMock.mockClear()
+
+    try {
+      const { rerender } = render(
+        <MinimalConnections
+          activePlanetId={activeBody.id}
+          bodies={scene.bodies}
+          isMotionPaused={false}
+        />
+      )
+      const initial = readConnection(
+        screen.getByTestId("minimal-connections").getAttribute("data-first-connection")
+      )
+
+      expectPointCloseTo(
+        initial.slice(0, 3),
+        getMinimalOrbitPosition(activeBody, getMinimalOrbitSeed(activeBody))
+      )
+      expectPointCloseTo(
+        initial.slice(3, 6),
+        getMinimalOrbitPosition(connectedBody, getMinimalOrbitSeed(connectedBody))
+      )
+
+      latestFrameCallback()({}, 1)
+      rerender(
+        <MinimalConnections
+          activePlanetId={activeBody.id}
+          bodies={scene.bodies}
+          isMotionPaused={false}
+        />
+      )
+
+      const moved = readConnection(
+        screen.getByTestId("minimal-connections").getAttribute("data-first-connection")
+      )
+      expectPointCloseTo(
+        moved.slice(0, 3),
+        getMinimalOrbitPosition(
+          activeBody,
+          getMinimalOrbitSeed(activeBody) + getMinimalOrbitAngularSpeed(activeBody)
+        )
+      )
+      expectPointCloseTo(
+        moved.slice(3, 6),
+        getMinimalOrbitPosition(
+          connectedBody,
+          getMinimalOrbitSeed(connectedBody) + getMinimalOrbitAngularSpeed(connectedBody)
+        )
+      )
+
+      rerender(
+        <MinimalConnections
+          activePlanetId={activeBody.id}
+          bodies={scene.bodies}
+          isMotionPaused
+        />
+      )
+      const beforePausedFrame = readConnection(
+        screen.getByTestId("minimal-connections").getAttribute("data-first-connection")
+      )
+
+      latestFrameCallback()({}, 1)
+      rerender(
+        <MinimalConnections
+          activePlanetId={activeBody.id}
+          bodies={scene.bodies}
+          isMotionPaused
+        />
+      )
+
+      expect(readConnection(
+        screen.getByTestId("minimal-connections").getAttribute("data-first-connection")
+      )).toEqual(beforePausedFrame)
     } finally {
       consoleErrorSpy.mockRestore()
     }
