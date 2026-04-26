@@ -33,7 +33,7 @@ export function TwinOrb({
   readonly onSubmit: (event: FormEvent<HTMLFormElement>) => void
   readonly onToggle: () => void
 }) {
-  const displayName = identity.displayName || "Null AI"
+  const displayName = identity.displayName || "数字分身"
   const contextTitle = contextCard?.title ?? "全局星图"
   const avatarButtonRef = useRef<HTMLButtonElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -61,7 +61,7 @@ export function TwinOrb({
       {isExpanded ? (
         <section
           role="dialog"
-          aria-label="Null AI 对话"
+          aria-label="数字分身对话"
           className="twin-orb-panel pointer-events-auto"
         >
           <header className="twin-orb-panel-header">
@@ -75,7 +75,7 @@ export function TwinOrb({
             </div>
             <button
               type="button"
-              aria-label="收起 Null AI"
+              aria-label="收起数字分身"
               onClick={onToggle}
               className="twin-orb-close"
             >
@@ -86,7 +86,7 @@ export function TwinOrb({
           <div className="twin-orb-messages">
             {memoriesCount === 0 ? (
               <p className="text-sm text-[var(--ns-text-tertiary)]">
-                No public memories attached yet
+                还没有关联公开记忆。
               </p>
             ) : null}
             {messages.map((message) => (
@@ -122,13 +122,13 @@ export function TwinOrb({
               ref={textareaRef}
               value={draftMessage}
               onChange={(event) => onDraftChange(event.target.value)}
-              placeholder="搜索或和 Null AI 聊聊..."
+              placeholder="搜索或和数字分身聊聊..."
               rows={2}
               className="twin-orb-textarea"
             />
             <button
               type="submit"
-              aria-label="发送给 Null AI"
+              aria-label="发送给数字分身"
               disabled={isSending}
               className="twin-orb-send"
             >
@@ -140,7 +140,7 @@ export function TwinOrb({
         <button
           ref={avatarButtonRef}
           type="button"
-          aria-label="展开 Null AI"
+          aria-label="展开数字分身"
           onClick={onToggle}
           className="twin-orb-avatar pointer-events-auto"
         >

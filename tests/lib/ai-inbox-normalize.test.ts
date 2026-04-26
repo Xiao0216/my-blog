@@ -160,7 +160,7 @@ describe("AI inbox normalization", () => {
         sourceText: "needs fallback",
         today: "2026-04-25",
       }),
-    ).toThrow("stardust planet is required")
+    ).toThrow("降级记忆归档需要先配置星尘星球。")
 
     expect(() =>
       normalizeAiInboxCandidate({
@@ -174,7 +174,7 @@ describe("AI inbox normalization", () => {
         sourceText: "needs fallback",
         today: "2026-04-25",
       }),
-    ).toThrow("stardust planet is required")
+    ).toThrow("降级记忆归档需要先配置星尘星球。")
   })
 
   it("downgrades a non-object candidate to stardust memory", () => {

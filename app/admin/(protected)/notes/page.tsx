@@ -14,7 +14,7 @@ import { deleteNote, getAdminNotes, saveNote, toggleNoteStatus } from "@/lib/cms
 import { parseNoteFormData } from "@/lib/cms/schema"
 
 export const metadata = {
-  title: "Admin Notes",
+  title: "后台笔记",
 }
 
 export default async function AdminNotesPage({
@@ -29,7 +29,7 @@ export default async function AdminNotesPage({
 
   return (
     <>
-      <AdminPageHeader title="Notes" description="管理首页和 Notes 页面显示的短内容。" />
+      <AdminPageHeader title="笔记" description="管理首页和笔记页面显示的短内容。" />
       <AdminError message={params?.error} />
       <div className="space-y-4">
         <NoteForm title="新建笔记" />
@@ -64,7 +64,7 @@ function NoteForm({
           <input type="hidden" name="intent" value="save" />
           <div className="grid gap-4 md:grid-cols-3">
             <AdminField
-              label="Slug"
+              label="地址别名"
               name="slug"
               defaultValue={note?.slug}
               required

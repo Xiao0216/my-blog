@@ -20,8 +20,8 @@ export const notes: ReadonlyArray<NoteEntry> = [
   },
   {
     slug: "ai-tools-in-development-note",
-    title: "AI 工具进入日常开发",
-    body: "AI 更适合成为需求拆解、代码审查和方案对比的辅助工具，真正的价值仍来自工程师对业务边界和质量标准的判断。",
+    title: "智能工具进入日常开发",
+    body: "智能工具更适合成为需求拆解、代码审查和方案对比的辅助工具，真正的价值仍来自工程师对业务边界和质量标准的判断。",
     publishedAt: "2026-04-22",
   },
 ]

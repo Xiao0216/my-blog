@@ -22,7 +22,7 @@ export function UniverseSidebar() {
         <X className="h-3.5 w-3.5" />
       </button>
 
-      <nav aria-label="Null Space navigation" className="grid gap-4">
+      <nav aria-label="空境导航" className="grid gap-4">
         <RailIcon label="首页">
           <Home className="h-4 w-4" />
         </RailIcon>

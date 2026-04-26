@@ -1,7 +1,12 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
-import { AdminPageHeader, AdminPanel } from "@/components/admin/admin-ui"
+import {
+  AdminPageHeader,
+  AdminPanel,
+  formatContentStatus,
+  formatMemoryVisibility,
+} from "@/components/admin/admin-ui"
 import { ADMIN_SESSION_COOKIE, adminCookieOptions } from "@/lib/admin-auth"
 import { requireAdminSession } from "@/lib/admin-guard"
 import {
@@ -15,7 +20,7 @@ import {
 } from "@/lib/cms/db"
 
 export const metadata = {
-  title: "Admin",
+  title: "后台控制台",
 }
 
 export default async function AdminDashboardPage() {
@@ -25,27 +30,27 @@ export default async function AdminDashboardPage() {
   const twinIdentity = getTwinIdentity()
   const latest = [
     ...getAdminPlanets().slice(0, 3).map((item) => ({
-      type: "Planet",
+      type: "星球",
       title: item.name,
       status: item.status,
     })),
     ...getAdminMemories().slice(0, 3).map((item) => ({
-      type: "Memory",
+      type: "记忆",
       title: item.title,
       status: item.visibility,
     })),
     ...getAdminEssays().slice(0, 3).map((item) => ({
-      type: "Essay",
+      type: "文章",
       title: item.title,
       status: item.status,
     })),
     ...getAdminProjects().slice(0, 3).map((item) => ({
-      type: "Project",
+      type: "项目",
       title: item.title,
       status: item.status,
     })),
     ...getAdminNotes().slice(0, 3).map((item) => ({
-      type: "Note",
+      type: "笔记",
       title: item.title,
       status: item.status,
     })),
@@ -65,24 +70,24 @@ export default async function AdminDashboardPage() {
         }
       />
       <div className="grid gap-4 md:grid-cols-5">
-        <Metric label="Planets" published={summary.publishedPlanets} draft={summary.draftPlanets} />
+        <Metric label="星球" published={summary.publishedPlanets} draft={summary.draftPlanets} />
         <MemoryMetric
-          label="Memories"
+          label="记忆"
           publicCount={summary.publicMemories}
           assistantCount={summary.assistantMemories}
           privateCount={summary.privateMemories}
         />
-        <Metric label="Essays" published={summary.publishedEssays} draft={summary.draftEssays} />
+        <Metric label="文章" published={summary.publishedEssays} draft={summary.draftEssays} />
         <Metric
-          label="Projects"
+          label="项目"
           published={summary.publishedProjects}
           draft={summary.draftProjects}
         />
-        <Metric label="Notes" published={summary.publishedNotes} draft={summary.draftNotes} />
+        <Metric label="笔记" published={summary.publishedNotes} draft={summary.draftNotes} />
       </div>
       <AdminPanel>
         <div className="mt-6 p-4">
-          <p className="text-sm text-zinc-500">Twin Identity</p>
+          <p className="text-sm text-zinc-500">数字分身</p>
           <p className="mt-2 text-lg font-semibold">{twinIdentity.displayName}</p>
           <p className="mt-1 text-sm text-zinc-500">{twinIdentity.subtitle}</p>
         </div>
@@ -96,7 +101,9 @@ export default async function AdminDashboardPage() {
                 <p className="text-xs text-zinc-500">{item.type}</p>
               </div>
               <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-                {item.status}
+                {item.type === "记忆"
+                  ? formatMemoryVisibility(item.status)
+                  : formatContentStatus(item.status)}
               </span>
             </div>
           ))}
@@ -125,7 +132,7 @@ function MemoryMetric({
           {publicCount + assistantCount + privateCount}
         </p>
         <p className="mt-1 text-xs text-zinc-500">
-          {publicCount} public / {assistantCount} assistant / {privateCount} private
+          {publicCount} 公开 / {assistantCount} 分身可用 / {privateCount} 私密
         </p>
       </div>
     </AdminPanel>
@@ -146,7 +153,7 @@ function Metric({
       <div className="p-4">
         <p className="text-sm text-zinc-500">{label}</p>
         <p className="mt-2 text-2xl font-semibold">{published}</p>
-        <p className="mt-1 text-xs text-zinc-500">{draft} drafts</p>
+        <p className="mt-1 text-xs text-zinc-500">{draft} 个草稿</p>
       </div>
     </AdminPanel>
   )

@@ -182,7 +182,7 @@ describe("AI inbox model", () => {
         sourceText: "pasted inbox text",
       })
     ).rejects.toThrow(
-      "AI inbox model is not configured"
+      "智能收件箱模型未配置"
     )
   })
 
@@ -197,7 +197,7 @@ describe("AI inbox model", () => {
         sourceText: "pasted inbox text",
       })
     ).rejects.toThrow(
-      "AI inbox model is not configured"
+      "智能收件箱模型未配置"
     )
     expect(fetch).not.toHaveBeenCalled()
   })
@@ -219,7 +219,7 @@ describe("AI inbox model", () => {
         sourceText: "pasted inbox text",
       })
     ).rejects.toThrow(
-      "AI inbox model request failed"
+      "智能收件箱模型请求失败"
     )
     await expect(
       classifyAiInboxText({
@@ -248,7 +248,7 @@ describe("AI inbox model", () => {
         sourceText: "pasted inbox text",
       })
     ).rejects.toThrow(
-      "AI inbox model request failed"
+      "智能收件箱模型请求失败"
     )
     await expect(
       classifyAiInboxText({
@@ -280,7 +280,7 @@ describe("AI inbox model", () => {
         sourceText: "pasted inbox text",
       })
     ).rejects.toThrow(
-      "AI inbox model response could not be parsed"
+      "智能收件箱模型响应无法解析"
     )
     await expect(
       classifyAiInboxText({
@@ -310,7 +310,7 @@ describe("AI inbox model", () => {
         sourceText: "pasted inbox text",
       })
     ).rejects.toThrow(
-      "AI inbox model returned an empty response"
+      "智能收件箱模型返回空响应"
     )
   })
 
@@ -332,7 +332,7 @@ describe("AI inbox model", () => {
         sourceText: "pasted inbox text",
       })
     ).rejects.toThrow(
-      "AI inbox model returned invalid JSON"
+      "智能收件箱模型返回了无效 JSON"
     )
   })
 })

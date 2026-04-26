@@ -13,7 +13,7 @@ import { getAdminProfile, saveProfile } from "@/lib/cms/db"
 import { parseProfileFormData } from "@/lib/cms/schema"
 
 export const metadata = {
-  title: "Admin Profile",
+  title: "后台个人资料",
 }
 
 export default async function AdminProfilePage({
@@ -29,8 +29,8 @@ export default async function AdminProfilePage({
   return (
     <>
       <AdminPageHeader
-        title="Profile"
-        description="编辑首页和 About 页面使用的公开个人资料。"
+        title="个人资料"
+        description="编辑首页和关于页面使用的公开个人资料。"
       />
       <AdminError message={params?.error} />
       <AdminPanel>
@@ -45,21 +45,21 @@ export default async function AdminProfilePage({
             />
             <AdminField label="邮箱" name="email" defaultValue={profile.email} required />
             <AdminField
-              label="Hero 标题"
+              label="首页标题"
               name="heroTitle"
               defaultValue={profile.heroTitle}
               required
             />
           </div>
           <AdminField
-            label="Hero 简介"
+            label="首页简介"
             name="heroIntro"
             defaultValue={profile.heroIntro}
             textarea
             required
           />
           <AdminField
-            label="About 摘要"
+            label="关于摘要"
             name="aboutSummary"
             defaultValue={profile.aboutSummary}
             textarea

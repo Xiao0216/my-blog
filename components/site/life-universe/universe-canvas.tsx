@@ -257,7 +257,7 @@ export function UniverseCanvas({
     <section
       ref={canvasRef}
       role="region"
-      aria-label="Null Space universe canvas"
+      aria-label="空境宇宙画布"
       data-camera-gesture={isCameraGestureActive ? "true" : "false"}
       data-related-scope={isRelatedScopeActive ? "true" : "false"}
       data-view-state={viewState}
@@ -292,7 +292,7 @@ export function UniverseCanvas({
 
       {!hasPlanets ? (
         <div className="null-space-panel absolute left-1/2 top-1/2 z-30 w-72 -translate-x-1/2 -translate-y-1/2 p-4 text-center text-sm text-[var(--ns-text-tertiary)]">
-          No planets in this universe yet
+          这个宇宙还没有星球。
         </div>
       ) : null}
 
@@ -404,7 +404,7 @@ export function UniverseCanvas({
                 aria-label={`移动端询问 ${card.title}`}
                 onClick={() => onAskTwin(card.id)}
               >
-                问 AI
+                问分身
               </button>
               <button
                 type="button"

@@ -14,7 +14,7 @@ export function SiteHeader() {
         </Link>
 
         <nav
-          aria-label="Primary"
+          aria-label="主导航"
           className="order-3 flex w-full flex-wrap gap-x-4 gap-y-2 text-sm text-zinc-400 md:order-2 md:w-auto md:justify-center md:gap-5"
         >
           {siteConfig.navigation.map((item) => (
@@ -30,7 +30,7 @@ export function SiteHeader() {
 
         <div className="order-2 inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs font-medium text-zinc-400 md:order-3">
           <span className="h-1.5 w-1.5 rounded-full bg-teal-200 shadow-[0_0_14px_rgba(153,246,228,0.8)]" />
-          <span>Open for work</span>
+          <span>开放合作</span>
         </div>
       </div>
     </header>

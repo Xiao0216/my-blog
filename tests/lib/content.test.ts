@@ -91,11 +91,11 @@ describe("content helpers", () => {
     const essays = getEssaySummaries()
 
     expect(profile.name).toBe("縉紳")
-    expect(profile.roleLine).toBe("Web 前端开发工程师")
-    expect(profile.heroIntro).toContain("Vue")
+    expect(profile.roleLine).toBe("网页前端开发工程师")
+    expect(profile.heroIntro).toContain("前端框架")
     expect(profile.aboutSummary).toContain("2020")
     expect(profile.longBio.join("\n")).toContain("太原科技大学")
-    expect(profile.longBio.join("\n")).toContain("RCNP")
+    expect(profile.longBio.join("\n")).toContain("锐捷网络工程师认证")
 
     expect(projects.map((project) => project.title)).toEqual([
       "临研系统",
@@ -105,13 +105,13 @@ describe("content helpers", () => {
       "某医院论坛",
     ])
     expect(projects.every((project) => project.href === "/projects")).toBe(true)
-    expect(projects[0].stack).toContain("Pinia")
-    expect(projects[1].stack).toContain("WebGL")
+    expect(projects[0].stack).toContain("状态管理")
+    expect(projects[1].stack).toContain("图形渲染")
 
     expect(notes.map((note) => note.title)).toEqual([
       "医疗系统里的前端工程化",
       "大数据表格性能优化",
-      "AI 工具进入日常开发",
+      "智能工具进入日常开发",
     ])
 
     expect(essays.map((essay) => essay.slug)).toEqual([
@@ -175,8 +175,8 @@ describe("content helpers", () => {
     expect(twinMemories.map((memory) => memory.visibility)).toEqual(
       expect.arrayContaining(["public", "assistant"])
     )
-    expect(identity.displayName).toBe("縉紳 AI")
-    expect(identity.communicationRules).toContain("Be direct")
+    expect(identity.displayName).toBe("縉紳智能分身")
+    expect(identity.communicationRules).toContain("直接回答")
   })
 
   it("exposes the life universe taxonomy without leaking mutations", () => {

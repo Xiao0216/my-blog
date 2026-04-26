@@ -81,7 +81,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     {
       id: "assistant-intro",
       role: "assistant",
-      content: "你好，我是你的 AI 分身，可以基于记忆和上下文继续思考。",
+      content: "你好，我是你的数字分身，可以基于记忆和上下文继续思考。",
       references: [],
       mode: "fallback",
     },
@@ -246,7 +246,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         {
           id: `assistant-${Date.now()}`,
           role: "assistant",
-          content: "当前无法连接 Null AI，我已经保留了你的问题。",
+      content: "当前无法连接数字分身，我已经保留了你的问题。",
           mode: "fallback",
           references: [],
         },
@@ -364,7 +364,7 @@ function buildUniverseCards({
       group: planet.slug,
       importance: planet.weight ?? Math.max(1, planets.length - index),
       ...CARD_SIZE.planet,
-      category: planet.slug,
+      category: "行星",
       title: planet.name,
       excerpt: planet.summary,
       date: "2024.05.12",

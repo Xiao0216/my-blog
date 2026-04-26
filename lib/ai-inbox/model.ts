@@ -17,7 +17,7 @@ export async function classifyAiInboxText({
   const model = process.env.OPENAI_MODEL?.trim()
 
   if (!apiKey || !model) {
-    throw new Error("AI inbox model is not configured")
+    throw new Error("智能收件箱模型未配置")
   }
 
   let response: Response
@@ -48,11 +48,11 @@ export async function classifyAiInboxText({
       }),
     })
   } catch {
-    throw new Error("AI inbox model request failed")
+    throw new Error("智能收件箱模型请求失败")
   }
 
   if (!response.ok) {
-    throw new Error("AI inbox model request failed")
+    throw new Error("智能收件箱模型请求失败")
   }
 
   let data: OpenAIResponse
@@ -60,19 +60,19 @@ export async function classifyAiInboxText({
   try {
     data = (await response.json()) as OpenAIResponse
   } catch {
-    throw new Error("AI inbox model response could not be parsed")
+    throw new Error("智能收件箱模型响应无法解析")
   }
 
   const output = extractOutputText(data).trim()
 
   if (!output) {
-    throw new Error("AI inbox model returned an empty response")
+    throw new Error("智能收件箱模型返回空响应")
   }
 
   try {
     return JSON.parse(output) as AiInboxRawCandidate
   } catch {
-    throw new Error("AI inbox model returned invalid JSON")
+    throw new Error("智能收件箱模型返回了无效 JSON")
   }
 }
 

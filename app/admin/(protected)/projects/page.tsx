@@ -19,7 +19,7 @@ import {
 import { parseProjectFormData } from "@/lib/cms/schema"
 
 export const metadata = {
-  title: "Admin Projects",
+  title: "后台项目",
 }
 
 export default async function AdminProjectsPage({
@@ -34,7 +34,7 @@ export default async function AdminProjectsPage({
 
   return (
     <>
-      <AdminPageHeader title="Projects" description="管理项目卡片和技术栈展示。" />
+      <AdminPageHeader title="项目" description="管理项目卡片和技术栈展示。" />
       <AdminError message={params?.error} />
       <div className="space-y-4">
         <ProjectForm title="新建项目" />
@@ -79,7 +79,7 @@ function ProjectForm({
           <input type="hidden" name="intent" value="save" />
           <div className="grid gap-4 md:grid-cols-3">
             <AdminField
-              label="Slug"
+              label="地址别名"
               name="slug"
               defaultValue={project?.slug}
               required

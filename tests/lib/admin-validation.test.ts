@@ -66,8 +66,8 @@ describe("admin validation", () => {
       ok: false,
       errors: {
         publishedAt: "请输入有效日期",
-        slug: "Slug 只能使用小写字母、数字和连字符",
-        status: "状态只能是 published 或 draft",
+        slug: "地址别名只能使用小写字母、数字和连字符",
+        status: "状态只能是已发布或草稿",
         title: "标题不能为空",
       },
     })
@@ -249,10 +249,10 @@ describe("admin validation", () => {
       errors: {
         name: "标题不能为空",
         summary: "标题不能为空",
-        slug: "Slug 只能使用小写字母、数字和连字符",
-        status: "状态只能是 published 或 draft",
+        slug: "地址别名只能使用小写字母、数字和连字符",
+        status: "状态只能是已发布或草稿",
         x: "坐标必须是数字",
-        size: "尺寸只能是 small、medium 或 large",
+        size: "尺寸只能是小、中或大",
       },
     })
     expect(memoryResult).toMatchObject({

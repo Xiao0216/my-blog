@@ -49,9 +49,9 @@ const cards: ReadonlyArray<UniverseCardModel> = [
     angle: 45,
     posture: { rotateX: 2, rotateY: -4, rotateZ: 1, translateZ: 20 },
     layoutStatus: "placed",
-    category: "PLANET",
-    title: "Card One",
-    excerpt: "First card",
+    category: "行星",
+    title: "卡片一",
+    excerpt: "第一张卡片",
     date: "2026-04-24",
     tone: "cyan",
     status: "mature",
@@ -69,9 +69,9 @@ const cards: ReadonlyArray<UniverseCardModel> = [
     angle: 90,
     posture: { rotateX: -1, rotateY: 3, rotateZ: -2, translateZ: 8 },
     layoutStatus: "placed",
-    category: "NOTE",
-    title: "Card Two",
-    excerpt: "Second card",
+    category: "笔记",
+    title: "卡片二",
+    excerpt: "第二张卡片",
     date: "2026-04-23",
     tone: "violet",
     status: "seedling",
@@ -151,7 +151,7 @@ describe("UniverseCanvas", () => {
     const { getByRole } = render(
       <UniverseCanvas {...buildProps({ onWheelZoom })} />
     )
-    const canvas = getByRole("region", { name: "Null Space universe canvas" })
+    const canvas = getByRole("region", { name: "空境宇宙画布" })
 
     const hasNonPassiveCanvasWheelListener = addEventListenerSpy.mock.calls.some(
       ([eventName, , options], index) =>

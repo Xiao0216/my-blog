@@ -6,6 +6,8 @@ import {
   AdminField,
   AdminPageHeader,
   AdminPanel,
+  formatMemoryType,
+  formatMemoryVisibility,
   SubmitButton,
 } from "@/components/admin/admin-ui"
 import { requireAdminSession } from "@/lib/admin-guard"
@@ -19,7 +21,7 @@ import {
 import { parseMemoryFormData } from "@/lib/cms/schema"
 
 export const metadata = {
-  title: "Admin Memories",
+  title: "后台记忆",
 }
 
 export default async function AdminMemoriesPage({
@@ -36,8 +38,8 @@ export default async function AdminMemoriesPage({
   return (
     <>
       <AdminPageHeader
-        title="Memories"
-        description="管理数字分身可引用的人生记忆。private 不会出现在公开页面或模型上下文。"
+        title="记忆"
+        description="管理数字分身可引用的人生记忆。私密记忆不会出现在公开页面或模型上下文。"
       />
       <AdminError message={params?.error} />
       <div className="space-y-4">
@@ -123,14 +125,14 @@ function MemoryForm({
                 defaultValue={memory?.type ?? "diary"}
                 className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:focus:ring-zinc-600"
               >
-                <option value="diary">diary</option>
-                <option value="behavior">behavior</option>
-                <option value="opinion">opinion</option>
-                <option value="project">project</option>
-                <option value="habit">habit</option>
-                <option value="preference">preference</option>
-                <option value="milestone">milestone</option>
-                <option value="bio">bio</option>
+                <option value="diary">{formatMemoryType("diary")}</option>
+                <option value="behavior">{formatMemoryType("behavior")}</option>
+                <option value="opinion">{formatMemoryType("opinion")}</option>
+                <option value="project">{formatMemoryType("project")}</option>
+                <option value="habit">{formatMemoryType("habit")}</option>
+                <option value="preference">{formatMemoryType("preference")}</option>
+                <option value="milestone">{formatMemoryType("milestone")}</option>
+                <option value="bio">{formatMemoryType("bio")}</option>
               </select>
             </label>
             <label className="grid gap-1.5 text-sm">
@@ -140,9 +142,9 @@ function MemoryForm({
                 defaultValue={memory?.visibility ?? "assistant"}
                 className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:focus:ring-zinc-600"
               >
-                <option value="public">public</option>
-                <option value="assistant">assistant</option>
-                <option value="private">private</option>
+                <option value="public">{formatMemoryVisibility("public")}</option>
+                <option value="assistant">{formatMemoryVisibility("assistant")}</option>
+                <option value="private">{formatMemoryVisibility("private")}</option>
               </select>
             </label>
             <AdminField
@@ -152,7 +154,11 @@ function MemoryForm({
               required
             />
             <AdminField label="标签" name="tags" defaultValue={memory?.tags.join(", ")} />
-            <AdminField label="来源" name="source" defaultValue={memory?.source ?? "manual"} />
+            <AdminField
+              label="来源"
+              name="source"
+              defaultValue={formatMemorySource(memory?.source)}
+            />
           </div>
           <AdminField
             label="内容"
@@ -222,4 +228,11 @@ function revalidateContent() {
   revalidatePath("/")
   revalidatePath("/admin")
   revalidatePath("/admin/memories")
+}
+
+function formatMemorySource(source: string | undefined): string {
+  if (!source || source === "manual") return "手动"
+  if (source === "seed") return "种子数据"
+  if (source === "ai-inbox") return "智能收件箱"
+  return source
 }

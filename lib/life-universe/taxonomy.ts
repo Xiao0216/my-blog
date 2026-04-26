@@ -81,17 +81,17 @@ export const LIFE_UNIVERSE_GALAXIES: ReadonlyArray<LifeUniverseGalaxy> = [
   {
     slug: "technology",
     name: "技术与学习",
-    summary: "前端、工程化、性能优化、AI 工具、读书学习和实验记录。",
+    summary: "前端、工程化、性能优化、智能工具、读书学习和实验记录。",
     description:
       "沉淀技术学习、工程判断、工具实践、阅读笔记和可复用的实验经验。",
     suggestedPlanets: [
-      "Vue",
-      "JavaScript",
+      "前端框架",
+      "脚本语言",
       "工程化",
       "性能优化",
-      "ECharts",
-      "WebSocket",
-      "AI 工具",
+      "图表可视化",
+      "实时通信",
+      "智能工具",
       "读书学习",
       "实验记录",
     ],
@@ -268,7 +268,7 @@ export const LIFE_UNIVERSE_SPECIAL_AREAS: ReadonlyArray<LifeUniverseSpecialArea>
     {
       slug: "black-box",
       label: "黑匣子",
-      description: "私密或敏感内容，不进入公开展示和公开 AI 上下文。",
+      description: "私密或敏感内容，不进入公开展示和公开智能辅助上下文。",
       visibility: "private",
     },
   ]

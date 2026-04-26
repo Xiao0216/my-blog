@@ -11,7 +11,7 @@ export function NoteTimeline({ notes }: NoteTimelineProps) {
         <span className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 font-mono text-xs dark:border-zinc-800">
           —
         </span>
-        <span>No notes yet</span>
+        <span>还没有笔记。</span>
       </div>
     )
   }

@@ -114,13 +114,13 @@ describe("cms database", () => {
     expect(db.getPublicMemories()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          title: "Front-end engineer focused on maintainable delivery",
+          title: "关注可维护交付的前端工程师",
           visibility: "public",
         }),
       ])
     )
     expect(db.getTwinIdentity()).toMatchObject({
-      displayName: "縉紳 AI",
+      displayName: "縉紳智能分身",
       subtitle: "记忆驱动的数字分身",
     })
   })
@@ -1060,8 +1060,8 @@ describe("cms database", () => {
 
     expect(inboxNotes).toEqual(["ai-note-2", "ai-note"])
     expect(inboxEssays).toEqual([
-      { slug: "ai-essay-2", readingTime: "1 min read" },
-      { slug: "ai-essay", readingTime: "1 min read" },
+      { slug: "ai-essay-2", readingTime: "1 分钟阅读" },
+      { slug: "ai-essay", readingTime: "1 分钟阅读" },
     ])
     expect(inboxProjects).toEqual([
       { slug: "ai-project", href: "/projects", sortOrder: 0 },

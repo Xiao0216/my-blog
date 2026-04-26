@@ -6,6 +6,7 @@ import {
   AdminField,
   AdminPageHeader,
   AdminPanel,
+  formatPlanetSize,
   StatusSelect,
   SubmitButton,
 } from "@/components/admin/admin-ui"
@@ -19,7 +20,7 @@ import {
 import { parsePlanetFormData } from "@/lib/cms/schema"
 
 export const metadata = {
-  title: "Admin Planets",
+  title: "后台星球",
 }
 
 export default async function AdminPlanetsPage({
@@ -35,8 +36,8 @@ export default async function AdminPlanetsPage({
   return (
     <>
       <AdminPageHeader
-        title="Planets"
-        description="管理人生宇宙中的自定义星球。只有 published 会出现在前台画布。"
+        title="星球"
+        description="管理人生宇宙中的自定义星球。只有已发布星球会出现在前台画布。"
       />
       <AdminError message={params?.error} />
       <div className="space-y-4">
@@ -83,7 +84,7 @@ function PlanetForm({
           <input type="hidden" name="intent" value="save" />
           <div className="grid gap-4 md:grid-cols-4">
             <AdminField
-              label="Slug"
+              label="地址别名"
               name="slug"
               defaultValue={planet?.slug}
               required
@@ -99,17 +100,25 @@ function PlanetForm({
                 defaultValue={planet?.size ?? "medium"}
                 className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:focus:ring-zinc-600"
               >
-                <option value="small">small</option>
-                <option value="medium">medium</option>
-                <option value="large">large</option>
+                <option value="small">{formatPlanetSize("small")}</option>
+                <option value="medium">{formatPlanetSize("medium")}</option>
+                <option value="large">{formatPlanetSize("large")}</option>
               </select>
             </label>
-            <AdminField
-              label="主题"
-              name="theme"
-              defaultValue={planet?.theme ?? "cyan"}
-              required
-            />
+            <label className="grid gap-1.5 text-sm">
+              <span className="font-medium">主题</span>
+              <select
+                name="theme"
+                defaultValue={planet?.theme ?? "cyan"}
+                className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:focus:ring-zinc-600"
+              >
+                <option value="blue">蓝色</option>
+                <option value="cyan">青色</option>
+                <option value="emerald">绿色</option>
+                <option value="teal">青绿</option>
+                <option value="violet">紫色</option>
+              </select>
+            </label>
             <AdminField
               label="排序"
               name="sortOrder"

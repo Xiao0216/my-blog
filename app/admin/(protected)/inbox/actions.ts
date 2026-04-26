@@ -50,7 +50,7 @@ export async function submitAiInboxAction(
   } catch (error) {
     return {
       sourceText,
-      error: error instanceof Error ? error.message : "AI 保存失败",
+      error: error instanceof Error ? error.message : "智能保存失败",
     }
   }
 }

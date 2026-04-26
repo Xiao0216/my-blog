@@ -284,11 +284,11 @@ function validateCommonContentFields(
   publishedAt?: string
 ) {
   if (!isSafeSlug(slug)) {
-    errors.slug = "Slug 只能使用小写字母、数字和连字符"
+    errors.slug = "地址别名只能使用小写字母、数字和连字符"
   }
 
   if (status !== "published" && status !== "draft") {
-    errors.status = "状态只能是 published 或 draft"
+    errors.status = "状态只能是已发布或草稿"
   }
 
   if (publishedAt !== undefined && !isValidDateText(publishedAt)) {
@@ -459,7 +459,7 @@ export function parsePlanetFormData(
   }
 
   if (!isValidPlanetSize(size)) {
-    errors.size = "尺寸只能是 small、medium 或 large"
+    errors.size = "尺寸只能是小、中或大"
   }
 
   if (!Number.isFinite(sortOrder)) {
@@ -504,7 +504,7 @@ export function parseMemoryFormData(
   const occurredAt = formText(formData, "occurredAt")
   const visibility = formText(formData, "visibility")
   const importance = parseNumberField(formText(formData, "importance"), 5)
-  const source = formText(formData, "source") || "manual"
+  const source = formText(formData, "source") || "手动"
   const errors: Record<string, string> = {}
 
   validateRequired(errors, { title, content })

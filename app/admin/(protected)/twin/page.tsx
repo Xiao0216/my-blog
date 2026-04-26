@@ -13,7 +13,7 @@ import { getTwinIdentity, saveTwinIdentity } from "@/lib/cms/db"
 import { parseTwinIdentityFormData } from "@/lib/cms/schema"
 
 export const metadata = {
-  title: "Admin Twin",
+  title: "后台数字分身",
 }
 
 export default async function AdminTwinPage({
@@ -29,7 +29,7 @@ export default async function AdminTwinPage({
   return (
     <>
       <AdminPageHeader
-        title="Twin Identity"
+        title="数字分身"
         description="维护数字分身的人格、语气和边界规则。"
       />
       <AdminError message={params?.error} />

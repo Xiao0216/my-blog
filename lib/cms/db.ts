@@ -631,8 +631,8 @@ function seedDefaultCapturePlanet(database: DatabaseSync, timestamp: string) {
     [
       "stardust",
       "星尘",
-      "AI 收件箱中还没有明确归属的临时碎片。",
-      "星尘用于承接低置信度或暂时未分类的 AI 辅助录入内容。",
+      "智能收件箱中还没有明确归属的临时碎片。",
+      "星尘用于承接低置信度或暂时未分类的智能辅助录入内容。",
       0,
       0,
       "small",
@@ -696,14 +696,14 @@ function seedLifeUniverse(database: DatabaseSync) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         work.id,
-        "Front-end engineer focused on maintainable delivery",
-        "Since 2020, I have worked on medical systems, data platforms, H5, mini programs, and enterprise products with a focus on stable delivery and maintainable architecture.",
+        "关注可维护交付的前端工程师",
+        "从 2020 年开始，我参与医疗系统、数据平台、移动页面、小程序和企业级产品建设，重点关注稳定交付与可维护架构。",
         "bio",
         "2026-04-24",
         "public",
         9,
-        stringifyArray(["work", "frontend", "delivery"]),
-        "seed",
+        stringifyArray(["工作", "前端", "交付"]),
+        "种子数据",
         timestamp,
         timestamp,
       ]
@@ -719,14 +719,14 @@ function seedLifeUniverse(database: DatabaseSync) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         technology.id,
-        "Technology interests",
-        "I pay attention to Vue, engineering systems, ECharts visualization, WebSocket real-time communication, performance optimization, WebGL, and AI agents.",
+        "技术兴趣",
+        "我关注前端框架、工程化体系、图表可视化、实时通信、性能优化、图形渲染和智能体工具。",
         "preference",
         "2026-04-24",
         "assistant",
         8,
-        stringifyArray(["technology", "ai", "frontend"]),
-        "seed",
+        stringifyArray(["技术", "智能工具", "前端"]),
+        "种子数据",
         timestamp,
         timestamp,
       ]
@@ -741,27 +741,27 @@ function seedLifeUniverse(database: DatabaseSync) {
       privacy_rules_json, uncertainty_rules_json, updated_at
     ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      "縉紳 AI",
+      "縉紳智能分身",
       "记忆驱动的数字分身",
-      "A quiet dark-space assistant avatar with a glass halo.",
-      "Use first person for public, well-supported facts and explain reasoning directly.",
-      "Use proxy wording when the answer is uncertain, private, or commitment-heavy.",
+      "安静的深色空间助手头像，带有玻璃质感光环。",
+      "面对公开且记忆支持充分的事实时，使用第一人称并直接解释推理。",
+      "面对不确定、私密或承诺较重的问题时，使用代理口吻。",
       stringifyArray([
-        "Clarity",
-        "Pragmatism",
-        "Maintainability",
-        "Long-term thinking",
+        "清晰",
+        "务实",
+        "可维护",
+        "长期思考",
       ]),
       stringifyArray([
-        "Be direct",
-        "Use concise answers",
-        "Reference relevant memories",
+        "直接回答",
+        "保持简洁",
+        "引用相关记忆",
       ]),
       stringifyArray([
-        "Do not expose private memories",
-        "Do not invent personal facts",
+        "不暴露私密记忆",
+        "不编造个人事实",
       ]),
-      stringifyArray(["State uncertainty when memory support is weak"]),
+      stringifyArray(["当记忆支持不足时说明不确定性"]),
       timestamp,
     ]
   )
@@ -1007,24 +1007,21 @@ function getRecordById(
 }
 
 const fallbackTwinIdentity: StoredTwinIdentity = {
-  displayName: "縉紳 AI",
+  displayName: "縉紳智能分身",
   subtitle: "记忆驱动的数字分身",
-  avatarDescription: "A quiet dark-space assistant avatar with a glass halo.",
+  avatarDescription: "安静的深色空间助手头像，带有玻璃质感光环。",
   firstPersonStyle:
-    "Use first person for public, well-supported facts and explain reasoning directly.",
+    "面对公开且记忆支持充分的事实时，使用第一人称并直接解释推理。",
   thirdPersonStyle:
-    "Use proxy wording when the answer is uncertain, private, or commitment-heavy.",
-  values: ["Clarity", "Pragmatism", "Maintainability", "Long-term thinking"],
+    "面对不确定、私密或承诺较重的问题时，使用代理口吻。",
+  values: ["清晰", "务实", "可维护", "长期思考"],
   communicationRules: [
-    "Be direct",
-    "Use concise answers",
-    "Reference relevant memories",
+    "直接回答",
+    "保持简洁",
+    "引用相关记忆",
   ],
-  privacyRules: [
-    "Do not expose private memories",
-    "Do not invent personal facts",
-  ],
-  uncertaintyRules: ["State uncertainty when memory support is weak"],
+  privacyRules: ["不暴露私密记忆", "不编造个人事实"],
+  uncertaintyRules: ["当记忆支持不足时说明不确定性"],
 }
 
 export function initializeCmsDatabase() {
@@ -1722,7 +1719,7 @@ export function saveAiInboxRecord(input: AiInboxRecordInput): StoredRecord {
             normalizedInput.summary,
             normalizedInput.body,
             normalizedInput.occurredAt,
-            normalizedInput.readingTime ?? "1 min read",
+            normalizedInput.readingTime ?? "1 分钟阅读",
             stringifyArray(normalizedInput.tags),
             normalizedInput.status,
             timestamp,

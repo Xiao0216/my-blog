@@ -1,12 +1,17 @@
 import Link from "next/link"
 
 import { AiInboxForm } from "@/components/admin/ai-inbox-form"
-import { AdminPageHeader, AdminPanel } from "@/components/admin/admin-ui"
+import {
+  AdminPageHeader,
+  AdminPanel,
+  formatRecordProjectionStatus,
+  formatRecordTargetType,
+} from "@/components/admin/admin-ui"
 import { requireAdminSession } from "@/lib/admin-guard"
 import { getRecentRecords } from "@/lib/cms/db"
 
 export const metadata = {
-  title: "Admin AI Inbox",
+  title: "后台智能收件箱",
 }
 
 const editHrefByTable = {
@@ -24,8 +29,8 @@ export default async function AdminInboxPage() {
   return (
     <>
       <AdminPageHeader
-        title="AI Inbox"
-        description="粘贴原始文本，让 AI 分类并落库到记录与对应内容表。"
+        title="智能收件箱"
+        description="粘贴原始文本，让智能模型分类并落库到记录与对应内容表。"
       />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <AdminPanel>
@@ -58,7 +63,9 @@ export default async function AdminInboxPage() {
                       <div className="space-y-1">
                         <h3 className="text-sm font-medium">{record.title}</h3>
                         <p className="text-xs text-zinc-500">
-                          {record.targetType} · {record.projectionStatus} · {record.createdAt}
+                          {formatRecordTargetType(record.targetType)} ·{" "}
+                          {formatRecordProjectionStatus(record.projectionStatus)} ·{" "}
+                          {record.createdAt}
                         </p>
                       </div>
                       {editHref ? (
@@ -75,7 +82,7 @@ export default async function AdminInboxPage() {
                     </p>
                     <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
                       {record.planetName ? <span>{record.planetName}</span> : null}
-                      <span>confidence {record.confidence}</span>
+                      <span>置信度 {record.confidence}</span>
                       {record.tags.map((tag) => (
                         <span
                           key={`${record.id}-${tag}`}
@@ -89,7 +96,7 @@ export default async function AdminInboxPage() {
                 )
               })
             ) : (
-              <p className="px-4 py-6 text-sm text-zinc-500">还没有 AI Inbox 记录。</p>
+              <p className="px-4 py-6 text-sm text-zinc-500">还没有智能收件箱记录。</p>
             )}
           </div>
         </AdminPanel>

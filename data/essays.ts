@@ -14,16 +14,16 @@ export const essaySummaries: ReadonlyArray<EssaySummary> = [
     description:
       "从需求澄清、权限控制、水印脱敏、组件复用到接口联调，梳理医疗系统前端交付中的工程化重点。",
     publishedAt: "2026-04-24",
-    readingTime: "7 min read",
-    tags: ["Healthcare", "Vue", "Engineering"],
+    readingTime: "7 分钟阅读",
+    tags: ["医疗", "前端框架", "工程化"],
   },
   {
     slug: "large-data-frontend-performance",
     title: "大数据场景下的前端性能优化",
     description:
-      "围绕虚拟列表、懒加载、缓存、WebSocket 实时更新和表格渲染，记录数据平台与医疗系统里的性能优化方法。",
+      "围绕虚拟列表、懒加载、缓存、实时更新和表格渲染，记录数据平台与医疗系统里的性能优化方法。",
     publishedAt: "2026-04-23",
-    readingTime: "6 min read",
-    tags: ["Performance", "Data", "Frontend"],
+    readingTime: "6 分钟阅读",
+    tags: ["性能", "数据", "前端"],
   },
 ]

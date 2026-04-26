@@ -3,7 +3,7 @@ import { PageIntro } from "@/components/site/page-intro"
 import { getProfile } from "@/lib/content"
 
 export const metadata = {
-  title: "About",
+  title: "关于",
 }
 
 export const dynamic = "force-dynamic"
@@ -14,7 +14,7 @@ export default function AboutPage() {
   return (
     <div className="page-frame story-section space-y-10">
       <PageIntro
-        eyebrow="About"
+        eyebrow="关于"
         title={profile.name}
         description={profile.aboutSummary}
       />

@@ -16,10 +16,10 @@ const toneClass = {
 } satisfies Record<UniverseCardModel["tone"], string>
 
 const statusLabel = {
-  archived: "ARCHIVE",
-  growing: "GROWING",
-  mature: "MATURE",
-  seedling: "SEED",
+  archived: "归档",
+  growing: "生长",
+  mature: "成熟",
+  seedling: "萌芽",
 } satisfies Record<UniverseCardModel["status"], string>
 
 type UniverseCardProps = {
@@ -249,7 +249,7 @@ export const UniverseCard = memo(function UniverseCard({
             aria-label={`询问 ${card.title}`}
             onClick={() => runMenuAction(onAskTwin)}
           >
-            问 AI
+            问分身
           </button>
           <button
             type="button"

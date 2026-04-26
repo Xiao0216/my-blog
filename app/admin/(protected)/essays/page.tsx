@@ -19,7 +19,7 @@ import {
 import { parseEssayFormData } from "@/lib/cms/schema"
 
 export const metadata = {
-  title: "Admin Essays",
+  title: "后台文章",
 }
 
 export default async function AdminEssaysPage({
@@ -34,7 +34,7 @@ export default async function AdminEssaysPage({
 
   return (
     <>
-      <AdminPageHeader title="Essays" description="管理正式文章，只有 published 会出现在前台。" />
+      <AdminPageHeader title="文章" description="管理正式文章，只有已发布内容会出现在前台。" />
       <AdminError message={params?.error} />
       <div className="space-y-4">
         <EssayForm title="新建文章" />
@@ -79,7 +79,7 @@ function EssayForm({
           <input type="hidden" name="intent" value="save" />
           <div className="grid gap-4 md:grid-cols-3">
             <AdminField
-              label="Slug"
+              label="地址别名"
               name="slug"
               defaultValue={essay?.slug}
               required
@@ -95,7 +95,7 @@ function EssayForm({
             <AdminField
               label="阅读时间"
               name="readingTime"
-              defaultValue={essay?.readingTime ?? "3 min read"}
+              defaultValue={essay?.readingTime ?? "3 分钟阅读"}
               required
             />
             <AdminField label="标签" name="tags" defaultValue={essay?.tagsText} />

@@ -3,7 +3,7 @@ import { PageIntro } from "@/components/site/page-intro"
 import { getEssaySummaries } from "@/lib/content"
 
 export const metadata = {
-  title: "Essays",
+  title: "文章",
 }
 
 export const dynamic = "force-dynamic"
@@ -14,7 +14,7 @@ export default function EssaysPage() {
   return (
     <div className="page-frame story-section space-y-10">
       <PageIntro
-        eyebrow="Essays"
+        eyebrow="文章"
         title="正式文章"
         description="保留更长的呼吸、更完整的结构，以及那些值得慢慢读完的内容。"
       />

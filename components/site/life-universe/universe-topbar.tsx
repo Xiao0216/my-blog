@@ -21,10 +21,10 @@ export function UniverseTopbar({
         </div>
         <div>
           <p className="text-sm font-semibold text-[var(--ns-text-primary)]">
-            Null Space
+            空境
           </p>
           <p className="text-[0.68rem] text-[var(--ns-text-tertiary)]">
-            A Thoughtful Blog
+            思考型博客
           </p>
         </div>
       </div>
@@ -62,7 +62,7 @@ export function UniverseTopbar({
           className="null-space-control inline-flex h-8 items-center gap-2 px-4 text-xs font-medium outline-none transition hover:text-[var(--ns-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)]"
         >
           <Sparkles className="h-3.5 w-3.5 text-[var(--ns-accent-primary)]" />
-          New
+          新建
         </Link>
       </div>
     </header>

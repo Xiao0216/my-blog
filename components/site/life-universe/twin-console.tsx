@@ -29,7 +29,7 @@ export function TwinConsole({
   return (
     <aside
       role="complementary"
-      aria-label="Null AI digital twin"
+      aria-label="数字分身"
       className="pointer-events-auto relative z-20 flex min-h-[620px] flex-col border-t border-[var(--ns-glass-border)] bg-[var(--ns-panel-bg)] px-5 py-6 text-[var(--ns-text-primary)] backdrop-blur-xl md:absolute md:top-0 md:right-0 md:bottom-0 md:w-[22rem] md:border-t-0 md:border-l"
     >
       <div
@@ -47,10 +47,10 @@ export function TwinConsole({
       <div className="mt-7 text-center">
         <div className="inline-flex items-center gap-2">
           <h2 className="text-lg font-semibold text-[var(--ns-text-primary)]">
-            {identity.displayName || "Null AI"}
+            {identity.displayName || "数字分身"}
           </h2>
           <span className="rounded-md border border-[var(--ns-accent-secondary)] bg-[var(--ns-badge-bg)] px-1.5 py-0.5 text-[0.56rem] text-[var(--ns-accent-secondary)]">
-            BETA
+            测试
           </span>
         </div>
         <p className="mt-1 text-sm text-[var(--ns-text-tertiary)]">
@@ -59,7 +59,7 @@ export function TwinConsole({
       </div>
 
       <section className="null-space-panel mt-5 p-4 text-sm leading-6 text-[var(--ns-text-secondary)]">
-        <p className="text-[var(--ns-text-primary)]">你好，我是你的 AI 分身</p>
+        <p className="text-[var(--ns-text-primary)]">你好，我是你的数字分身</p>
         <p className="mt-1">我可以帮你：</p>
         <ul className="mt-2 space-y-1 text-[var(--ns-text-tertiary)]">
           <li>• 发掘知识关联</li>
@@ -71,7 +71,7 @@ export function TwinConsole({
           当前聚焦：<span data-testid="selected-card-title">{selectedCard?.title ?? "空宇宙"}</span>
         </p>
         {memoriesCount === 0 ? (
-          <p className="mt-2 text-[var(--ns-text-tertiary)]">No public memories attached yet</p>
+          <p className="mt-2 text-[var(--ns-text-tertiary)]">还没有关联公开记忆。</p>
         ) : null}
       </section>
 
@@ -104,13 +104,13 @@ export function TwinConsole({
         <textarea
           value={draftMessage}
           onChange={(event) => onDraftChange(event.target.value)}
-          placeholder="和 Null AI 聊聊..."
+          placeholder="和数字分身聊聊..."
           rows={1}
           className="min-h-11 min-w-0 flex-1 resize-none rounded-2xl border border-[var(--ns-glass-border)] bg-[var(--ns-input-bg)] px-4 py-3 text-sm text-[var(--ns-text-primary)] outline-none placeholder:text-[var(--ns-text-muted)] focus:ring-2 focus:ring-[var(--ns-accent-primary)]"
         />
         <button
           type="submit"
-          aria-label="发送给 Null AI"
+          aria-label="发送给数字分身"
           disabled={isSending}
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--ns-glass-border)] bg-[var(--ns-control-bg)] text-[var(--ns-text-tertiary)] outline-none transition hover:text-[var(--ns-accent-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)] disabled:cursor-not-allowed disabled:opacity-50"
         >

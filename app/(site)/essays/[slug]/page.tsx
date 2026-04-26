@@ -16,7 +16,7 @@ export async function generateMetadata({
   const entry = getEssayDocumentBySlug(slug)
 
   if (!entry) {
-    return { title: "Essay" }
+    return { title: "文章" }
   }
 
   return {

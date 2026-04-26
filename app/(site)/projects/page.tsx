@@ -3,7 +3,7 @@ import { ProjectCard } from "@/components/site/project-card"
 import { getProjects } from "@/lib/content"
 
 export const metadata = {
-  title: "Projects",
+  title: "项目",
 }
 
 export const dynamic = "force-dynamic"
@@ -14,7 +14,7 @@ export default function ProjectsPage() {
   return (
     <div className="page-frame story-section space-y-10">
       <PageIntro
-        eyebrow="Projects"
+        eyebrow="项目"
         title="项目与作品"
         description="这里放的是我真正愿意继续投入时间、并且愿意反复打磨的东西。"
       />

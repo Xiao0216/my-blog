@@ -7,7 +7,12 @@ import {
   type InboxActionState,
   submitAiInboxAction,
 } from "@/app/admin/(protected)/inbox/actions"
-import { AdminError, SubmitButton } from "@/components/admin/admin-ui"
+import {
+  AdminError,
+  SubmitButton,
+  formatRecordProjectionStatus,
+  formatRecordTargetType,
+} from "@/components/admin/admin-ui"
 
 const initialState: InboxActionState = {
   sourceText: "",
@@ -63,7 +68,8 @@ export function AiInboxForm() {
             ) : null}
           </div>
           <p className="text-xs text-zinc-500">
-            {state.record.targetType} · {state.record.projectionStatus} · confidence{" "}
+            {formatRecordTargetType(state.record.targetType)} ·{" "}
+            {formatRecordProjectionStatus(state.record.projectionStatus)} · 置信度{" "}
             {state.record.confidence}
           </p>
           <p className="text-sm text-zinc-600 dark:text-zinc-300">
@@ -74,7 +80,7 @@ export function AiInboxForm() {
 
       <div>
         <SubmitButton disabled={pending}>
-          {pending ? "分析保存中..." : "AI 保存"}
+          {pending ? "分析保存中..." : "智能保存"}
         </SubmitButton>
       </div>
     </form>

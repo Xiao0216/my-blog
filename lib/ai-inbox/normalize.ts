@@ -115,7 +115,7 @@ function stardustPlanetId(planets: NormalizeAiInboxInput["planets"]): number {
 
   if (!stardustPlanet) {
     throw new Error(
-      "A stardust planet is required for fallback AI inbox memory normalization.",
+      "降级记忆归档需要先配置星尘星球。",
     )
   }
 
@@ -179,7 +179,7 @@ export function normalizeAiInboxCandidate(
     body.length === 0 ||
     !hasValidTargetType
   ) {
-    return fallbackMemory(input, candidate, "AI 分类置信度不足或字段不完整")
+    return fallbackMemory(input, candidate, "智能分类置信度不足或字段不完整")
   }
 
   const occurredAt = stringValue(candidate.occurredAt)
@@ -202,10 +202,10 @@ export function normalizeAiInboxCandidate(
         ? "draft"
         : null,
     confidence,
-    aiReasoning: stringValue(candidate.reasoning) || "AI 自动分类。",
+    aiReasoning: stringValue(candidate.reasoning) || "智能模型自动分类。",
     memoryType: isMemoryType(memoryType) ? memoryType : "diary",
     importance: clampImportance(candidate.importance),
-    readingTime: stringValue(candidate.readingTime) || "1 min read",
+    readingTime: stringValue(candidate.readingTime) || "1 分钟阅读",
     stack: stringArray(candidate.stack),
     href: stringValue(candidate.href) || "/projects",
   }

@@ -10,7 +10,7 @@ import {
 } from "@/lib/admin-auth"
 
 export const metadata = {
-  title: "Admin Login",
+  title: "后台登录",
 }
 
 export default function AdminLoginPage({
@@ -25,7 +25,7 @@ export default function AdminLoginPage({
     <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-5 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
       <section className="w-full max-w-sm rounded-lg border border-zinc-200/70 bg-white p-5 dark:border-zinc-800/70 dark:bg-zinc-950">
         <p className="font-mono text-[0.68rem] font-medium tracking-[0.14em] text-zinc-500 uppercase">
-          Admin
+          后台
         </p>
         <h1 className="mt-2 text-xl font-semibold">登录后台</h1>
         <LoginError searchParams={searchParams} />

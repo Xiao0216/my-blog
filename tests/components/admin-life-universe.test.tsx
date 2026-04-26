@@ -33,24 +33,24 @@ describe("life universe admin UI", () => {
   it("adds planets, memories, and twin identity to admin navigation", () => {
     render(
       <AdminShell>
-        <div>Admin body</div>
+        <div>后台内容</div>
       </AdminShell>
     )
 
     const navigation = within(screen.getByRole("banner")).getByRole("navigation")
 
-    expect(within(navigation).getByRole("link", { name: "Planets" })).toHaveAttribute(
+    expect(within(navigation).getByRole("link", { name: "星球" })).toHaveAttribute(
       "href",
       "/admin/planets"
     )
     expect(
-      within(navigation).getByRole("link", { name: "Memories" })
+      within(navigation).getByRole("link", { name: "记忆" })
     ).toHaveAttribute("href", "/admin/memories")
-    expect(within(navigation).getByRole("link", { name: "Inbox" })).toHaveAttribute(
+    expect(within(navigation).getByRole("link", { name: "收件箱" })).toHaveAttribute(
       "href",
       "/admin/inbox"
     )
-    expect(within(navigation).getByRole("link", { name: "Twin" })).toHaveAttribute(
+    expect(within(navigation).getByRole("link", { name: "分身" })).toHaveAttribute(
       "href",
       "/admin/twin"
     )
@@ -73,19 +73,19 @@ describe("life universe admin UI", () => {
       await AdminPlanetsPage({ searchParams: Promise.resolve({}) })
     )
 
-    expect(screen.getByRole("heading", { name: "Planets" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "星球" })).toBeInTheDocument()
 
     rerender(await AdminMemoriesPage({ searchParams: Promise.resolve({}) }))
-    expect(screen.getByRole("heading", { name: "Memories" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "记忆" })).toBeInTheDocument()
 
     rerender(await AdminTwinPage({ searchParams: Promise.resolve({}) }))
     expect(
-      screen.getByRole("heading", { name: "Twin Identity" })
+      screen.getByRole("heading", { name: "数字分身" })
     ).toBeInTheDocument()
 
     rerender(await AdminInboxPage())
-    expect(screen.getByRole("heading", { name: "AI Inbox" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "AI 保存" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "智能收件箱" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "智能保存" })).toBeInTheDocument()
   })
 
   it("guards protected admin pages with route-specific return paths", async () => {

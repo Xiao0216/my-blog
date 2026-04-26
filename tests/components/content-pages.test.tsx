@@ -42,34 +42,34 @@ const mockedGetProjects = vi.mocked(getProjects)
 
 const noteFixture: NoteEntry = {
   slug: "note-fixture",
-  title: "Fixture note",
-  body: "A short note body",
+  title: "测试笔记",
+  body: "一段简短笔记内容",
   publishedAt: "2026-04-20",
 }
 
 const projectFixture: ProjectEntry = {
   slug: "project-fixture",
-  title: "Fixture project",
-  description: "A short project description",
-  stack: ["Next.js", "TypeScript"],
+  title: "测试项目",
+  description: "一段项目描述",
+  stack: ["前端框架", "脚本语言"],
   href: "https://example.invalid/fixture-project",
-  note: "A short project note",
+  note: "一段项目备注",
 }
 
 const protocolRelativeProjectFixture: ProjectEntry = {
   ...projectFixture,
   slug: "protocol-relative-project",
-  title: "Protocol Relative Project",
+  title: "协议相对项目",
   href: "//example.com/protocol-relative-project",
 }
 
 const profileFixture: ProfileData = {
-  name: "Fixture Name",
-  roleLine: "Fixture role line",
-  heroTitle: "Fixture hero title",
-  heroIntro: "Fixture hero intro",
-  aboutSummary: "Fixture about summary",
-  longBio: ["Fixture bio paragraph one.", "Fixture bio paragraph two."],
+  name: "测试姓名",
+  roleLine: "测试角色",
+  heroTitle: "测试首页标题",
+  heroIntro: "测试首页简介",
+  aboutSummary: "测试关于摘要",
+  longBio: ["第一段测试简介。", "第二段测试简介。"],
 }
 
 beforeEach(() => {
@@ -96,7 +96,7 @@ describe("secondary page components", () => {
     )
 
     rerender(<NoteTimeline notes={[]} />)
-    expect(screen.getByText("No notes yet")).toBeInTheDocument()
+    expect(screen.getByText("还没有笔记。")).toBeInTheDocument()
   })
 
   it("renders project links with an accessible name and href", () => {
@@ -155,7 +155,7 @@ describe("secondary page components", () => {
     render(<AboutPage />)
 
     expect(screen.getByTestId("page-intro-sentinel")).toBeInTheDocument()
-    expect(screen.getByText("eyebrow:About")).toBeInTheDocument()
+    expect(screen.getByText("eyebrow:关于")).toBeInTheDocument()
     expect(screen.getByText(`title:${profileFixture.name}`)).toBeInTheDocument()
     expect(
       screen.getByText(`description:${profileFixture.aboutSummary}`)

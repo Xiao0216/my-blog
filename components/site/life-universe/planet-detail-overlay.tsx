@@ -61,7 +61,7 @@ export function PlanetDetailOverlay({
           </div>
         </div>
         <div className="planet-detail-status">
-          <span>{detail.card.status}</span>
+          <span>{statusLabel[detail.card.status]}</span>
         </div>
       </header>
 
@@ -118,7 +118,7 @@ export function PlanetDetailOverlay({
       <footer className="planet-detail-actions">
         <button type="button" onClick={onAskTwin} className="planet-detail-primary-action">
           <MessageCircle className="h-4 w-4" />
-          <span>问 AI</span>
+          <span>问分身</span>
         </button>
         <button
           type="button"
@@ -148,3 +148,10 @@ export function PlanetDetailOverlay({
     </section>
   )
 }
+
+const statusLabel = {
+  archived: "归档",
+  growing: "生长",
+  mature: "成熟",
+  seedling: "萌芽",
+} satisfies Record<PlanetDetailModel["card"]["status"], string>
