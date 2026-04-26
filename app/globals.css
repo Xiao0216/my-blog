@@ -654,17 +654,17 @@
     transform: translateY(-1px);
   }
 
-  [data-testid="mobile-universe-card"] {
+  [data-testid="mobile-planet-card"] {
     transition:
       opacity 180ms ease,
       filter 180ms ease;
   }
 
-  .null-space-shell[data-related-scope="true"] [data-testid="mobile-universe-card"][data-related="false"] {
+  .null-space-shell[data-related-scope="true"] [data-testid="mobile-planet-card"][data-related="false"] {
     display: none;
   }
 
-  [data-testid="mobile-universe-card"] button {
+  [data-testid="mobile-planet-card"] button {
     display: inline-flex;
     min-height: 2.4rem;
     align-items: center;
@@ -681,7 +681,7 @@
       transform 160ms ease;
   }
 
-  [data-testid="mobile-universe-card"] button:hover {
+  [data-testid="mobile-planet-card"] button:hover {
     background: color-mix(in srgb, var(--ns-control-bg) 88%, white 12%);
     color: var(--ns-text-primary);
     transform: translateY(-1px);

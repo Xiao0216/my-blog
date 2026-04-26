@@ -147,6 +147,12 @@ describe("UniverseCanvas", () => {
     expect(css).toMatch(/\.planet-sphere-cyan\s*{/)
     expect(css).toMatch(/\.planet-shade\s*{[\s\S]*?position:\s*absolute/)
     expect(css).toMatch(/\.planet-hover-preview\s*{[\s\S]*?position:\s*fixed/)
+    expect(css).toMatch(/\[data-testid="mobile-planet-card"\]\s*{/)
+    expect(css).toMatch(
+      /\.null-space-shell\[data-related-scope="true"\]\s*\[data-testid="mobile-planet-card"\]\[data-related="false"\]\s*{[\s\S]*?display:\s*none/
+    )
+    expect(css).toMatch(/\[data-testid="mobile-planet-card"\]\s+button\s*{/)
+    expect(css).not.toContain('data-testid="mobile-universe-card"')
   })
 
   it("does not rerender memoized planets when parent callbacks change but planet state is stable", () => {
