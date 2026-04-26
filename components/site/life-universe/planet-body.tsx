@@ -82,6 +82,7 @@ export function PlanetBody({
       data-render-level={renderLevel}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
+      onBlur={handlePointerLeave}
       onFocus={handleFocus}
       onKeyDown={handleKeyDown}
       onPointerLeave={handlePointerLeave}

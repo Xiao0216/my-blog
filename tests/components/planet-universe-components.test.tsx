@@ -138,6 +138,32 @@ describe("PlanetBody", () => {
 
     expect(onLeave).toHaveBeenCalledWith("planet-1")
   })
+
+  it("calls onHover on focus and onLeave on blur", () => {
+    const onHover = vi.fn()
+    const onLeave = vi.fn()
+
+    render(
+      <PlanetBody
+        planet={planet}
+        isFocused={false}
+        isHovered={false}
+        renderLevel="full"
+        onEnter={vi.fn()}
+        onHover={onHover}
+        onLeave={onLeave}
+        onSelect={vi.fn()}
+      />
+    )
+
+    const body = screen.getByRole("button", { name: "工作与职业 行星" })
+
+    fireEvent.focus(body)
+    fireEvent.blur(body)
+
+    expect(onHover).toHaveBeenCalledWith("planet-1", { x: 0, y: 0 })
+    expect(onLeave).toHaveBeenCalledWith("planet-1")
+  })
 })
 
 describe("PlanetHoverPreview", () => {
