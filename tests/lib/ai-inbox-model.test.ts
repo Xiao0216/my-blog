@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { buildAiInboxInstructions } from "@/lib/ai-inbox/prompt"
 
 beforeEach(() => {
+  vi.stubEnv("OPENAI_BASE_URL", "")
+  vi.stubEnv("OPENAI_API_BASE_URL", "")
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => {
@@ -95,6 +97,37 @@ describe("AI inbox model", () => {
       temperature: 0.2,
       store: false,
     })
+  })
+
+  it("uses a configured OpenAI-compatible base URL", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-key")
+    vi.stubEnv("OPENAI_MODEL", "gpt-test")
+    vi.stubEnv("OPENAI_BASE_URL", " https://sub2api.nodeo.site/v1/ ")
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          output_text: JSON.stringify({
+            targetType: "memory",
+            title: "Parsed memory",
+            body: "Body",
+            confidence: 86,
+          }),
+        }),
+      })) as unknown as typeof fetch
+    )
+    const { classifyAiInboxText } = await import("@/lib/ai-inbox/model")
+
+    await classifyAiInboxText({
+      instructions: "trusted instructions",
+      sourceText: "pasted inbox text",
+    })
+
+    expect(fetch).toHaveBeenCalledWith(
+      "https://sub2api.nodeo.site/v1/responses",
+      expect.any(Object)
+    )
   })
 
   it("parses raw Responses API output content JSON", async () => {

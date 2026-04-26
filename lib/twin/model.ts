@@ -1,4 +1,5 @@
 import type { TwinChatResponse, TwinReference } from "@/lib/twin/types"
+import { getOpenAIResponsesUrl } from "@/lib/openai"
 
 type OpenAIResponse = {
   readonly output_text?: string
@@ -18,7 +19,7 @@ export async function callTwinModel({
     return null
   }
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const response = await fetch(getOpenAIResponsesUrl(), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,

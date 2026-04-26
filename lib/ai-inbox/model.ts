@@ -1,4 +1,5 @@
 import type { AiInboxRawCandidate } from "@/lib/ai-inbox/types"
+import { getOpenAIResponsesUrl } from "@/lib/openai"
 
 type OpenAIResponse = {
   readonly output?: unknown
@@ -22,7 +23,7 @@ export async function classifyAiInboxText({
   let response: Response
 
   try {
-    response = await fetch("https://api.openai.com/v1/responses", {
+    response = await fetch(getOpenAIResponsesUrl(), {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
