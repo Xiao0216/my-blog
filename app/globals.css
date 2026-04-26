@@ -564,9 +564,11 @@
   }
 
   .planet-accessibility-controls .planet-body {
-    pointer-events: auto;
+    pointer-events: none;
+    animation: none;
     opacity: 0;
-    filter: saturate(0.72);
+    filter: none;
+    transition: none;
   }
 
   .planet-accessibility-controls .planet-body:hover,
@@ -575,6 +577,11 @@
   .planet-accessibility-controls .planet-body[data-hovered="true"] {
     opacity: 1;
     filter: brightness(1.16) saturate(1.08);
+  }
+
+  .planet-accessibility-controls .planet-sphere {
+    animation: none;
+    box-shadow: none;
   }
 
   .planet-accessibility-controls .planet-body:focus-visible {

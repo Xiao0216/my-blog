@@ -52,6 +52,15 @@ vi.mock("@/components/site/life-universe/planet-body", () => ({
         onClick={() => onSelect(planet.id, { x: 0, y: 0 })}
         onDoubleClick={() => onEnter(planet.id)}
         onFocus={() => onHover(planet.id, { x: 0, y: 0 })}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            onEnter(planet.id)
+          }
+
+          if (event.key === " ") {
+            onSelect(planet.id, { x: 0, y: 0 })
+          }
+        }}
         onPointerLeave={() => onLeave(planet.id)}
         onPointerMove={(event) =>
           onHover(planet.id, { x: event.clientX, y: event.clientY })
@@ -221,10 +230,19 @@ describe("UniverseCanvas", () => {
       /\.planet-accessibility-controls\s+\.planet-orbit-path\s*{[\s\S]*?opacity:\s*0/
     )
     expect(css).toMatch(
-      /\.planet-accessibility-controls\s+\.planet-body\s*{[\s\S]*?pointer-events:\s*auto/
+      /\.planet-accessibility-controls\s+\.planet-body\s*{[\s\S]*?pointer-events:\s*none/
     )
     expect(css).toMatch(
       /\.planet-accessibility-controls\s+\.planet-body\s*{[\s\S]*?opacity:\s*0/
+    )
+    expect(css).toMatch(
+      /\.planet-accessibility-controls\s+\.planet-body\s*{[\s\S]*?animation:\s*none/
+    )
+    expect(css).toMatch(
+      /\.planet-accessibility-controls\s+\.planet-body\s*{[\s\S]*?transition:\s*none/
+    )
+    expect(css).toMatch(
+      /\.planet-accessibility-controls\s+\.planet-sphere\s*{[\s\S]*?animation:\s*none/
     )
     expect(css).toMatch(
       /\.planet-accessibility-controls\s+\.planet-body:focus-visible\s*{[\s\S]*?(opacity|outline|filter):/
@@ -350,7 +368,7 @@ describe("UniverseCanvas", () => {
     expect(onEnterPlanet).toHaveBeenCalledWith("planet-1")
   })
 
-  it("keeps hover preview and detail behavior through the DOM fallback controls", () => {
+  it("keeps keyboard-only focus and selection behavior through the DOM fallback controls", () => {
     const onHoverPlanet = vi.fn()
     const onLeavePlanet = vi.fn()
     const onEnterPlanet = vi.fn()
@@ -370,13 +388,11 @@ describe("UniverseCanvas", () => {
     const fallbackPlanet = screen.getByRole("button", { name: "工作 行星" })
 
     fireEvent.focus(fallbackPlanet)
-    fireEvent.pointerMove(fallbackPlanet, { clientX: 321, clientY: 222 })
-    fireEvent.click(fallbackPlanet)
-    fireEvent.doubleClick(fallbackPlanet)
+    fireEvent.keyDown(fallbackPlanet, { key: "Enter" })
+    fireEvent.keyDown(fallbackPlanet, { key: " " })
     fireEvent.blur(fallbackPlanet)
 
     expect(onHoverPlanet).toHaveBeenCalledWith("planet-1", { x: 0, y: 0 })
-    expect(onHoverPlanet).toHaveBeenCalledWith("planet-1", { x: 321, y: 222 })
     expect(onSelectPlanet).toHaveBeenCalledWith("planet-1", { x: 0, y: 0 })
     expect(onEnterPlanet).toHaveBeenCalledWith("planet-1")
     expect(onLeavePlanet).toHaveBeenCalledWith("planet-1")
