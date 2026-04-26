@@ -4,30 +4,43 @@ import { act, render } from "@testing-library/react"
 import { memo } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import type { UniverseCardModel } from "@/components/site/life-universe/types"
+import type {
+  PlanetRenderLevel,
+  PlanetUniverseBodyModel,
+} from "@/components/site/life-universe/types"
+import type { PlanetPoint } from "@/components/site/life-universe/planet-body"
 
 const { renderCounts } = vi.hoisted(() => ({
   renderCounts: new Map<string, number>(),
 }))
 
-vi.mock("@/components/site/life-universe/universe-card", () => ({
-  UniverseCard: memo(function MockUniverseCard({
-    card,
-    isRelated,
+vi.mock("@/components/site/life-universe/planet-body", () => ({
+  PlanetBody: memo(function MockPlanetBody({
+    isFocused,
+    isHovered,
+    planet,
+    renderLevel,
   }: {
-    readonly card: UniverseCardModel
-    readonly isEntered?: boolean
-    readonly isRelated?: boolean
-    readonly isSelected: boolean
-    readonly onEnter: (cardId: string) => void
-    readonly onHover: (cardId: string) => void
-    readonly onSelect: (cardId: string) => void
+    readonly planet: PlanetUniverseBodyModel
+    readonly isFocused: boolean
+    readonly isHovered: boolean
+    readonly renderLevel: PlanetRenderLevel
+    readonly onEnter: (planetId: string) => void
+    readonly onHover: (planetId: string, point: PlanetPoint) => void
+    readonly onLeave: (planetId: string) => void
+    readonly onSelect: (planetId: string, point: PlanetPoint) => void
   }) {
-    renderCounts.set(card.id, (renderCounts.get(card.id) ?? 0) + 1)
+    renderCounts.set(planet.id, (renderCounts.get(planet.id) ?? 0) + 1)
 
     return (
-      <button type="button" data-related={isRelated ? "true" : "false"}>
-        {card.title}
+      <button
+        type="button"
+        data-focused={isFocused ? "true" : "false"}
+        data-hovered={isHovered ? "true" : "false"}
+        data-planet-id={planet.id}
+        data-render-level={renderLevel}
+      >
+        {planet.name}
       </button>
     )
   }),
@@ -35,46 +48,46 @@ vi.mock("@/components/site/life-universe/universe-card", () => ({
 
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
 
-const cards: ReadonlyArray<UniverseCardModel> = [
+const planets: ReadonlyArray<PlanetUniverseBodyModel> = [
   {
-    id: "card-1",
-    kind: "planet",
-    group: "planet",
-    importance: 10,
-    width: 180,
-    height: 120,
-    x: 120,
-    y: 80,
-    ring: 1,
-    angle: 45,
-    posture: { rotateX: 2, rotateY: -4, rotateZ: 1, translateZ: 20 },
-    layoutStatus: "placed",
-    category: "行星",
-    title: "卡片一",
-    excerpt: "第一张卡片",
-    date: "2026-04-24",
+    id: "planet-1",
+    planetId: 1,
+    slug: "work",
+    name: "工作",
+    summary: "工作与交付",
+    description: "工作如何发生",
+    level: 0,
+    size: 86,
     tone: "cyan",
-    status: "mature",
+    orbit: {
+      delaySeconds: -0.2,
+      durationSeconds: 31,
+      radius: 220,
+      startAngle: 45,
+    },
+    rotation: { durationSeconds: 18 },
+    publicMemoryCount: 2,
+    assistantMemoryCount: 1,
   },
   {
-    id: "card-2",
-    kind: "note",
-    group: "note",
-    importance: 6,
-    width: 140,
-    height: 96,
-    x: 360,
-    y: 220,
-    ring: 2,
-    angle: 90,
-    posture: { rotateX: -1, rotateY: 3, rotateZ: -2, translateZ: 8 },
-    layoutStatus: "placed",
-    category: "笔记",
-    title: "卡片二",
-    excerpt: "第二张卡片",
-    date: "2026-04-23",
-    tone: "violet",
-    status: "seedling",
+    id: "planet-2",
+    planetId: 2,
+    slug: "life",
+    name: "生活",
+    summary: "生活与节奏",
+    description: "日常生活感受",
+    level: 0,
+    size: 68,
+    tone: "teal",
+    orbit: {
+      delaySeconds: 0.3,
+      durationSeconds: 34,
+      radius: 260,
+      startAngle: 120,
+    },
+    rotation: { durationSeconds: 20 },
+    publicMemoryCount: 1,
+    assistantMemoryCount: 0,
   },
 ]
 
@@ -82,20 +95,24 @@ function buildProps(
   overrides: Partial<ComponentProps<typeof UniverseCanvas>> = {}
 ): ComponentProps<typeof UniverseCanvas> {
   return {
-    cards,
-    selectedCardId: "card-1",
-    relatedScopeCardId: undefined,
+    planets,
+    focusedPlanetId: "planet-1",
+    hoveredPlanetId: undefined,
+    relatedScopePlanetId: undefined,
+    hoverPoint: undefined,
     detail: undefined,
-    enteredCardId: undefined,
+    enteredPlanetId: undefined,
     zoom: 78,
     pan: { x: 0, y: 0 },
-    hasPlanets: true,
+    isMotionPaused: false,
     viewState: "overview",
-    onSelectCard: () => {},
-    onAskTwin: () => {},
-    onEnterCard: () => {},
+    onSelectPlanet: () => {},
+    onAskTwinPlanet: () => {},
+    onEnterPlanet: () => {},
+    onHoverPlanet: () => {},
+    onLeavePlanet: () => {},
+    onShowRelatedPlanet: () => {},
     onPanChange: () => {},
-    onShowRelated: () => {},
     onWheelZoom: () => {},
     ...overrides,
   }
@@ -108,40 +125,70 @@ afterEach(() => {
 })
 
 describe("UniverseCanvas", () => {
-  it("does not rerender memoized cards when parent callbacks change but card state is stable", () => {
+  it("does not rerender memoized planets when parent callbacks change but planet state is stable", () => {
     const { rerender } = render(<UniverseCanvas {...buildProps()} />)
 
-    expect(renderCounts.get("card-1")).toBe(1)
-    expect(renderCounts.get("card-2")).toBe(1)
+    expect(renderCounts.get("planet-1")).toBe(1)
+    expect(renderCounts.get("planet-2")).toBe(1)
 
     rerender(
       <UniverseCanvas
         {...buildProps({
-          onAskTwin: () => {},
-          onEnterCard: () => {},
-          onSelectCard: () => {},
-          onShowRelated: () => {},
+          onEnterPlanet: () => {},
+          onAskTwinPlanet: () => {},
+          onHoverPlanet: () => {},
+          onLeavePlanet: () => {},
+          onSelectPlanet: () => {},
+          onShowRelatedPlanet: () => {},
           onWheelZoom: () => {},
         })}
       />
     )
 
-    expect(renderCounts.get("card-1")).toBe(1)
-    expect(renderCounts.get("card-2")).toBe(1)
+    expect(renderCounts.get("planet-1")).toBe(1)
+    expect(renderCounts.get("planet-2")).toBe(1)
   })
 
-  it("marks related scope state on the viewport and cards", () => {
+  it("marks related scope state on the viewport and planets", () => {
     const { container, getByTestId } = render(
-      <UniverseCanvas {...buildProps({ relatedScopeCardId: "card-1" })} />
+      <UniverseCanvas {...buildProps({ relatedScopePlanetId: "planet-1" })} />
     )
 
-    expect(getByTestId("universe-viewport")).toHaveAttribute("data-related-scope", "true")
+    expect(getByTestId("universe-viewport")).toHaveAttribute(
+      "data-related-scope",
+      "true"
+    )
     expect(container.querySelector('[data-related="true"]')).toBeTruthy()
     expect(container.querySelector('[data-related="false"]')).toBeTruthy()
   })
 
+  it("renders planet orbit paths and hover preview", () => {
+    const { container, getByRole, getByTestId } = render(
+      <UniverseCanvas
+        {...buildProps({
+          hoveredPlanetId: "planet-1",
+          hoverPoint: { x: 320, y: 220 },
+          isMotionPaused: true,
+        })}
+      />
+    )
+
+    expect(container.querySelector(".planet-orbit-system")).toBeTruthy()
+    expect(container.querySelectorAll(".planet-orbit-path")).toHaveLength(2)
+    expect(getByTestId("universe-viewport")).toHaveAttribute(
+      "data-motion-paused",
+      "true"
+    )
+    expect(getByRole("dialog", { name: "工作 预览" })).toHaveTextContent(
+      "工作与交付"
+    )
+  })
+
   it("cancels trackpad pinch wheel events on the canvas before the browser can zoom the page", () => {
-    const addEventListenerSpy = vi.spyOn(HTMLElement.prototype, "addEventListener")
+    const addEventListenerSpy = vi.spyOn(
+      HTMLElement.prototype,
+      "addEventListener"
+    )
     const onWheelZoom = vi.fn()
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       callback(0)
@@ -153,15 +200,16 @@ describe("UniverseCanvas", () => {
     )
     const canvas = getByRole("region", { name: "空境宇宙画布" })
 
-    const hasNonPassiveCanvasWheelListener = addEventListenerSpy.mock.calls.some(
-      ([eventName, , options], index) =>
-        addEventListenerSpy.mock.contexts[index] === canvas &&
-        eventName === "wheel" &&
-        typeof options === "object" &&
-        options !== null &&
-        "passive" in options &&
-        options.passive === false
-    )
+    const hasNonPassiveCanvasWheelListener =
+      addEventListenerSpy.mock.calls.some(
+        ([eventName, , options], index) =>
+          addEventListenerSpy.mock.contexts[index] === canvas &&
+          eventName === "wheel" &&
+          typeof options === "object" &&
+          options !== null &&
+          "passive" in options &&
+          options.passive === false
+      )
     expect(hasNonPassiveCanvasWheelListener).toBe(true)
 
     const event = new WheelEvent("wheel", {

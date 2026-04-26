@@ -3,11 +3,19 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import type {
   CanvasPan,
+  PlanetUniverseBodyModel,
   PlanetDetailModel,
-  UniverseCardModel,
   UniverseViewState,
 } from "@/components/site/life-universe/types"
-import { UniverseCard } from "@/components/site/life-universe/universe-card"
+import {
+  PlanetBody,
+  type PlanetPoint,
+} from "@/components/site/life-universe/planet-body"
+import { PlanetHoverPreview } from "@/components/site/life-universe/planet-hover-preview"
+import {
+  buildPlanetPreview,
+  getPlanetRenderLevel,
+} from "@/components/site/life-universe/planet-universe-model"
 
 const BASE_ZOOM = 78
 const AMBIENT_STARS = [
@@ -20,36 +28,44 @@ const AMBIENT_STARS = [
 ] as const
 
 export function UniverseCanvas({
-  cards,
-  selectedCardId,
-  relatedScopeCardId,
+  planets,
+  focusedPlanetId,
+  hoveredPlanetId,
+  relatedScopePlanetId,
+  hoverPoint,
   detail,
-  enteredCardId,
+  enteredPlanetId,
   zoom,
   pan,
-  hasPlanets,
+  isMotionPaused,
   viewState,
-  onSelectCard,
-  onAskTwin,
-  onEnterCard,
+  onSelectPlanet,
+  onAskTwinPlanet,
+  onEnterPlanet,
+  onHoverPlanet,
+  onLeavePlanet,
   onPanChange,
-  onShowRelated,
+  onShowRelatedPlanet,
   onWheelZoom,
 }: {
-  readonly cards: ReadonlyArray<UniverseCardModel>
-  readonly selectedCardId: string
-  readonly relatedScopeCardId?: string
+  readonly planets: ReadonlyArray<PlanetUniverseBodyModel>
+  readonly focusedPlanetId?: string
+  readonly hoveredPlanetId?: string
+  readonly relatedScopePlanetId?: string
+  readonly hoverPoint?: PlanetPoint
   readonly detail?: PlanetDetailModel
-  readonly enteredCardId?: string
+  readonly enteredPlanetId?: string
   readonly zoom: number
   readonly pan: CanvasPan
-  readonly hasPlanets: boolean
+  readonly isMotionPaused: boolean
   readonly viewState: UniverseViewState
-  readonly onSelectCard: (cardId: string) => void
-  readonly onAskTwin: (cardId: string) => void
-  readonly onEnterCard: (cardId: string) => void
+  readonly onSelectPlanet: (planetId: string, point: PlanetPoint) => void
+  readonly onAskTwinPlanet: (planetId: string) => void
+  readonly onEnterPlanet: (planetId: string) => void
+  readonly onHoverPlanet: (planetId: string, point: PlanetPoint) => void
+  readonly onLeavePlanet: (planetId: string) => void
   readonly onPanChange: (pan: CanvasPan) => void
-  readonly onShowRelated: (cardId: string) => void
+  readonly onShowRelatedPlanet: (planetId: string) => void
   readonly onWheelZoom: (deltaY: number) => void
 }) {
   const [isCameraGestureActive, setIsCameraGestureActive] = useState(false)
@@ -74,16 +90,17 @@ export function UniverseCanvas({
   const wheelFrameRef = useRef<number | undefined>(undefined)
   const wheelDeltaRef = useRef(0)
   const cameraGestureActiveRef = useRef(false)
-  const cameraGestureTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
-  )
+  const cameraGestureTimeoutRef = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined)
   const onPanChangeRef = useRef(onPanChange)
   const onWheelZoomRef = useRef(onWheelZoom)
-  const onEnterCardRef = useRef(onEnterCard)
-  const onSelectCardRef = useRef(onSelectCard)
-  const onAskTwinRef = useRef(onAskTwin)
-  const onShowRelatedRef = useRef(onShowRelated)
-  const isRelatedScopeActive = Boolean(relatedScopeCardId)
+  const onEnterPlanetRef = useRef(onEnterPlanet)
+  const onSelectPlanetRef = useRef(onSelectPlanet)
+  const onHoverPlanetRef = useRef(onHoverPlanet)
+  const onLeavePlanetRef = useRef(onLeavePlanet)
+  const isRelatedScopeActive = Boolean(relatedScopePlanetId)
+  const hoveredPlanet = planets.find((planet) => planet.id === hoveredPlanetId)
 
   const activateCameraGesture = useCallback(() => {
     if (!cameraGestureActiveRef.current) {
@@ -102,28 +119,31 @@ export function UniverseCanvas({
     }, 140)
   }, [])
 
-  const scheduleWheel = useCallback((deltaY: number) => {
-    activateCameraGesture()
+  const scheduleWheel = useCallback(
+    (deltaY: number) => {
+      activateCameraGesture()
 
-    if (typeof requestAnimationFrame === "undefined") {
-      onWheelZoomRef.current(deltaY)
-      return
-    }
+      if (typeof requestAnimationFrame === "undefined") {
+        onWheelZoomRef.current(deltaY)
+        return
+      }
 
-    if (wheelFrameRef.current !== undefined) {
+      if (wheelFrameRef.current !== undefined) {
+        wheelDeltaRef.current += deltaY
+        return
+      }
+
       wheelDeltaRef.current += deltaY
-      return
-    }
+      wheelFrameRef.current = requestAnimationFrame(() => {
+        const nextDelta = wheelDeltaRef.current
 
-    wheelDeltaRef.current += deltaY
-    wheelFrameRef.current = requestAnimationFrame(() => {
-      const nextDelta = wheelDeltaRef.current
-
-      wheelDeltaRef.current = 0
-      wheelFrameRef.current = undefined
-      onWheelZoomRef.current(nextDelta)
-    })
-  }, [activateCameraGesture])
+        wheelDeltaRef.current = 0
+        wheelFrameRef.current = undefined
+        onWheelZoomRef.current(nextDelta)
+      })
+    },
+    [activateCameraGesture]
+  )
 
   useEffect(() => {
     onPanChangeRef.current = onPanChange
@@ -134,20 +154,20 @@ export function UniverseCanvas({
   }, [onWheelZoom])
 
   useEffect(() => {
-    onEnterCardRef.current = onEnterCard
-  }, [onEnterCard])
+    onEnterPlanetRef.current = onEnterPlanet
+  }, [onEnterPlanet])
 
   useEffect(() => {
-    onSelectCardRef.current = onSelectCard
-  }, [onSelectCard])
+    onSelectPlanetRef.current = onSelectPlanet
+  }, [onSelectPlanet])
 
   useEffect(() => {
-    onAskTwinRef.current = onAskTwin
-  }, [onAskTwin])
+    onHoverPlanetRef.current = onHoverPlanet
+  }, [onHoverPlanet])
 
   useEffect(() => {
-    onShowRelatedRef.current = onShowRelated
-  }, [onShowRelated])
+    onLeavePlanetRef.current = onLeavePlanet
+  }, [onLeavePlanet])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -204,20 +224,26 @@ export function UniverseCanvas({
     })
   }
 
-  const handleCardEnter = useCallback((cardId: string) => {
-    onEnterCardRef.current(cardId)
+  const handlePlanetEnter = useCallback((planetId: string) => {
+    onEnterPlanetRef.current(planetId)
   }, [])
 
-  const handleCardSelect = useCallback((cardId: string) => {
-    onSelectCardRef.current(cardId)
-  }, [])
+  const handlePlanetSelect = useCallback(
+    (planetId: string, point: PlanetPoint) => {
+      onSelectPlanetRef.current(planetId, point)
+    },
+    []
+  )
 
-  const handleCardAskTwin = useCallback((cardId: string) => {
-    onAskTwinRef.current(cardId)
-  }, [])
+  const handlePlanetHover = useCallback(
+    (planetId: string, point: PlanetPoint) => {
+      onHoverPlanetRef.current(planetId, point)
+    },
+    []
+  )
 
-  const handleCardShowRelated = useCallback((cardId: string) => {
-    onShowRelatedRef.current(cardId)
+  const handlePlanetLeave = useCallback((planetId: string) => {
+    onLeavePlanetRef.current(planetId)
   }, [])
 
   function handleMouseDown(event: MouseEvent<HTMLElement>) {
@@ -265,7 +291,7 @@ export function UniverseCanvas({
       onMouseMove={handleMouseMove}
       onMouseUp={stopDrag}
       onMouseLeave={handleMouseLeave}
-      className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 cursor-grab overflow-hidden active:cursor-grabbing md:left-20 md:right-6 md:top-20 md:bottom-20"
+      className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 cursor-grab overflow-hidden active:cursor-grabbing md:top-20 md:right-6 md:bottom-20 md:left-20"
     >
       <div className="absolute inset-0 rounded-[2rem] border border-[var(--ns-glass-border)] bg-[var(--ns-canvas-wash)]" />
       <div
@@ -290,8 +316,8 @@ export function UniverseCanvas({
         ))}
       </div>
 
-      {!hasPlanets ? (
-        <div className="null-space-panel absolute left-1/2 top-1/2 z-30 w-72 -translate-x-1/2 -translate-y-1/2 p-4 text-center text-sm text-[var(--ns-text-tertiary)]">
+      {planets.length === 0 ? (
+        <div className="null-space-panel absolute top-1/2 left-1/2 z-30 w-72 -translate-x-1/2 -translate-y-1/2 p-4 text-center text-sm text-[var(--ns-text-tertiary)]">
           这个宇宙还没有星球。
         </div>
       ) : null}
@@ -299,8 +325,9 @@ export function UniverseCanvas({
       <div
         data-testid="universe-viewport"
         data-camera-mode={viewState === "inside" ? "inside" : "overview"}
+        data-motion-paused={isMotionPaused ? "true" : "false"}
         data-related-scope={isRelatedScopeActive ? "true" : "false"}
-        className="universe-scene-3d absolute left-1/2 top-1/2 h-[660px] w-[960px] origin-center"
+        className="universe-scene-3d absolute top-1/2 left-1/2 h-[660px] w-[960px] origin-center"
         style={{
           transform: "translate(-50%, -50%)",
         }}
@@ -356,60 +383,101 @@ export function UniverseCanvas({
             ))}
           </svg>
 
-          {cards.map((card) => (
-            <UniverseCard
-              key={card.id}
-              card={card}
-              isEntered={card.id === enteredCardId}
-              isRelated={!relatedScopeCardId || card.id === relatedScopeCardId}
-              isSelected={card.id === selectedCardId}
-              onAskTwin={handleCardAskTwin}
-              onEnter={handleCardEnter}
-              onSelect={handleCardSelect}
-              onShowRelated={handleCardShowRelated}
-            />
-          ))}
+          <div className="planet-orbit-system absolute inset-0">
+            {planets.map((planet) => {
+              const isFocused = planet.id === focusedPlanetId
+              const isHovered = planet.id === hoveredPlanetId
+              const isRelated =
+                !relatedScopePlanetId || planet.id === relatedScopePlanetId
+              const renderLevel = getPlanetRenderLevel({
+                distanceFromFocus: Math.abs(
+                  planet.orbit.radius -
+                    (planets.find((item) => item.id === focusedPlanetId)?.orbit
+                      .radius ?? planet.orbit.radius)
+                ),
+                isFocused,
+                isHovered,
+                totalPlanets: planets.length,
+              })
+
+              return (
+                <div
+                  key={planet.id}
+                  data-planet-orbit-id={planet.id}
+                  data-entered={
+                    planet.id === enteredPlanetId ? "true" : "false"
+                  }
+                  data-related={isRelated ? "true" : "false"}
+                  className="planet-orbit"
+                >
+                  <div
+                    aria-hidden="true"
+                    className="planet-orbit-path"
+                    style={
+                      {
+                        "--planet-orbit-radius": `${planet.orbit.radius}px`,
+                      } as CSSProperties
+                    }
+                  />
+                  <PlanetBody
+                    planet={planet}
+                    isFocused={isFocused}
+                    isHovered={isHovered}
+                    renderLevel={renderLevel}
+                    onEnter={handlePlanetEnter}
+                    onHover={handlePlanetHover}
+                    onLeave={handlePlanetLeave}
+                    onSelect={handlePlanetSelect}
+                  />
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
 
       <div className="grid gap-3 md:hidden">
-        {cards.map((card) => (
+        {planets.map((planet) => (
           <article
-            key={card.id}
-            data-testid="mobile-universe-card"
-            data-card-id={card.id}
-            data-related={!relatedScopeCardId || card.id === relatedScopeCardId ? "true" : "false"}
-            data-selected={card.id === selectedCardId ? "true" : "false"}
+            key={planet.id}
+            data-testid="mobile-planet-card"
+            data-planet-id={planet.id}
+            data-related={
+              !relatedScopePlanetId || planet.id === relatedScopePlanetId
+                ? "true"
+                : "false"
+            }
+            data-selected={planet.id === focusedPlanetId ? "true" : "false"}
             className="null-space-panel p-4 text-left data-[selected=true]:border-[var(--ns-accent-primary)]"
           >
             <span className="font-mono text-[0.68rem] text-[var(--ns-text-tertiary)]">
-              {card.category}
+              行星
             </span>
             <span className="mt-2 block font-semibold text-[var(--ns-text-primary)]">
-              {card.title}
+              {planet.name}
             </span>
             <span className="mt-2 block text-sm leading-6 text-[var(--ns-text-tertiary)]">
-              {card.excerpt}
+              {planet.summary}
             </span>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"
-                aria-label={`移动端进入 ${card.title}`}
-                onClick={() => onEnterCard(card.id)}
+                aria-label={`移动端进入 ${planet.name}`}
+                onClick={() => onEnterPlanet(planet.id)}
               >
                 进入
               </button>
               <button
                 type="button"
-                aria-label={`移动端询问 ${card.title}`}
-                onClick={() => onAskTwin(card.id)}
+                aria-label={`移动端询问 ${planet.name}`}
+                onClick={() => onAskTwinPlanet(planet.id)}
               >
                 问分身
               </button>
               <button
                 type="button"
-                aria-label={`移动端查看 ${card.title} 关联`}
-                onClick={() => onShowRelated(card.id)}
+                aria-label={`移动端查看 ${planet.name} 关联`}
+                onClick={() => onShowRelatedPlanet(planet.id)}
               >
                 关联
               </button>
@@ -417,6 +485,13 @@ export function UniverseCanvas({
           </article>
         ))}
       </div>
+      {hoveredPlanet && hoverPoint ? (
+        <PlanetHoverPreview
+          anchor={hoverPoint}
+          preview={buildPlanetPreview(hoveredPlanet)}
+          onEnter={() => handlePlanetEnter(hoveredPlanet.id)}
+        />
+      ) : null}
     </section>
   )
 }
@@ -430,7 +505,10 @@ function isInteractiveTarget(target: EventTarget) {
     return true
   }
 
-  if (target.closest('[data-testid="universe-card"]')) {
+  if (
+    target.closest('[data-testid="universe-card"]') ||
+    target.closest('[data-testid="planet-body"]')
+  ) {
     return false
   }
 

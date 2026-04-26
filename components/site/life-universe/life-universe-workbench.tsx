@@ -9,14 +9,13 @@ import type {
   HomePageViewProps,
   NullSpaceTheme,
   PlanetDetailModel,
+  PlanetUniverseBodyModel,
   UniverseCardModel,
-  UniverseCardStatus,
-  UniverseLayoutInputCard,
-  UniverseCardTone,
   UniverseViewState,
 } from "@/components/site/life-universe/types"
-import { layoutUniverseCards } from "@/components/site/life-universe/universe-layout"
+import type { PlanetPoint } from "@/components/site/life-universe/planet-body"
 import { PlanetDetailOverlay } from "@/components/site/life-universe/planet-detail-overlay"
+import { buildPlanetUniverseModel } from "@/components/site/life-universe/planet-universe-model"
 import { TwinOrb } from "@/components/site/life-universe/twin-orb"
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
 import { UniverseSidebar } from "@/components/site/life-universe/universe-sidebar"
@@ -30,47 +29,31 @@ const MIN_ZOOM = 50
 const MAX_ZOOM = 150
 const DEFAULT_PAN: CanvasPan = { x: 0, y: 0 }
 
-const UNIVERSE_VIEWPORT = {
-  centerX: 480,
-  centerY: 330,
-  height: 660,
-  width: 960,
-} as const
-
-const CARD_SIZE = {
-  core: { width: 286, height: 190 },
-  planet: { width: 172, height: 132 },
-  feature: { width: 160, height: 128 },
-  note: { width: 140, height: 96 },
-} as const
-const MAX_HOME_NOTE_PREVIEW_CARDS = 1
-
-const toneByTheme: Record<string, UniverseCardTone> = {
-  blue: "blue",
-  cyan: "cyan",
-  emerald: "emerald",
-  teal: "teal",
-  violet: "violet",
-}
-
-type BaseUniverseCard = UniverseLayoutInputCard & {
-  readonly category: string
-  readonly date: string
-  readonly excerpt: string
-  readonly featured?: boolean
-  readonly href?: string
-  readonly planetId?: number
-  readonly status: UniverseCardStatus
-  readonly title: string
-  readonly tone: UniverseCardTone
-}
-
 export function LifeUniverseWorkbench(props: HomePageViewProps) {
-  const cards = useMemo(() => buildUniverseCards(props), [props])
-  const [selectedCardId, setSelectedCardId] = useState(cards[0]?.id ?? "garden")
-  const [relatedScopeCardId, setRelatedScopeCardId] = useState<string | undefined>(undefined)
+  const universe = useMemo(
+    () =>
+      buildPlanetUniverseModel({
+        memories: props.memories,
+        planets: props.planets,
+      }),
+    [props.memories, props.planets]
+  )
+  const [focusedPlanetId, setFocusedPlanetId] = useState<string | undefined>(
+    universe.planets[0]?.id
+  )
+  const [hoveredPlanetId, setHoveredPlanetId] = useState<string | undefined>(
+    undefined
+  )
+  const [hoverPoint, setHoverPoint] = useState<PlanetPoint | undefined>(
+    undefined
+  )
+  const [relatedScopePlanetId, setRelatedScopePlanetId] = useState<
+    string | undefined
+  >(undefined)
   const [viewState, setViewState] = useState<UniverseViewState>("overview")
-  const [enteredCardId, setEnteredCardId] = useState<string | undefined>(undefined)
+  const [enteredPlanetId, setEnteredPlanetId] = useState<string | undefined>(
+    undefined
+  )
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
   const [pan, setPan] = useState<CanvasPan>(DEFAULT_PAN)
   const [theme, setTheme] = useState<NullSpaceTheme>("dark")
@@ -87,19 +70,36 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     },
   ])
   const interactiveShellRef = useRef<HTMLDivElement | null>(null)
-  const selectedCard = useMemo(
-    () => cards.find((card) => card.id === selectedCardId) ?? cards[0],
-    [cards, selectedCardId]
+  const focusedPlanet = useMemo(
+    () =>
+      universe.planets.find((planet) => planet.id === focusedPlanetId) ??
+      universe.planets[0],
+    [focusedPlanetId, universe.planets]
   )
-  const enteredCard = useMemo(
-    () => cards.find((card) => card.id === enteredCardId),
-    [cards, enteredCardId]
+  const enteredPlanet = useMemo(
+    () => universe.planets.find((planet) => planet.id === enteredPlanetId),
+    [enteredPlanetId, universe.planets]
   )
-  const contextCard = enteredCard ?? selectedCard
+  const contextCard = useMemo(() => {
+    const activePlanet = enteredPlanet ?? focusedPlanet
+    return activePlanet ? buildContextCard(activePlanet) : undefined
+  }, [enteredPlanet, focusedPlanet])
   const detail = useMemo(
-    () => (enteredCard ? buildPlanetDetail(enteredCard, props) : undefined),
-    [enteredCard, props]
+    () => (enteredPlanet ? buildPlanetDetail(enteredPlanet, props) : undefined),
+    [enteredPlanet, props]
   )
+  const isMotionPaused = Boolean(hoveredPlanetId || enteredPlanetId)
+
+  useEffect(() => {
+    if (
+      focusedPlanetId &&
+      universe.planets.some((planet) => planet.id === focusedPlanetId)
+    ) {
+      return
+    }
+
+    setFocusedPlanetId(universe.planets[0]?.id)
+  }, [focusedPlanetId, universe.planets])
 
   function zoomIn() {
     setZoom((current) => clampZoom(current + 10))
@@ -110,15 +110,19 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   }
 
   function zoomFromWheel(deltaY: number) {
-    setZoom((current) => clampZoom(current - deltaY / WHEEL_DELTA_PER_ZOOM_POINT))
+    setZoom((current) =>
+      clampZoom(current - deltaY / WHEEL_DELTA_PER_ZOOM_POINT)
+    )
   }
 
   function resetCanvas() {
     setZoom(DEFAULT_ZOOM)
     setPan(DEFAULT_PAN)
-    setSelectedCardId(cards[0]?.id ?? "garden")
-    setRelatedScopeCardId(undefined)
-    setEnteredCardId(undefined)
+    setFocusedPlanetId(universe.planets[0]?.id)
+    setHoveredPlanetId(undefined)
+    setHoverPoint(undefined)
+    setRelatedScopePlanetId(undefined)
+    setEnteredPlanetId(undefined)
     setViewState("overview")
   }
 
@@ -126,20 +130,37 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setTheme((current) => (current === "dark" ? "light" : "dark"))
   }
 
-  function selectCard(cardId: string) {
-    setSelectedCardId(cardId)
-    setRelatedScopeCardId(undefined)
+  function selectPlanet(planetId: string, point: PlanetPoint) {
+    setFocusedPlanetId(planetId)
+    setHoveredPlanetId(planetId)
+    setHoverPoint(point)
+    setRelatedScopePlanetId(undefined)
   }
 
-  function enterCard(cardId: string) {
-    setSelectedCardId(cardId)
-    setRelatedScopeCardId(undefined)
-    setEnteredCardId(cardId)
+  function hoverPlanet(planetId: string, point: PlanetPoint) {
+    setFocusedPlanetId(planetId)
+    setHoveredPlanetId(planetId)
+    setHoverPoint(point)
+  }
+
+  function leavePlanet(planetId: string) {
+    setHoveredPlanetId((current) =>
+      current === planetId ? undefined : current
+    )
+    setHoverPoint(undefined)
+  }
+
+  function enterPlanet(planetId: string) {
+    setFocusedPlanetId(planetId)
+    setHoveredPlanetId(undefined)
+    setHoverPoint(undefined)
+    setRelatedScopePlanetId(undefined)
+    setEnteredPlanetId(planetId)
     setViewState("inside")
   }
 
-  function leaveCard() {
-    setEnteredCardId(undefined)
+  function leavePlanetDetail() {
+    setEnteredPlanetId(undefined)
     setViewState("overview")
   }
 
@@ -166,7 +187,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         return
       }
       if (viewState === "inside") {
-        setEnteredCardId(undefined)
+        setEnteredPlanetId(undefined)
         setViewState("overview")
       }
     }
@@ -175,15 +196,17 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [isTwinExpanded, viewState])
 
-  function askTwin(cardId: string) {
-    setSelectedCardId(cardId)
+  function askTwin(planetId: string) {
+    setFocusedPlanetId(planetId)
     setIsTwinExpanded(true)
   }
 
-  function showRelated(cardId: string) {
-    setSelectedCardId(cardId)
-    setRelatedScopeCardId(cardId)
-    setEnteredCardId(undefined)
+  function showRelated(planetId: string) {
+    setFocusedPlanetId(planetId)
+    setRelatedScopePlanetId(planetId)
+    setEnteredPlanetId(undefined)
+    setHoveredPlanetId(undefined)
+    setHoverPoint(undefined)
     setViewState("overview")
   }
 
@@ -246,7 +269,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         {
           id: `assistant-${Date.now()}`,
           role: "assistant",
-      content: "当前无法连接数字分身，我已经保留了你的问题。",
+          content: "当前无法连接数字分身，我已经保留了你的问题。",
           mode: "fallback",
           references: [],
         },
@@ -259,14 +282,18 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   return (
     <div
       data-testid="null-space-shell"
-      data-related-scope={relatedScopeCardId ? "true" : "false"}
+      data-motion-paused={isMotionPaused ? "true" : "false"}
+      data-related-scope={relatedScopePlanetId ? "true" : "false"}
       data-theme={theme}
       data-view-state={viewState}
       className="null-space-shell relative isolate min-h-screen overflow-hidden"
     >
       <div className="null-space-grid absolute inset-0" aria-hidden="true" />
       <div className="null-space-noise absolute inset-0" aria-hidden="true" />
-      <div className="null-space-vignette absolute inset-0" aria-hidden="true" />
+      <div
+        className="null-space-vignette absolute inset-0"
+        aria-hidden="true"
+      />
       <div
         ref={interactiveShellRef}
         data-testid="universe-interactive-shell"
@@ -275,20 +302,24 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         <UniverseSidebar />
         <UniverseTopbar theme={theme} onToggleTheme={toggleTheme} />
         <UniverseCanvas
-          cards={cards}
-          selectedCardId={selectedCardId}
-          relatedScopeCardId={relatedScopeCardId}
+          planets={universe.planets}
+          focusedPlanetId={focusedPlanetId}
+          hoveredPlanetId={hoveredPlanetId}
+          relatedScopePlanetId={relatedScopePlanetId}
+          hoverPoint={hoverPoint}
           detail={detail}
-          enteredCardId={enteredCardId}
+          enteredPlanetId={enteredPlanetId}
           zoom={zoom}
           pan={pan}
-          hasPlanets={props.planets.length > 0}
+          isMotionPaused={isMotionPaused}
           viewState={viewState}
-          onSelectCard={selectCard}
-          onAskTwin={askTwin}
-          onEnterCard={enterCard}
+          onSelectPlanet={selectPlanet}
+          onAskTwinPlanet={askTwin}
+          onEnterPlanet={enterPlanet}
+          onHoverPlanet={hoverPlanet}
+          onLeavePlanet={leavePlanet}
           onPanChange={setPan}
-          onShowRelated={showRelated}
+          onShowRelatedPlanet={showRelated}
           onWheelZoom={zoomFromWheel}
         />
         <UniverseToolbar
@@ -322,7 +353,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
           detail={detail}
           isModal={!isTwinExpanded}
           onAskTwin={() => askTwin(detail.card.id)}
-          onLeave={leaveCard}
+          onLeave={leavePlanetDetail}
           onShowRelated={() => showRelated(detail.card.id)}
         />
       ) : null}
@@ -334,127 +365,11 @@ function clampZoom(value: number) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value))
 }
 
-function buildUniverseCards({
-  essays,
-  notes,
-  planets,
-  profile,
-  projects,
-}: HomePageViewProps): ReadonlyArray<UniverseCardModel> {
-  const visibleNotes = notes.slice(0, MAX_HOME_NOTE_PREVIEW_CARDS)
-  const baseCards = [
-    {
-      id: "garden",
-      kind: "core" as const,
-      group: "self",
-      importance: 10,
-      ...CARD_SIZE.core,
-      category: "数字花园",
-      title: "构建你的数字花园",
-      excerpt: profile.heroTitle || profile.heroIntro,
-      date: "2024.05.12",
-      href: "/about",
-      tone: "teal" as const,
-      status: "mature" as const,
-      featured: true,
-    },
-    ...planets.map((planet, index) => ({
-      id: `planet-${planet.id}`,
-      kind: "planet" as const,
-      group: planet.slug,
-      importance: planet.weight ?? Math.max(1, planets.length - index),
-      ...CARD_SIZE.planet,
-      category: "行星",
-      title: planet.name,
-      excerpt: planet.summary,
-      date: "2024.05.12",
-      tone: toneByTheme[planet.theme] ?? "violet",
-      status: "mature" as const,
-      planetId: planet.id,
-    })),
-    ...(essays[0]
-      ? [
-          {
-            id: `essay-${essays[0].slug}`,
-            kind: "essay" as const,
-            group: essays[0].slug,
-            importance: 3,
-            ...CARD_SIZE.feature,
-            category: "技术趋势",
-            title: essays[0].title,
-            excerpt: essays[0].description,
-            date: essays[0].publishedAt.replaceAll("-", "."),
-            href: `/essays/${essays[0].slug}`,
-            tone: "violet" as const,
-            status: "growing" as const,
-          },
-        ]
-      : []),
-    ...(projects[0]
-      ? [
-          {
-            id: `project-${projects[0].slug}`,
-            kind: "project" as const,
-            group: projects[0].slug,
-            importance: 3,
-            ...CARD_SIZE.feature,
-            category: "产品思考",
-            title: projects[0].title,
-            excerpt: projects[0].description,
-            date: "2024.04.26",
-            href: "/projects",
-            tone: "violet" as const,
-            status: "archived" as const,
-          },
-        ]
-      : []),
-    ...visibleNotes.map((note, index) => ({
-      id: `note-${note.slug}`,
-      kind: "note" as const,
-      group: note.slug,
-      importance: 2,
-      ...CARD_SIZE.note,
-      category: "碎片笔记",
-      title: note.title,
-      excerpt: note.body,
-      date: note.publishedAt.replaceAll("-", "."),
-      href: "/notes",
-      tone: index === 0 ? ("cyan" as const) : ("neutral" as const),
-      status: "seedling" as const,
-    })),
-  ] satisfies ReadonlyArray<BaseUniverseCard>
-
-  const placements = layoutUniverseCards(
-    baseCards.map(({ group, height, id, importance, kind, width }) => ({
-      group,
-      height,
-      id,
-      importance,
-      kind,
-      width,
-    })),
-    UNIVERSE_VIEWPORT
-  )
-  const placementById = new Map(placements.map((placement) => [placement.id, placement]))
-
-  return baseCards.map((card) => {
-    const placement = placementById.get(card.id)
-
-    if (!placement) {
-      throw new Error(`Missing layout placement for universe card: ${card.id}`)
-    }
-
-    return {
-      ...card,
-      ...placement,
-    }
-  })
-}
-
 function buildPlanetDetail(
-  card: UniverseCardModel,
+  planet: PlanetUniverseBodyModel,
   { essays, memories, notes, projects }: HomePageViewProps
 ): PlanetDetailModel {
+  const card = buildContextCard(planet)
   const keyMemories = memories
     .filter((memory) =>
       card.planetId
@@ -487,5 +402,42 @@ function buildPlanetDetail(
       relatedTitles.length > 0
         ? relatedTitles
         : ["关联内容正在形成，下一次沉淀会先出现在这里。"],
+  }
+}
+
+function buildContextCard(planet: PlanetUniverseBodyModel): UniverseCardModel {
+  const angle = planet.orbit.startAngle
+  const radians = (angle * Math.PI) / 180
+  const width = planet.size
+  const height = planet.size
+
+  return {
+    id: planet.id,
+    kind: "planet",
+    group: planet.slug,
+    importance: Math.max(
+      1,
+      planet.publicMemoryCount + planet.assistantMemoryCount
+    ),
+    width,
+    height,
+    x: 480 + Math.cos(radians) * planet.orbit.radius - width / 2,
+    y: 330 + Math.sin(radians) * planet.orbit.radius - height / 2,
+    ring: planet.level,
+    angle,
+    posture: {
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
+      translateZ: 0,
+    },
+    layoutStatus: "placed",
+    category: "行星",
+    title: planet.name,
+    excerpt: planet.summary,
+    date: "2024.05.12",
+    tone: planet.tone,
+    status: "mature",
+    planetId: planet.planetId,
   }
 }

@@ -8,15 +8,6 @@ import { HomePageView } from "@/components/site/home-page-view"
 import { LIFE_UNIVERSE_GALAXIES } from "@/lib/life-universe/taxonomy"
 
 type HomePageViewProps = ComponentProps<typeof HomePageView>
-type LayoutRect = {
-  height: number
-  status: string
-  width: number
-  x: number
-  y: number
-}
-
-const LAYOUT_MARGIN = 32
 
 function buildProps(
   overrides: Partial<HomePageViewProps> = {}
@@ -202,39 +193,28 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function parseLayoutRect(card: HTMLElement): LayoutRect {
-  return {
-    height: Number(card.getAttribute("data-layout-height")),
-    status: card.getAttribute("data-layout-status") ?? "",
-    width: Number(card.getAttribute("data-layout-width")),
-    x: Number(card.getAttribute("data-layout-x")),
-    y: Number(card.getAttribute("data-layout-y")),
-  }
-}
-
-function cardsOverlap(
-  first: LayoutRect,
-  second: LayoutRect,
-  margin = LAYOUT_MARGIN
-) {
-  return !(
-    first.x + first.width + margin < second.x - margin ||
-    second.x + second.width + margin < first.x - margin ||
-    first.y + first.height + margin < second.y - margin ||
-    second.y + second.height + margin < first.y - margin
-  )
-}
-
 describe("HomePageView", () => {
-  it("renders the seven taxonomy galaxies without changing homepage controls", () => {
+  it("renders planets as the default universe bodies instead of homepage cards", () => {
     render(<HomePageView {...buildProps({ planets: buildGalaxyPlanets() })} />)
 
     for (const galaxy of LIFE_UNIVERSE_GALAXIES) {
       expect(
-        screen.getByRole("button", { name: `聚焦 ${galaxy.name}` })
+        screen.getByRole("button", { name: `${galaxy.name} 行星` })
       ).toBeInTheDocument()
     }
 
+    expect(
+      screen.queryByRole("button", { name: "聚焦 构建你的数字花园" })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "聚焦 文章样例" })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "聚焦 项目样例" })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "聚焦 笔记样例" })
+    ).not.toBeInTheDocument()
     expect(screen.getByRole("button", { name: "搜索空间" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "筛选空间" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "新建" })).toHaveAttribute(
@@ -261,9 +241,9 @@ describe("HomePageView", () => {
       screen.queryByRole("complementary", { name: "数字分身" })
     ).not.toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "聚焦 工作" })
+      screen.getByRole("button", { name: "工作 行星" })
     ).toBeInTheDocument()
-    expect(screen.getAllByText("构建你的数字花园").length).toBeGreaterThan(0)
+    expect(screen.queryByText("构建你的数字花园")).not.toBeInTheDocument()
     expect(
       screen.getByRole("button", { name: "展开数字分身" })
     ).toBeInTheDocument()
@@ -272,55 +252,43 @@ describe("HomePageView", () => {
     ).toHaveAttribute("aria-hidden", "true")
   })
 
-  it("focuses constellation cards when they are selected", () => {
+  it("focuses planets when they are selected", () => {
     render(<HomePageView {...buildProps()} />)
 
-    fireEvent.click(screen.getByRole("button", { name: "聚焦 生活" }))
+    fireEvent.click(screen.getByRole("button", { name: "生活 行星" }))
 
     expect(screen.getByTestId("selected-card-title")).toHaveTextContent("生活")
-    expect(screen.getByRole("button", { name: "聚焦 生活" })).toHaveAttribute(
-      "data-selected",
+    expect(screen.getByRole("button", { name: "生活 行星" })).toHaveAttribute(
+      "data-focused",
       "true"
     )
-    expect(screen.getByRole("button", { name: "聚焦 工作" })).toHaveAttribute(
-      "data-selected",
+    expect(screen.getByRole("button", { name: "工作 行星" })).toHaveAttribute(
+      "data-focused",
       "false"
     )
   })
 
-  it("shows persistent 3D posture and opens selected card actions from the menu button", () => {
+  it("pauses motion and shows a hover preview when hovering a planet", () => {
     render(<HomePageView {...buildProps()} />)
 
-    const workCard = screen.getByRole("button", { name: "聚焦 工作" })
+    fireEvent.pointerMove(screen.getByRole("button", { name: "工作 行星" }), {
+      clientX: 320,
+      clientY: 220,
+    })
 
-    fireEvent.click(workCard)
-
-    expect(workCard.getAttribute("style")).toContain("--card-rotate-x")
-    expect(workCard.getAttribute("style")).toContain("--card-rotate-y")
-    expect(workCard.getAttribute("style")).toContain("--card-depth")
-
-    expect(screen.queryByTestId("planet-action-group")).not.toBeInTheDocument()
-    fireEvent.mouseEnter(workCard)
-    expect(screen.queryByTestId("planet-action-group")).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole("button", { name: "打开 工作 操作菜单" }))
-
-    expect(screen.getByRole("menu", { name: "工作 操作" })).toBeInTheDocument()
-    expect(
-      screen.getByRole("menuitem", { name: "进入 工作" })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("menuitem", { name: "询问 工作" })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("menuitem", { name: "查看 工作 关联" })
-    ).toBeInTheDocument()
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
+      "data-motion-paused",
+      "true"
+    )
+    expect(screen.getByRole("dialog", { name: "工作 预览" })).toHaveTextContent(
+      "工作与交付"
+    )
   })
 
   it("enters a planet detail overlay on double click and returns to the universe", () => {
     render(<HomePageView {...buildProps()} />)
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 工作" }))
+    fireEvent.doubleClick(screen.getByRole("button", { name: "工作 行星" }))
 
     const dialog = screen.getByRole("dialog", { name: "工作 行星详情" })
 
@@ -354,7 +322,7 @@ describe("HomePageView", () => {
     const viewport = screen.getByTestId("universe-viewport")
     expect(viewport).toHaveAttribute("data-camera-mode", "overview")
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 工作" }))
+    fireEvent.doubleClick(screen.getByRole("button", { name: "工作 行星" }))
 
     expect(viewport).toHaveAttribute("data-camera-mode", "inside")
 
@@ -366,7 +334,7 @@ describe("HomePageView", () => {
   it("uses Escape to collapse the digital twin before leaving planet detail", () => {
     render(<HomePageView {...buildProps()} />)
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 工作" }))
+    fireEvent.doubleClick(screen.getByRole("button", { name: "工作 行星" }))
     fireEvent.click(screen.getByRole("button", { name: "问分身" }))
 
     expect(
@@ -395,7 +363,7 @@ describe("HomePageView", () => {
   it("renders polished fallback detail content when public memory data is empty", () => {
     render(<HomePageView {...buildProps({ memories: [] })} />)
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 工作" }))
+    fireEvent.doubleClick(screen.getByRole("button", { name: "工作 行星" }))
 
     expect(
       screen.getByText(
@@ -404,23 +372,10 @@ describe("HomePageView", () => {
     ).toBeInTheDocument()
   })
 
-  it("exposes an enabled full-page link for detail cards with real routes", () => {
-    render(<HomePageView {...buildProps()} />)
-
-    fireEvent.doubleClick(
-      screen.getByRole("button", { name: "聚焦 文章样例" })
-    )
-
-    expect(screen.getByRole("link", { name: "打开完整页" })).toHaveAttribute(
-      "href",
-      "/essays/essay-1"
-    )
-  })
-
   it("applies a related-only state when the detail overlay requests related content", async () => {
     const { container } = render(<HomePageView {...buildProps()} />)
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 工作" }))
+    fireEvent.doubleClick(screen.getByRole("button", { name: "工作 行星" }))
     fireEvent.click(screen.getByRole("button", { name: "只看关联" }))
 
     await waitFor(() => {
@@ -437,22 +392,20 @@ describe("HomePageView", () => {
       "data-related-scope",
       "true"
     )
-    expect(screen.getByRole("button", { name: "聚焦 工作" })).toHaveAttribute(
-      "data-related",
-      "true"
-    )
-    expect(screen.getByRole("button", { name: "聚焦 生活" })).toHaveAttribute(
-      "data-related",
-      "false"
-    )
+    expect(
+      document.querySelector('[data-planet-orbit-id="planet-1"]')
+    ).toHaveAttribute("data-related", "true")
+    expect(
+      document.querySelector('[data-planet-orbit-id="planet-2"]')
+    ).toHaveAttribute("data-related", "false")
     expect(
       container.querySelector(
-        '[data-testid="mobile-universe-card"][data-card-id="planet-1"]'
+        '[data-testid="mobile-planet-card"][data-planet-id="planet-1"]'
       )
     ).toHaveAttribute("data-related", "true")
     expect(
       container.querySelector(
-        '[data-testid="mobile-universe-card"][data-card-id="planet-2"]'
+        '[data-testid="mobile-planet-card"][data-planet-id="planet-2"]'
       )
     ).toHaveAttribute("data-related", "false")
   })
@@ -495,7 +448,7 @@ describe("HomePageView", () => {
       />
     )
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 生活" }))
+    fireEvent.doubleClick(screen.getByRole("button", { name: "生活 行星" }))
 
     expect(screen.getByText("生活记忆")).toBeInTheDocument()
     expect(screen.queryByText("工作记忆")).not.toBeInTheDocument()
@@ -504,7 +457,7 @@ describe("HomePageView", () => {
   it("keeps overlay wheel and drag interactions from mutating the canvas state", () => {
     render(<HomePageView {...buildProps()} />)
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 工作" }))
+    fireEvent.doubleClick(screen.getByRole("button", { name: "工作 行星" }))
 
     const dialog = screen.getByRole("dialog", { name: "工作 行星详情" })
     const viewport = screen.getByTestId("universe-viewport")
@@ -524,7 +477,7 @@ describe("HomePageView", () => {
   it("isolates background controls while the detail overlay is open", () => {
     render(<HomePageView {...buildProps()} />)
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: "聚焦 工作" }))
+    fireEvent.doubleClick(screen.getByRole("button", { name: "工作 行星" }))
 
     const interactiveShell = screen.getByTestId("universe-interactive-shell")
 
@@ -537,30 +490,6 @@ describe("HomePageView", () => {
     expect(
       within(interactiveShell).queryByRole("button", { name: "放大画布" })
     ).toBeNull()
-  })
-
-  it("does not show hover action groups over the universe", () => {
-    render(<HomePageView {...buildProps()} />)
-
-    expect(screen.queryByTestId("planet-action-group")).not.toBeInTheDocument()
-
-    for (const card of screen.getAllByTestId("universe-card")) {
-      fireEvent.mouseEnter(card)
-      expect(
-        screen.queryByTestId("planet-action-group")
-      ).not.toBeInTheDocument()
-    }
-  })
-
-  it("keeps card dates in the card content flow", () => {
-    render(<HomePageView {...buildProps()} />)
-
-    const dateNodes = screen.getAllByTestId("universe-card-date")
-
-    expect(dateNodes.length).toBeGreaterThan(0)
-    expect(
-      dateNodes.every((dateNode) => !dateNode.className.includes("absolute"))
-    ).toBe(true)
   })
 
   it("zooms and resets the universe canvas", () => {
@@ -588,12 +517,9 @@ describe("HomePageView", () => {
 
     render(<HomePageView {...buildProps()} />)
 
-    fireEvent.wheel(
-      screen.getByRole("region", { name: "空境宇宙画布" }),
-      {
-        deltaY: -120,
-      }
-    )
+    fireEvent.wheel(screen.getByRole("region", { name: "空境宇宙画布" }), {
+      deltaY: -120,
+    })
 
     expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
 
@@ -683,7 +609,7 @@ describe("HomePageView", () => {
     })
   })
 
-  it("pans the universe camera when dragging from the canvas or a card", async () => {
+  it("pans the universe camera when dragging from the canvas or a planet", async () => {
     render(<HomePageView {...buildProps()} />)
 
     const canvas = screen.getByRole("region", {
@@ -706,8 +632,8 @@ describe("HomePageView", () => {
       transform: "translate(0px, 0px) scale(1)",
     })
 
-    const workCard = screen.getByRole("button", { name: "聚焦 工作" })
-    fireEvent.mouseDown(workCard, { clientX: 200, clientY: 220 })
+    const workPlanet = screen.getByRole("button", { name: "工作 行星" })
+    fireEvent.mouseDown(workPlanet, { clientX: 200, clientY: 220 })
     fireEvent.mouseMove(canvas, { clientX: 236, clientY: 258 })
     fireEvent.mouseUp(canvas)
 
@@ -716,43 +642,6 @@ describe("HomePageView", () => {
         transform: "translate(36px, 38px) scale(1)",
       })
     })
-  })
-
-  it("renders card maturity states and material tilt feedback", () => {
-    render(<HomePageView {...buildProps()} />)
-
-    const gardenCard = screen.getByRole("button", {
-      name: "聚焦 构建你的数字花园",
-    })
-    const noteCard = screen.getByRole("button", { name: "聚焦 笔记样例" })
-
-    expect(gardenCard).toHaveAttribute("data-status", "mature")
-    expect(noteCard).toHaveAttribute("data-status", "seedling")
-
-    fireEvent.mouseMove(gardenCard, { clientX: 80, clientY: 70 })
-
-    expect(gardenCard).toHaveStyle({
-      "--tilt-x": "8deg",
-      "--tilt-y": "-8deg",
-    })
-
-    fireEvent.mouseLeave(gardenCard)
-
-    expect(gardenCard).toHaveStyle({
-      "--tilt-x": "0deg",
-      "--tilt-y": "0deg",
-    })
-  })
-
-  it("scales card typography so compact cards still show their middle text", () => {
-    render(<HomePageView {...buildProps()} />)
-
-    const noteCard = screen.getByRole("button", { name: "聚焦 笔记样例" })
-    const noteTitle = within(noteCard).getByText("笔记样例")
-
-    expect(noteCard).toHaveAttribute("data-compact", "true")
-    expect(noteTitle.className).toContain("text-[0.72rem]")
-    expect(within(noteCard).getByText("一段简短笔记内容")).toBeInTheDocument()
   })
 
   it("renders a CSS-driven ambient field so the constellation is not static", () => {
@@ -766,42 +655,12 @@ describe("HomePageView", () => {
     expect(nodes.length).toBeGreaterThan(3)
   })
 
-  it("renders layout-driven cards without overlap metadata collisions", () => {
+  it("renders orbit paths for planet bodies", () => {
     render(<HomePageView {...buildProps()} />)
 
-    const cards = screen.getAllByTestId("universe-card")
-    const layoutRects = cards.map(parseLayoutRect)
-
-    expect(cards.length).toBeGreaterThan(8)
-    expect(cards.every((card) => card.getAttribute("data-ring"))).toBe(true)
-    expect(cards.every((card) => card.getAttribute("data-layout-x"))).toBe(true)
-    expect(cards.every((card) => card.getAttribute("data-layout-y"))).toBe(true)
-    expect(cards.every((card) => card.getAttribute("data-layout-width"))).toBe(
-      true
-    )
-    expect(cards.every((card) => card.getAttribute("data-layout-height"))).toBe(
-      true
-    )
-    expect(cards.every((card) => card.getAttribute("data-layout-status"))).toBe(
-      true
-    )
-    expect(
-      cards.every(
-        (card) => card.getAttribute("data-layout-status") !== "overlap-fallback"
-      )
-    ).toBe(true)
-
-    for (let index = 0; index < layoutRects.length; index += 1) {
-      for (
-        let nextIndex = index + 1;
-        nextIndex < layoutRects.length;
-        nextIndex += 1
-      ) {
-        expect(cardsOverlap(layoutRects[index], layoutRects[nextIndex])).toBe(
-          false
-        )
-      }
-    }
+    expect(document.querySelector(".planet-orbit-system")).toBeTruthy()
+    expect(document.querySelectorAll(".planet-orbit-path")).toHaveLength(6)
+    expect(screen.getAllByTestId("planet-body")).toHaveLength(6)
   })
 
   it("renders stable localized empty states when planets and memories are empty", () => {
@@ -814,13 +673,9 @@ describe("HomePageView", () => {
       />
     )
 
-    expect(
-      screen.getByText("这个宇宙还没有星球。")
-    ).toBeInTheDocument()
+    expect(screen.getByText("这个宇宙还没有星球。")).toBeInTheDocument()
     fireEvent.click(screen.getByRole("button", { name: "展开数字分身" }))
-    expect(
-      screen.getByText("还没有关联公开记忆。")
-    ).toBeInTheDocument()
+    expect(screen.getByText("还没有关联公开记忆。")).toBeInTheDocument()
   })
 
   it("renders content counts in the bottom status line", () => {
@@ -831,15 +686,12 @@ describe("HomePageView", () => {
     expect(screen.getByText("无限可能")).toBeInTheDocument()
   })
 
-  it("keeps card layout stable while typing in the twin panel", () => {
+  it("keeps planet body order stable while typing in the twin panel", () => {
     render(<HomePageView {...buildProps()} />)
 
     const before = screen
-      .getAllByTestId("universe-card")
-      .map(
-        (card) =>
-          `${card.getAttribute("data-layout-x")}:${card.getAttribute("data-layout-y")}`
-      )
+      .getAllByTestId("planet-body")
+      .map((planet) => planet.getAttribute("data-planet-id"))
 
     fireEvent.click(screen.getByRole("button", { name: "展开数字分身" }))
     fireEvent.change(screen.getByPlaceholderText("搜索或和数字分身聊聊..."), {
@@ -847,11 +699,8 @@ describe("HomePageView", () => {
     })
 
     const after = screen
-      .getAllByTestId("universe-card")
-      .map(
-        (card) =>
-          `${card.getAttribute("data-layout-x")}:${card.getAttribute("data-layout-y")}`
-      )
+      .getAllByTestId("planet-body")
+      .map((planet) => planet.getAttribute("data-planet-id"))
 
     expect(after).toEqual(before)
   })
@@ -893,7 +742,7 @@ describe("HomePageView", () => {
     expect(screen.getByText("记忆样例")).toBeInTheDocument()
   })
 
-  it("renders explicit mobile card actions and mobile enter opens detail", () => {
+  it("renders explicit mobile planet actions and mobile enter opens detail", () => {
     render(<HomePageView {...buildProps()} />)
 
     expect(
@@ -913,7 +762,7 @@ describe("HomePageView", () => {
     ).toBeInTheDocument()
   })
 
-  it("expands the embedded twin orb and sends chat in the selected card context", async () => {
+  it("expands the embedded twin orb and sends chat in the selected planet context", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -925,15 +774,13 @@ describe("HomePageView", () => {
     vi.stubGlobal("fetch", fetchMock)
     render(<HomePageView {...buildProps()} />)
 
-    fireEvent.click(screen.getByRole("button", { name: "聚焦 工作" }))
+    fireEvent.click(screen.getByRole("button", { name: "工作 行星" }))
     fireEvent.click(screen.getByRole("button", { name: "展开数字分身" }))
 
     expect(
       screen.getByRole("dialog", { name: "数字分身对话" })
     ).toHaveTextContent("当前上下文：工作")
-    expect(
-      screen.getByPlaceholderText("搜索或和数字分身聊聊...")
-    ).toHaveFocus()
+    expect(screen.getByPlaceholderText("搜索或和数字分身聊聊...")).toHaveFocus()
 
     fireEvent.change(screen.getByPlaceholderText("搜索或和数字分身聊聊..."), {
       target: { value: "总结这个行星" },
