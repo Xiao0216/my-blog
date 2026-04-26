@@ -2,6 +2,8 @@ import type { ComponentProps } from "react"
 
 import { within } from "@testing-library/dom"
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { HomePageView } from "@/components/site/home-page-view"
@@ -764,6 +766,48 @@ describe("HomePageView", () => {
       .map((planet) => planet.getAttribute("data-planet-id"))
 
     expect(after).toEqual(before)
+  })
+
+  it("derives the focused planet fallback when the selected planet disappears", () => {
+    const { rerender } = render(<HomePageView {...buildProps()} />)
+
+    fireEvent.click(screen.getByRole("button", { name: "生活 行星" }))
+
+    rerender(
+      <HomePageView
+        {...buildProps({
+          planets: buildProps().planets.filter((planet) => planet.slug !== "life"),
+        })}
+      />
+    )
+
+    expect(
+      screen.queryByRole("button", { name: "生活 行星" })
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "工作 行星" })).toHaveAttribute(
+      "data-focused",
+      "true"
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "展开数字分身" }))
+
+    expect(
+      screen.getByRole("dialog", { name: "数字分身对话" })
+    ).toHaveTextContent("当前上下文：工作")
+  })
+
+  it("keeps focused planet fallback derived instead of repairing it in an effect", () => {
+    const source = readFileSync(
+      join(
+        process.cwd(),
+        "components/site/life-universe/life-universe-workbench.tsx"
+      ),
+      "utf8"
+    )
+
+    expect(source).not.toMatch(
+      /useEffect\(\(\)\s*=>\s*{[\s\S]*?setFocusedPlanetId\(universe\.planets\[0\]\?\.id\)/
+    )
   })
 
   it("sends twin chat messages and renders references", async () => {

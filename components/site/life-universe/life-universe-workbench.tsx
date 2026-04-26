@@ -70,15 +70,18 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     },
   ])
   const interactiveShellRef = useRef<HTMLDivElement | null>(null)
-  const focusedPlanet = useMemo(
-    () => universe.planets.find((planet) => planet.id === focusedPlanetId),
+  const effectiveFocusedPlanet = useMemo(
+    () =>
+      universe.planets.find((planet) => planet.id === focusedPlanetId) ??
+      universe.planets[0],
     [focusedPlanetId, universe.planets]
   )
+  const effectiveFocusedPlanetId = effectiveFocusedPlanet?.id
   const enteredPlanet = useMemo(
     () => universe.planets.find((planet) => planet.id === enteredPlanetId),
     [enteredPlanetId, universe.planets]
   )
-  const activeContextPlanet = enteredPlanet ?? focusedPlanet
+  const activeContextPlanet = enteredPlanet ?? effectiveFocusedPlanet
   const contextCard = useMemo(() => {
     return activeContextPlanet
       ? buildContextCard(activeContextPlanet)
@@ -89,17 +92,6 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     [enteredPlanet, props]
   )
   const isMotionPaused = Boolean(hoveredPlanetId || enteredPlanetId)
-
-  useEffect(() => {
-    if (
-      focusedPlanetId &&
-      universe.planets.some((planet) => planet.id === focusedPlanetId)
-    ) {
-      return
-    }
-
-    setFocusedPlanetId(universe.planets[0]?.id)
-  }, [focusedPlanetId, universe.planets])
 
   function zoomIn() {
     setZoom((current) => clampZoom(current + 10))
@@ -303,7 +295,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         <UniverseTopbar theme={theme} onToggleTheme={toggleTheme} />
         <UniverseCanvas
           planets={universe.planets}
-          focusedPlanetId={focusedPlanetId}
+          focusedPlanetId={effectiveFocusedPlanetId}
           hoveredPlanetId={hoveredPlanetId}
           relatedScopePlanetId={relatedScopePlanetId}
           hoverPoint={hoverPoint}
