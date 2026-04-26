@@ -250,6 +250,33 @@ describe("PlanetUniverseScene", () => {
       expect(readConnection(
         screen.getByTestId("minimal-connections").getAttribute("data-first-connection")
       )).toEqual(beforePausedFrame)
+
+      const reseededActiveBody = {
+        ...activeBody,
+        orbit: {
+          ...activeBody.orbit,
+          delaySeconds: activeBody.orbit.delaySeconds + 3,
+          startAngle: activeBody.orbit.startAngle + 90,
+        },
+      }
+      const reseededBodies = [reseededActiveBody, ...scene.bodies.slice(1)]
+
+      rerender(
+        <MinimalConnections
+          activePlanetId={reseededActiveBody.id}
+          bodies={reseededBodies}
+          isMotionPaused={false}
+        />
+      )
+
+      const reseeded = readConnection(
+        screen.getByTestId("minimal-connections").getAttribute("data-first-connection")
+      )
+
+      expectPointCloseTo(
+        reseeded.slice(0, 3),
+        getMinimalOrbitPosition(reseededActiveBody, getMinimalOrbitSeed(reseededActiveBody))
+      )
     } finally {
       consoleErrorSpy.mockRestore()
     }

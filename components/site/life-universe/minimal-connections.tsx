@@ -69,9 +69,20 @@ export function MinimalConnections({
   readonly isMotionPaused: boolean
 }) {
   const anglesRef = useRef(new Map<string, number>())
+  const seedsRef = useRef(new Map<string, number>())
   const attributeRefs = useRef(new Map<string, MutableBufferAttribute | null>())
 
+  function syncOrbitSeed(body: MinimalThreeBody) {
+    const nextSeed = getMinimalOrbitSeed(body)
+
+    if (seedsRef.current.get(body.id) !== nextSeed) {
+      seedsRef.current.set(body.id, nextSeed)
+      anglesRef.current.set(body.id, nextSeed)
+    }
+  }
+
   function readAngle(body: MinimalThreeBody) {
+    syncOrbitSeed(body)
     return anglesRef.current.get(body.id) ?? getMinimalOrbitSeed(body)
   }
 
@@ -109,13 +120,12 @@ export function MinimalConnections({
     for (const bodyId of anglesRef.current.keys()) {
       if (!bodyIds.has(bodyId)) {
         anglesRef.current.delete(bodyId)
+        seedsRef.current.delete(bodyId)
       }
     }
 
     for (const body of bodies) {
-      if (!anglesRef.current.has(body.id)) {
-        anglesRef.current.set(body.id, getMinimalOrbitSeed(body))
-      }
+      syncOrbitSeed(body)
     }
   }, [bodies])
 
