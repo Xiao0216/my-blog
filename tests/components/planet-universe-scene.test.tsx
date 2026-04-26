@@ -115,6 +115,7 @@ describe("PlanetUniverseScene", () => {
         />
       )
 
+      expect(screen.getByTestId("minimal-three-scene")).toBeInTheDocument()
       expect(screen.getByTestId("mock-r3f-canvas")).toBeInTheDocument()
       expect(screen.getByTestId("minimal-star-field")).toHaveAttribute(
         "data-star-count",

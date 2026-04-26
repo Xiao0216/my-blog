@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useMemo, useRef } from "react"
+import { memo, useEffect, useMemo, useRef } from "react"
 
 import { useFrame } from "@react-three/fiber"
 
@@ -105,6 +105,9 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
   const bodyRef = useRef<{ scale: { setScalar: (value: number) => void } } | null>(null)
   const sphereRef = useRef<{ rotation: { y: number; z: number } } | null>(null)
   const ringRef = useRef<{ rotation: { z: number } } | null>(null)
+  const currentOrbitAngleRef = useRef(0)
+  const currentRotationAngleRef = useRef(0)
+  const currentRingRotationAngleRef = useRef(0)
 
   const colors = COLOR_SCHEMES[body.colorScheme]
   const radius = useMemo(() => getPlanetRadius(body), [body])
@@ -118,18 +121,32 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
   const zOffset = body.position[2]
   const isActive = isHovered || isFocused
 
-  useFrame(({ clock }) => {
+  useEffect(() => {
+    currentOrbitAngleRef.current = orbitStart + orbitOffset
+    currentRotationAngleRef.current = 0
+    currentRingRotationAngleRef.current = 0
+  }, [body.id, orbitOffset, orbitStart])
+
+  useFrame((_, delta = 0) => {
     if (!orbitRef.current || !bodyRef.current || !sphereRef.current) {
       return
     }
 
-    const orbitAngle = isMotionPaused
-      ? orbitStart
-      : orbitStart +
-        orbitOffset +
-        (clock.getElapsedTime() / Math.max(body.orbit.durationSeconds, 0.001)) * Math.PI * 2
     const quietScale = isActive ? 1.08 : isDimmed ? 0.9 : 1
-    const rotationSpeed = body.rotation.durationSeconds <= 0 ? 0 : 1 / body.rotation.durationSeconds
+    const safeDelta = Math.max(0, delta)
+    const orbitSpeed = (Math.PI * 2) / Math.max(body.orbit.durationSeconds, 0.001)
+    const rotationSpeed =
+      body.rotation.durationSeconds <= 0
+        ? 0
+        : (Math.PI * 2) / body.rotation.durationSeconds
+
+    if (!isMotionPaused) {
+      currentOrbitAngleRef.current += safeDelta * orbitSpeed
+      currentRotationAngleRef.current += safeDelta * rotationSpeed
+      currentRingRotationAngleRef.current += safeDelta * rotationSpeed * 0.35
+    }
+
+    const orbitAngle = currentOrbitAngleRef.current
 
     orbitRef.current.position.x = Math.cos(orbitAngle) * body.orbit.radius
     orbitRef.current.position.y = Math.sin(orbitAngle) * body.orbit.radius * 0.72
@@ -138,13 +155,11 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
 
     bodyRef.current.scale.setScalar(quietScale)
 
-    if (!isMotionPaused) {
-      sphereRef.current.rotation.y = clock.getElapsedTime() * rotationSpeed * Math.PI * 2
-      sphereRef.current.rotation.z = orbitTilt * 0.4
+    sphereRef.current.rotation.y = currentRotationAngleRef.current
+    sphereRef.current.rotation.z = orbitTilt * 0.4
 
-      if (ringRef.current) {
-        ringRef.current.rotation.z = clock.getElapsedTime() * rotationSpeed * 0.35
-      }
+    if (ringRef.current) {
+      ringRef.current.rotation.z = currentRingRotationAngleRef.current
     }
   })
 

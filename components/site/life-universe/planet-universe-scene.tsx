@@ -28,34 +28,36 @@ export function PlanetUniverseScene({
   const activePlanetId = hoveredPlanetId ?? focusedPlanetId
 
   return (
-    <Canvas
-      camera={{ fov: 42, position: [0, 0, 760] }}
-      data-testid="planet-universe-scene"
-      dpr={[1, 1.5]}
-    >
-      <color args={["#090b0d"]} attach="background" />
-      <ambientLight intensity={0.75} />
-      <directionalLight color="#d9d1c6" intensity={0.8} position={[180, 220, 260]} />
-      <pointLight color="#8c949f" intensity={0.4} position={[-240, -180, 180]} />
-      <group>
-        <MinimalStarField stars={scene.stars} />
-        <MinimalOrbitPaths bodies={scene.bodies} />
-        <MinimalConnections activePlanetId={activePlanetId} bodies={scene.bodies} />
-        {scene.bodies.map((body) => (
-          <group key={body.id}>
-            <MinimalPlanetMesh
-              body={body}
-              isDimmed={Boolean(activePlanetId) && activePlanetId !== body.id}
-              isFocused={focusedPlanetId === body.id}
-              isHovered={hoveredPlanetId === body.id}
-              isMotionPaused={isMotionPaused}
-              onEnterPlanet={onEnterPlanet}
-              onHoverPlanet={onHoverPlanet}
-              onLeavePlanet={onLeavePlanet}
-            />
-          </group>
-        ))}
-      </group>
-    </Canvas>
+    <div className="minimal-three-scene" data-testid="minimal-three-scene">
+      <Canvas
+        camera={{ fov: 42, position: [0, 0, 760] }}
+        data-testid="planet-universe-scene"
+        dpr={[1, 1.5]}
+      >
+        <color args={["#090b0d"]} attach="background" />
+        <ambientLight intensity={0.75} />
+        <directionalLight color="#d9d1c6" intensity={0.8} position={[180, 220, 260]} />
+        <pointLight color="#8c949f" intensity={0.4} position={[-240, -180, 180]} />
+        <group>
+          <MinimalStarField stars={scene.stars} />
+          <MinimalOrbitPaths bodies={scene.bodies} />
+          <MinimalConnections activePlanetId={activePlanetId} bodies={scene.bodies} />
+          {scene.bodies.map((body) => (
+            <group key={body.id}>
+              <MinimalPlanetMesh
+                body={body}
+                isDimmed={Boolean(activePlanetId) && activePlanetId !== body.id}
+                isFocused={focusedPlanetId === body.id}
+                isHovered={hoveredPlanetId === body.id}
+                isMotionPaused={isMotionPaused}
+                onEnterPlanet={onEnterPlanet}
+                onHoverPlanet={onHoverPlanet}
+                onLeavePlanet={onLeavePlanet}
+              />
+            </group>
+          ))}
+        </group>
+      </Canvas>
+    </div>
   )
 }
