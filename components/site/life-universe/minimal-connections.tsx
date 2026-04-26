@@ -72,20 +72,6 @@ export function MinimalConnections({
   const seedsRef = useRef(new Map<string, number>())
   const attributeRefs = useRef(new Map<string, MutableBufferAttribute | null>())
 
-  function syncOrbitSeed(body: MinimalThreeBody) {
-    const nextSeed = getMinimalOrbitSeed(body)
-
-    if (seedsRef.current.get(body.id) !== nextSeed) {
-      seedsRef.current.set(body.id, nextSeed)
-      anglesRef.current.set(body.id, nextSeed)
-    }
-  }
-
-  function readAngle(body: MinimalThreeBody) {
-    syncOrbitSeed(body)
-    return anglesRef.current.get(body.id) ?? getMinimalOrbitSeed(body)
-  }
-
   const connections = useMemo(() => {
     if (!activePlanetId) {
       return []
@@ -108,7 +94,11 @@ export function MinimalConnections({
           toBody: body,
         }
 
-        writeConnectionPositions(connection, readAngle(activeBody), readAngle(body))
+        writeConnectionPositions(
+          connection,
+          getMinimalOrbitSeed(activeBody),
+          getMinimalOrbitSeed(body)
+        )
 
         return connection
       })
@@ -125,12 +115,27 @@ export function MinimalConnections({
     }
 
     for (const body of bodies) {
-      syncOrbitSeed(body)
+      const nextSeed = getMinimalOrbitSeed(body)
+
+      if (seedsRef.current.get(body.id) !== nextSeed) {
+        seedsRef.current.set(body.id, nextSeed)
+        anglesRef.current.set(body.id, nextSeed)
+      }
     }
   }, [bodies])
 
   useFrame((_, delta = 0) => {
     const safeDelta = Math.max(0, delta)
+    const readAngle = (body: MinimalThreeBody) => {
+      const nextSeed = getMinimalOrbitSeed(body)
+
+      if (seedsRef.current.get(body.id) !== nextSeed) {
+        seedsRef.current.set(body.id, nextSeed)
+        anglesRef.current.set(body.id, nextSeed)
+      }
+
+      return anglesRef.current.get(body.id) ?? nextSeed
+    }
 
     if (!isMotionPaused) {
       for (const body of bodies) {
