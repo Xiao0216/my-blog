@@ -103,6 +103,13 @@ export function MinimalConnections({
         return connection
       })
   }, [activePlanetId, bodies])
+  const testProps =
+    process.env.NODE_ENV === "test"
+      ? {
+          "data-first-connection": formatConnection(connections[0]?.positions),
+          "data-testid": "minimal-connections",
+        }
+      : {}
 
   useEffect(() => {
     const bodyIds = new Set(bodies.map((body) => body.id))
@@ -162,10 +169,7 @@ export function MinimalConnections({
   })
 
   return (
-    <group
-      data-first-connection={formatConnection(connections[0]?.positions)}
-      data-testid="minimal-connections"
-    >
+    <group {...testProps}>
       {connections.map((connection) => (
         <line key={connection.id}>
           <bufferGeometry>

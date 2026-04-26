@@ -120,6 +120,14 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
   const orbitSeed = useMemo(() => getMinimalOrbitSeed(body), [body])
   const isActive = isHovered || isFocused
   const isAnimationFrozen = isMotionPaused || isReducedMotion
+  const testProps =
+    process.env.NODE_ENV === "test"
+      ? {
+          "data-focused": isFocused ? "true" : "false",
+          "data-hovered": isHovered ? "true" : "false",
+          "data-testid": `minimal-planet-mesh-${body.id}`,
+        }
+      : {}
 
   useEffect(() => {
     currentOrbitAngleRef.current = orbitSeed
@@ -164,9 +172,7 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
   return (
     <group
       ref={orbitRef}
-      data-focused={isFocused ? "true" : "false"}
-      data-hovered={isHovered ? "true" : "false"}
-      data-testid={`minimal-planet-mesh-${body.id}`}
+      {...testProps}
       onDoubleClick={() => onEnterPlanet(body.id)}
       onFocus={() => onHoverPlanet(body.id, { x: 0, y: 0 })}
       onPointerLeave={() => onLeavePlanet(body.id)}

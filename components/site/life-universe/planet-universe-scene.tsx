@@ -37,8 +37,8 @@ export function PlanetUniverseScene({
     >
       <Canvas
         camera={{ fov: 42, position: [0, 0, 760] }}
-        data-testid="planet-universe-scene"
         dpr={[1, 1.5]}
+        gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
       >
         <color args={["#090b0d"]} attach="background" />
         <ambientLight intensity={0.75} />

@@ -25,13 +25,20 @@ export function MinimalOrbitPaths({
 }: {
   readonly bodies: ReadonlyArray<MinimalThreeBody>
 }) {
+  const testProps =
+    process.env.NODE_ENV === "test"
+      ? {
+          "data-orbit-count": bodies.length,
+          "data-testid": "minimal-orbit-paths",
+        }
+      : {}
   const orbitPoints = useMemo(
     () => bodies.map((body) => buildOrbitPoints(body.orbit.radius, body.position[2])),
     [bodies]
   )
 
   return (
-    <group data-orbit-count={bodies.length} data-testid="minimal-orbit-paths">
+    <group {...testProps}>
       {orbitPoints.map((points, index) => (
         <line key={bodies[index].id}>
           <bufferGeometry>

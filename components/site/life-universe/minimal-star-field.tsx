@@ -9,6 +9,13 @@ export function MinimalStarField({
 }: {
   readonly stars: ReadonlyArray<MinimalStarPoint>
 }) {
+  const testProps =
+    process.env.NODE_ENV === "test"
+      ? {
+          "data-star-count": stars.length,
+          "data-testid": "minimal-star-field",
+        }
+      : {}
   const { colors, positions, sizes } = useMemo(() => {
     const nextPositions = new Float32Array(stars.length * 3)
     const nextColors = new Float32Array(stars.length * 3)
@@ -37,7 +44,7 @@ export function MinimalStarField({
   }, [stars])
 
   return (
-    <points data-star-count={stars.length} data-testid="minimal-star-field">
+    <points {...testProps}>
       <bufferGeometry>
         <bufferAttribute
           args={[positions, 3]}
