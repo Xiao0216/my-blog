@@ -133,3 +133,43 @@ export type ChatMessage = {
   readonly mode?: TwinChatResponse["mode"]
   readonly references?: ReadonlyArray<TwinReference>
 }
+
+export type PlanetRenderLevel = "full" | "point" | "simple"
+
+export type PlanetOrbitModel = {
+  readonly delaySeconds: number
+  readonly durationSeconds: number
+  readonly radius: number
+  readonly startAngle: number
+}
+
+export type PlanetRotationModel = {
+  readonly durationSeconds: number
+}
+
+export type PlanetUniverseBodyModel = {
+  readonly id: string
+  readonly planetId: number
+  readonly slug: string
+  readonly name: string
+  readonly summary: string
+  readonly description: string
+  readonly level: number
+  readonly size: number
+  readonly tone: UniverseCardTone
+  readonly orbit: PlanetOrbitModel
+  readonly rotation: PlanetRotationModel
+  readonly publicMemoryCount: number
+  readonly assistantMemoryCount: number
+}
+
+export type PlanetUniverseModel = {
+  readonly planets: ReadonlyArray<PlanetUniverseBodyModel>
+}
+
+export type PlanetPreviewModel = {
+  readonly hint: string
+  readonly meta: string
+  readonly summary: string
+  readonly title: string
+}
