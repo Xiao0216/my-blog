@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react"
 
 import type {
   ChatMessage,
-  UniverseCardModel,
+  PlanetContextModel,
 } from "@/components/site/life-universe/types"
 import type { StoredTwinIdentity } from "@/lib/content"
 
@@ -23,7 +23,7 @@ export function TwinOrb({
   onToggle,
 }: {
   readonly identity: StoredTwinIdentity
-  readonly contextCard?: UniverseCardModel
+  readonly contextCard?: PlanetContextModel
   readonly memoriesCount: number
   readonly draftMessage: string
   readonly isExpanded: boolean

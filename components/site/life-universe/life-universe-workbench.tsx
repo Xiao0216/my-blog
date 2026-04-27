@@ -10,7 +10,7 @@ import type {
   NullSpaceTheme,
   PlanetDetailModel,
   PlanetUniverseBodyModel,
-  UniverseCardModel,
+  PlanetContextModel,
   UniverseViewState,
 } from "@/components/site/life-universe/types"
 import type { PlanetPoint } from "@/components/site/life-universe/planet-body"
@@ -431,7 +431,7 @@ function buildPlanetDetail(
   }
 }
 
-function buildContextCard(planet: PlanetUniverseBodyModel): UniverseCardModel {
+function buildContextCard(planet: PlanetUniverseBodyModel): PlanetContextModel {
   return {
     id: planet.id,
     category: "行星",

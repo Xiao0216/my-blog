@@ -42,7 +42,7 @@ export type HomePageViewProps = {
   twinIdentity: StoredTwinIdentity
 }
 
-export type UniverseCardTone =
+export type PlanetTone =
   | "blue"
   | "cyan"
   | "emerald"
@@ -50,7 +50,7 @@ export type UniverseCardTone =
   | "teal"
   | "violet"
 
-export type UniverseCardStatus = "seedling" | "growing" | "mature" | "archived"
+export type PlanetStatus = "seedling" | "growing" | "mature" | "archived"
 
 export type NullSpaceTheme = "dark" | "light"
 
@@ -59,21 +59,21 @@ export type CanvasPan = {
   readonly y: number
 }
 
-export type UniverseCardModel = {
+export type PlanetContextModel = {
   readonly id: string
   readonly category: string
   readonly title: string
   readonly excerpt: string
   readonly date: string
-  readonly tone: UniverseCardTone
-  readonly status: UniverseCardStatus
+  readonly tone: PlanetTone
+  readonly status: PlanetStatus
   readonly planetId?: number
 }
 
 export type UniverseViewState = "entering" | "focused" | "inside" | "leaving" | "overview"
 
 export type PlanetDetailModel = {
-  readonly card: UniverseCardModel
+  readonly card: PlanetContextModel
   readonly counts: {
     readonly essays: number
     readonly memories: number
@@ -115,7 +115,7 @@ export type PlanetUniverseBodyModel = {
   readonly description: string
   readonly level: number
   readonly size: number
-  readonly tone: UniverseCardTone
+  readonly tone: PlanetTone
   readonly orbit: PlanetOrbitModel
   readonly rotation: PlanetRotationModel
   readonly publicMemoryCount: number
