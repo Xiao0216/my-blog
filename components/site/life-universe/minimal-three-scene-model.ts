@@ -9,8 +9,6 @@ export type MinimalColorScheme = "sage" | "warm" | "mist" | "slate" | "rose"
 export type MinimalThreeBody = PlanetUniverseBodyModel & {
   readonly colorScheme: MinimalColorScheme
   readonly hasRing: boolean
-  readonly illustration: string
-  readonly illustrationAspectRatio: number
   readonly position: readonly [number, number, number]
   readonly renderLevel: PlanetRenderLevel
 }
@@ -59,23 +57,6 @@ const BACKGROUND_FIELD_BOUNDS = {
   z: 260,
 } as const
 
-const PLANET_ILLUSTRATIONS = [
-  { aspectRatio: 218 / 245, path: "/planets/planet-style-01.png" },
-  { aspectRatio: 290 / 260, path: "/planets/planet-style-02.png" },
-  { aspectRatio: 350 / 330, path: "/planets/planet-style-03.png" },
-  { aspectRatio: 408 / 320, path: "/planets/planet-style-04.png" },
-  { aspectRatio: 391 / 260, path: "/planets/planet-style-05.png" },
-  { aspectRatio: 347 / 330, path: "/planets/planet-style-06.png" },
-  { aspectRatio: 357 / 330, path: "/planets/planet-style-07.png" },
-  { aspectRatio: 373 / 289, path: "/planets/planet-style-08.png" },
-  { aspectRatio: 332 / 250, path: "/planets/planet-style-09.png" },
-  { aspectRatio: 260 / 175, path: "/planets/planet-style-10.png" },
-  { aspectRatio: 190 / 185, path: "/planets/planet-style-11.png" },
-  { aspectRatio: 342 / 190, path: "/planets/planet-style-12.png" },
-  { aspectRatio: 240 / 220, path: "/planets/planet-style-13.png" },
-  { aspectRatio: 230 / 160, path: "/planets/planet-style-14.png" },
-] as const
-
 export function getMinimalColorScheme({
   tone,
   index,
@@ -118,14 +99,10 @@ function buildMinimalThreeBody(
   const orbitRadius = planet.orbit.radius
   const zOffset = roundToTwo((normalizedSize - 0.5) * 64 + planet.orbit.delaySeconds * 6)
 
-  const illustration = PLANET_ILLUSTRATIONS[index % PLANET_ILLUSTRATIONS.length]
-
   return {
     ...planet,
     colorScheme: getMinimalColorScheme({ tone: planet.tone, index }),
     hasRing: normalizedSize >= 0.5 || planet.publicMemoryCount + planet.assistantMemoryCount > 0,
-    illustration: illustration.path,
-    illustrationAspectRatio: illustration.aspectRatio,
     position: [
       roundToTwo(Math.cos(angleRadians) * orbitRadius),
       roundToTwo(Math.sin(angleRadians) * orbitRadius * 0.72),
