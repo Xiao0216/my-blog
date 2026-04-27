@@ -300,6 +300,7 @@ describe("UniverseCanvas", () => {
           onHoverPlanet: () => {},
           onLeavePlanet: () => {},
           onSelectPlanet: () => {},
+          onClearRelatedPlanets: () => {},
           onShowRelatedPlanet: () => {},
           onWheelZoom: () => {},
         })}
