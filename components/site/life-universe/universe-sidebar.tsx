@@ -1,49 +1,49 @@
-import {
-  BookOpen,
-  Box,
-  CircleDot,
-  Heart,
-  Home,
-  PenLine,
-  Sparkles,
-  UserRound,
-  X,
-} from "lucide-react"
+import Link from "next/link"
+
+import { BookOpen, Box, Home, PenLine, Sparkles, UserRound } from "lucide-react"
 import type { ReactNode } from "react"
+
+const railLinks = [
+  {
+    href: "/",
+    label: "首页",
+    icon: <Home className="h-4 w-4" />,
+  },
+  {
+    href: "/notes",
+    label: "记录",
+    icon: <PenLine className="h-4 w-4" />,
+  },
+  {
+    href: "/projects",
+    label: "作品",
+    icon: <Box className="h-4 w-4" />,
+  },
+  {
+    href: "/essays",
+    label: "文章",
+    icon: <BookOpen className="h-4 w-4" />,
+  },
+  {
+    href: "/about",
+    label: "关于",
+    icon: <UserRound className="h-4 w-4" />,
+  },
+] as const
 
 export function UniverseSidebar() {
   return (
     <aside className="null-space-panel pointer-events-auto absolute top-5 bottom-5 left-4 z-30 hidden w-12 flex-col items-center justify-between py-4 md:flex">
-      <button
-        type="button"
-        aria-label="关闭空间"
-        className="grid h-7 w-7 place-items-center rounded-full border border-[var(--ns-glass-border)] bg-[var(--ns-badge-bg)] text-[var(--ns-accent-secondary)] shadow-[0_0_24px_var(--ns-particle-glow)] outline-none transition hover:bg-[var(--ns-control-bg)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-secondary)]"
-      >
-        <X className="h-3.5 w-3.5" />
-      </button>
+      <div className="grid h-7 w-7 place-items-center rounded-full border border-[var(--ns-glass-border)] bg-[var(--ns-badge-bg)] text-[var(--ns-accent-secondary)] shadow-[0_0_24px_var(--ns-particle-glow)]">
+        <Sparkles className="h-3.5 w-3.5" />
+      </div>
 
       <nav aria-label="空境导航" className="grid gap-4">
-        <RailIcon label="首页">
-          <Home className="h-4 w-4" />
-        </RailIcon>
-        <RailIcon label="轨道">
-          <CircleDot className="h-4 w-4" />
-        </RailIcon>
-        <RailIcon label="记录">
-          <PenLine className="h-4 w-4" />
-        </RailIcon>
-        <RailIcon label="作品">
-          <Box className="h-4 w-4" />
-        </RailIcon>
-        <RailIcon label="偏好">
-          <Heart className="h-4 w-4" />
-        </RailIcon>
-        <RailIcon label="文章">
-          <BookOpen className="h-4 w-4" />
-        </RailIcon>
-        <RailIcon label="关于">
-          <UserRound className="h-4 w-4" />
-        </RailIcon>
+        {railLinks.map((item) => (
+          <RailLink key={item.href} href={item.href} label={item.label}>
+            {item.icon}
+          </RailLink>
+        ))}
       </nav>
 
       <div className="grid gap-3">
@@ -57,21 +57,23 @@ export function UniverseSidebar() {
   )
 }
 
-function RailIcon({
+function RailLink({
+  href,
   label,
   children,
 }: {
+  readonly href: string
   readonly label: string
   readonly children: ReactNode
 }) {
   return (
-    <button
-      type="button"
+    <Link
+      href={href}
       aria-label={label}
       className="grid h-6 w-6 place-items-center rounded-md text-[var(--ns-text-tertiary)] outline-none transition hover:bg-[var(--ns-control-bg)] hover:text-[var(--ns-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)]"
     >
       {children}
-    </button>
+    </Link>
   )
 }
 

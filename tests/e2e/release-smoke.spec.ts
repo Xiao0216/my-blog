@@ -122,7 +122,7 @@ test.describe("release smoke", () => {
       .getByRole("button", { name: "展开数字分身" })
       .click({ force: true })
     await page
-      .getByPlaceholder("搜索或和数字分身聊聊...")
+      .getByPlaceholder("和数字分身聊聊...")
       .fill("你怎么看前端工程化?")
     await page.getByRole("button", { name: "发送给数字分身" }).click()
 

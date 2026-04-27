@@ -1,22 +1,25 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect, useRef } from "react"
 
-import { ArrowLeft, ExternalLink, Link2, MessageCircle } from "lucide-react"
+import { ArrowLeft, Link2, MessageCircle, RotateCcw } from "lucide-react"
 
 import type { PlanetDetailModel } from "@/components/site/life-universe/types"
 
 export function PlanetDetailOverlay({
   detail,
   isModal,
+  isRelatedScopeActive,
   onAskTwin,
+  onClearRelated,
   onLeave,
   onShowRelated,
 }: {
   readonly detail: PlanetDetailModel
   readonly isModal: boolean
+  readonly isRelatedScopeActive: boolean
   readonly onAskTwin: () => void
+  readonly onClearRelated: () => void
   readonly onLeave: () => void
   readonly onShowRelated: () => void
 }) {
@@ -120,28 +123,23 @@ export function PlanetDetailOverlay({
           <MessageCircle className="h-4 w-4" />
           <span>问分身</span>
         </button>
-        <button
-          type="button"
-          onClick={onShowRelated}
-          className="planet-detail-secondary-action"
-        >
-          <Link2 className="h-4 w-4" />
-          <span>只看关联</span>
-        </button>
-        {detail.card.href ? (
-          <Link href={detail.card.href} className="planet-detail-secondary-action">
-            <ExternalLink className="h-4 w-4" />
-            <span>打开完整页</span>
-          </Link>
+        {isRelatedScopeActive ? (
+          <button
+            type="button"
+            onClick={onClearRelated}
+            className="planet-detail-secondary-action"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span>显示全部</span>
+          </button>
         ) : (
           <button
             type="button"
-            disabled
-            title="这个行星暂时没有独立详情页"
+            onClick={onShowRelated}
             className="planet-detail-secondary-action"
           >
-            <ExternalLink className="h-4 w-4" />
-            <span>打开完整页</span>
+            <Link2 className="h-4 w-4" />
+            <span>只看关联</span>
           </button>
         )}
       </footer>

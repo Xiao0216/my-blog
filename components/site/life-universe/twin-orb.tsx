@@ -122,7 +122,7 @@ export function TwinOrb({
               ref={textareaRef}
               value={draftMessage}
               onChange={(event) => onDraftChange(event.target.value)}
-              placeholder="搜索或和数字分身聊聊..."
+              placeholder="和数字分身聊聊..."
               rows={2}
               className="twin-orb-textarea"
             />

@@ -193,6 +193,10 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setViewState("overview")
   }
 
+  function clearRelatedScope() {
+    setRelatedScopePlanetId(undefined)
+  }
+
   async function submitMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const message = draftMessage.trim()
@@ -303,6 +307,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
           onEnterPlanet={enterPlanet}
           onHoverPlanet={hoverPlanet}
           onLeavePlanet={leavePlanet}
+          onClearRelatedPlanets={clearRelatedScope}
           onShowRelatedPlanet={showRelated}
           onWheelZoom={zoomFromWheel}
         />
@@ -330,7 +335,9 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         <PlanetDetailOverlay
           detail={detail}
           isModal={!isTwinExpanded}
+          isRelatedScopeActive={relatedScopePlanetId === detail.card.id}
           onAskTwin={() => askTwin(detail.card.id)}
+          onClearRelated={clearRelatedScope}
           onLeave={leavePlanetDetail}
           onShowRelated={() => showRelated(detail.card.id)}
         />

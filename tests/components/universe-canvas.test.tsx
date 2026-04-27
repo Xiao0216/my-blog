@@ -180,6 +180,7 @@ function buildProps(
     onEnterPlanet: () => {},
     onHoverPlanet: () => {},
     onLeavePlanet: () => {},
+    onClearRelatedPlanets: () => {},
     onShowRelatedPlanet: () => {},
     onWheelZoom: () => {},
     ...overrides,

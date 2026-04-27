@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { Filter, Moon, Search, Sparkles, Sun } from "lucide-react"
+import { Moon, Sparkles, Sun } from "lucide-react"
 
 import { MobileBrandMark } from "@/components/site/life-universe/universe-sidebar"
 import type { NullSpaceTheme } from "@/components/site/life-universe/types"
@@ -32,14 +32,6 @@ export function UniverseTopbar({
       <div className="flex items-center gap-3">
         <button
           type="button"
-          aria-label="搜索空间"
-          className="null-space-control hidden h-8 items-center gap-2 px-3 text-xs outline-none transition hover:text-[var(--ns-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)] sm:inline-flex"
-        >
-          <Search className="h-3.5 w-3.5" />
-          <span>⌘ K</span>
-        </button>
-        <button
-          type="button"
           aria-label={theme === "dark" ? "切换白天模式" : "切换黑夜模式"}
           onClick={onToggleTheme}
           className="null-space-control grid h-8 w-8 place-items-center outline-none transition hover:text-[var(--ns-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)]"
@@ -49,13 +41,6 @@ export function UniverseTopbar({
           ) : (
             <Moon className="h-3.5 w-3.5" />
           )}
-        </button>
-        <button
-          type="button"
-          aria-label="筛选空间"
-          className="null-space-control grid h-8 w-8 place-items-center outline-none transition hover:text-[var(--ns-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)]"
-        >
-          <Filter className="h-3.5 w-3.5" />
         </button>
         <Link
           href="/admin/inbox"

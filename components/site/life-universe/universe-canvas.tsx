@@ -48,6 +48,7 @@ export function UniverseCanvas({
   onEnterPlanet,
   onHoverPlanet,
   onLeavePlanet,
+  onClearRelatedPlanets,
   onShowRelatedPlanet,
   onWheelZoom,
 }: {
@@ -69,6 +70,7 @@ export function UniverseCanvas({
   readonly onEnterPlanet: (planetId: string) => void
   readonly onHoverPlanet: (planetId: string, point: PlanetPoint) => void
   readonly onLeavePlanet: (planetId: string) => void
+  readonly onClearRelatedPlanets: () => void
   readonly onShowRelatedPlanet: (planetId: string) => void
   readonly onWheelZoom: (deltaY: number) => void
 }) {
@@ -251,6 +253,19 @@ export function UniverseCanvas({
         </div>
       ) : null}
 
+      {relatedScopePlanetId ? (
+        <div className="null-space-panel pointer-events-auto absolute top-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 px-4 py-2 text-xs text-[var(--ns-text-tertiary)]">
+          <span>正在查看关联星域</span>
+          <button
+            type="button"
+            onClick={onClearRelatedPlanets}
+            className="font-medium text-[var(--ns-accent-primary)] outline-none transition hover:text-[var(--ns-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ns-accent-primary)]"
+          >
+            显示全部
+          </button>
+        </div>
+      ) : null}
+
       <div
         data-testid="universe-viewport"
         data-camera-mode={viewState === "inside" ? "inside" : "overview"}
@@ -368,13 +383,23 @@ export function UniverseCanvas({
               >
                 问分身
               </button>
-              <button
-                type="button"
-                aria-label={`移动端查看 ${planet.name} 关联`}
-                onClick={() => onShowRelatedPlanet(planet.id)}
-              >
-                关联
-              </button>
+              {relatedScopePlanetId === planet.id ? (
+                <button
+                  type="button"
+                  aria-label="移动端显示全部行星"
+                  onClick={onClearRelatedPlanets}
+                >
+                  全部
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  aria-label={`移动端查看 ${planet.name} 关联`}
+                  onClick={() => onShowRelatedPlanet(planet.id)}
+                >
+                  关联
+                </button>
+              )}
             </div>
           </article>
         ))}

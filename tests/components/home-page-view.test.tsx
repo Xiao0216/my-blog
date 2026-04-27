@@ -321,8 +321,15 @@ describe("HomePageView", () => {
     expect(
       screen.queryByRole("button", { name: "聚焦 笔记样例" })
     ).not.toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "搜索空间" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "筛选空间" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "搜索空间" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "筛选空间" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "关闭空间" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "轨道" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "偏好" })).toBeNull()
+    expect(screen.getByRole("link", { name: "记录" })).toHaveAttribute("href", "/notes")
+    expect(screen.getByRole("link", { name: "作品" })).toHaveAttribute("href", "/projects")
+    expect(screen.getByRole("link", { name: "文章" })).toHaveAttribute("href", "/essays")
+    expect(screen.getByRole("link", { name: "关于" })).toHaveAttribute("href", "/about")
     expect(screen.getByRole("link", { name: "新建" })).toHaveAttribute(
       "href",
       "/admin/inbox"
@@ -550,6 +557,14 @@ describe("HomePageView", () => {
         '[data-testid="mobile-planet-card"][data-planet-id="planet-2"]'
       )
     ).toHaveAttribute("data-related", "false")
+    expect(screen.getByText("正在查看关联星域")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "显示全部" }))
+
+    expect(screen.getByTestId("null-space-shell")).toHaveAttribute(
+      "data-related-scope",
+      "false"
+    )
   })
 
   it("shows only public memories for the entered planet", () => {
@@ -920,7 +935,7 @@ describe("HomePageView", () => {
       .map((planet) => planet.getAttribute("data-planet-id"))
 
     fireEvent.click(screen.getByRole("button", { name: "展开数字分身" }))
-    fireEvent.change(screen.getByPlaceholderText("搜索或和数字分身聊聊..."), {
+    fireEvent.change(screen.getByPlaceholderText("和数字分身聊聊..."), {
       target: { value: "输入不应该移动卡片" },
     })
 
@@ -993,7 +1008,7 @@ describe("HomePageView", () => {
     render(<HomePageView {...buildProps()} />)
 
     fireEvent.click(screen.getByRole("button", { name: "展开数字分身" }))
-    fireEvent.change(screen.getByPlaceholderText("搜索或和数字分身聊聊..."), {
+    fireEvent.change(screen.getByPlaceholderText("和数字分身聊聊..."), {
       target: { value: "你好" },
     })
     fireEvent.click(screen.getByRole("button", { name: "发送给数字分身" }))
@@ -1048,9 +1063,9 @@ describe("HomePageView", () => {
     expect(
       screen.getByRole("dialog", { name: "数字分身对话" })
     ).toHaveTextContent("当前上下文：工作")
-    expect(screen.getByPlaceholderText("搜索或和数字分身聊聊...")).toHaveFocus()
+    expect(screen.getByPlaceholderText("和数字分身聊聊...")).toHaveFocus()
 
-    fireEvent.change(screen.getByPlaceholderText("搜索或和数字分身聊聊..."), {
+    fireEvent.change(screen.getByPlaceholderText("和数字分身聊聊..."), {
       target: { value: "总结这个行星" },
     })
     fireEvent.click(screen.getByRole("button", { name: "发送给数字分身" }))
