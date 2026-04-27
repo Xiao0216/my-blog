@@ -323,9 +323,6 @@ export function UniverseCanvas({
                   <div
                     key={planet.id}
                     data-planet-orbit-id={planet.id}
-                    data-entered={
-                      planet.id === enteredPlanetId ? "true" : "false"
-                    }
                     data-related={isRelated ? "true" : "false"}
                     className="planet-orbit"
                   >

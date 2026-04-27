@@ -429,11 +429,6 @@
       radial-gradient(circle at 88% 76%, var(--ns-particle-glow), transparent 4.5rem);
   }
 
-  .null-space-card::before {
-    z-index: 2;
-    animation: card-signal 3.8s ease-in-out infinite;
-  }
-
   .null-space-card::after {
     position: absolute;
     inset: 0;
@@ -446,31 +441,6 @@
       linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.22));
   }
 
-  .null-space-card-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    height: 100%;
-    min-height: 0;
-    flex-direction: column;
-    pointer-events: none;
-  }
-
-  .null-space-card[data-selected="true"] [data-testid="universe-card-status"] {
-    margin-right: 2.25rem;
-  }
-
-  .null-space-card[data-compact="true"] {
-    padding: 0.72rem;
-  }
-
-  .null-space-card[data-compact="true"]::before {
-    right: 1rem;
-    bottom: 0.85rem;
-    width: 0.35rem;
-    height: 0.35rem;
-  }
-
   .null-space-card:hover {
     translate: 0 -8px;
     border-color: var(--ns-link-line-active);
@@ -478,107 +448,6 @@
       0 20px 40px rgba(0, 0, 0, 0.1),
       0 0 0 1px color-mix(in srgb, var(--ns-accent-primary) 18%, transparent),
       var(--ns-glass-shadow);
-  }
-
-  .null-space-card[data-selected="true"] {
-    z-index: 100;
-    border-color: var(--ns-accent-primary);
-    filter: brightness(1.08);
-  }
-
-  .null-space-shell[data-related-scope="true"] .null-space-card[data-related="false"] {
-    opacity: 0.24;
-    filter: grayscale(70%) blur(1px);
-  }
-
-  .null-space-card[data-status="seedling"] {
-    border-style: dashed;
-    opacity: 0.44;
-    filter: grayscale(30%);
-  }
-
-  .null-space-card[data-status="growing"] {
-    opacity: 0.72;
-    filter: grayscale(10%);
-    animation: gentle-card-pulse 4s ease-in-out infinite;
-  }
-
-  .null-space-card[data-status="mature"] {
-    opacity: 1;
-  }
-
-  .null-space-card[data-status="archived"] {
-    opacity: 0.56;
-    filter: grayscale(100%);
-  }
-
-  .null-space-card-menu-trigger {
-    position: absolute;
-    top: 0.82rem;
-    right: 0.82rem;
-    z-index: 5;
-    display: grid;
-    width: 2rem;
-    height: 2rem;
-    place-items: center;
-    border: 1px solid var(--ns-glass-border);
-    border-radius: 0.75rem;
-    background: var(--ns-control-bg);
-    color: var(--ns-text-secondary);
-    box-shadow: var(--ns-glass-shadow);
-    transition:
-      background 160ms ease,
-      color 160ms ease,
-      transform 160ms ease;
-  }
-
-  .null-space-card-menu-trigger:hover,
-  .null-space-card-menu-trigger[aria-expanded="true"] {
-    background: var(--ns-badge-bg);
-    color: var(--ns-text-primary);
-    transform: translateY(-1px);
-  }
-
-  .null-space-card-menu {
-    position: absolute;
-    top: 3.2rem;
-    right: 0.82rem;
-    z-index: 6;
-    display: grid;
-    width: 7.4rem;
-    gap: 0.15rem;
-    border: 1px solid var(--ns-glass-border);
-    border-radius: 0.85rem;
-    background: var(--ns-glass-bg);
-    padding: 0.35rem;
-    box-shadow: var(--ns-glass-shadow);
-    backdrop-filter: blur(20px) saturate(180%);
-  }
-
-  .null-space-card-menu button {
-    border-radius: 0.6rem;
-    padding: 0.45rem 0.55rem;
-    text-align: left;
-    color: var(--ns-text-secondary);
-    font-size: 0.72rem;
-    line-height: 1rem;
-    transition:
-      background 140ms ease,
-      color 140ms ease;
-  }
-
-  .null-space-card-menu button:hover,
-  .null-space-card-menu button:focus-visible {
-    background: var(--ns-control-bg);
-    color: var(--ns-text-primary);
-    outline: none;
-  }
-
-  .null-space-shell[data-view-state="inside"] .null-space-card:not([data-entered="true"]) {
-    opacity: 0;
-    filter: blur(8px);
-    pointer-events: none;
-    scale: 0.82;
   }
 
   .universe-scene-3d,
@@ -1273,17 +1142,6 @@
     animation: caret-blink 1s steps(2, start) infinite;
   }
 
-  .null-ai-avatar {
-    border: 1px solid var(--ns-glass-border);
-    background:
-      radial-gradient(circle at 40% 35%, rgba(255, 255, 255, 0.25), var(--ns-particle-glow) 34%, rgba(15, 23, 42, 0.85) 70%);
-    box-shadow: 0 0 70px var(--ns-particle-glow);
-  }
-
-  .null-ai-avatar[data-state="thinking"] {
-    animation: avatar-thinking 3s linear infinite;
-  }
-
   .null-space-orbit {
     border-radius: 9999px;
     background:
@@ -1293,17 +1151,6 @@
       radial-gradient(circle at 72% 68%, rgba(255, 255, 255, 0.75) 0 2px, transparent 3px),
       conic-gradient(from 20deg, transparent 0 18%, rgba(148, 163, 184, 0.55) 18% 20%, transparent 20% 48%, rgba(148, 163, 184, 0.55) 48% 50%, transparent 50%);
     box-shadow: inset 0 0 30px rgba(148, 163, 184, 0.12);
-  }
-
-  @keyframes gentle-card-pulse {
-    0%,
-    100% {
-      scale: 1;
-    }
-
-    50% {
-      scale: 1.02;
-    }
   }
 
   @keyframes ambient-star-drift {
@@ -1316,19 +1163,6 @@
     50% {
       opacity: 0.96;
       transform: translate3d(var(--star-dx), var(--star-dy), 0) scale(1.22);
-    }
-  }
-
-  @keyframes card-signal {
-    0%,
-    100% {
-      opacity: 0.46;
-      scale: 1;
-    }
-
-    50% {
-      opacity: 1;
-      scale: 1.35;
     }
   }
 
@@ -1355,12 +1189,6 @@
   @keyframes caret-blink {
     50% {
       opacity: 0;
-    }
-  }
-
-  @keyframes avatar-thinking {
-    to {
-      rotate: 360deg;
     }
   }
 
@@ -1400,12 +1228,10 @@
   }
 
   .null-space-card,
-  .null-space-card::before,
   .universe-ambient-field span,
   .planet-body,
   .planet-sphere,
   .message-ai.thinking .message-bubble::after,
-  .null-ai-avatar[data-state="thinking"],
   [data-testid="universe-camera"],
   .planet-detail-overlay,
   .twin-orb-avatar,
