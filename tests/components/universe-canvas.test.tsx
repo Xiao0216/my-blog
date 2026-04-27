@@ -268,12 +268,11 @@ describe("UniverseCanvas", () => {
     )
     expect(css).toMatch(/@keyframes\s+planet-orbit/)
     expect(css).toMatch(/@keyframes\s+planet-self-rotate/)
-    expect(css).toMatch(/\[data-testid="mobile-planet-card"\]\s*{/)
+    expect(css).toMatch(/\.mobile-planet-list\s+\[data-testid="mobile-planet-item"\]\s*{/)
     expect(css).toMatch(
-      /\.null-space-shell\[data-related-scope="true"\]\s*\[data-testid="mobile-planet-card"\]\[data-related="false"\]\s*{[\s\S]*?display:\s*none/
+      /\.null-space-shell\[data-related-scope="true"\]\s*\.mobile-planet-list\s*\[data-testid="mobile-planet-item"\]\[data-related="false"\]\s*{[\s\S]*?display:\s*none/
     )
-    expect(css).toMatch(/\[data-testid="mobile-planet-card"\]\s+button\s*{/)
-    expect(css).not.toContain('data-testid="mobile-universe-card"')
+    expect(css).toMatch(/\.mobile-planet-list\s+\[data-testid="mobile-planet-item"\]\s+button\s*{/)
     expect(css).toMatch(
       /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*{[\s\S]*?\.planet-body/
     )

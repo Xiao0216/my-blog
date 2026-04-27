@@ -298,7 +298,7 @@ describe("HomePageView", () => {
     )
   })
 
-  it("renders planets as the default universe bodies instead of homepage cards", () => {
+  it("renders planets as the default universe bodies instead of the legacy list layout", () => {
     render(<HomePageView {...buildProps({ planets: buildGalaxyPlanets() })} />)
 
     expect(screen.getByTestId("minimal-three-scene")).toBeInTheDocument()
@@ -549,12 +549,12 @@ describe("HomePageView", () => {
     ).toHaveAttribute("data-related", "false")
     expect(
       container.querySelector(
-        '[data-testid="mobile-planet-card"][data-planet-id="planet-1"]'
+        '[data-testid="mobile-planet-item"][data-planet-id="planet-1"]'
       )
     ).toHaveAttribute("data-related", "true")
     expect(
       container.querySelector(
-        '[data-testid="mobile-planet-card"][data-planet-id="planet-2"]'
+        '[data-testid="mobile-planet-item"][data-planet-id="planet-2"]'
       )
     ).toHaveAttribute("data-related", "false")
     expect(screen.getByText("正在查看关联星域")).toBeInTheDocument()
@@ -680,10 +680,10 @@ describe("HomePageView", () => {
     ).toBeNull()
   })
 
-  it("does not render the bottom canvas toolbar", () => {
+  it("does not render removed canvas controls", () => {
     render(<HomePageView {...buildProps()} />)
 
-    expect(screen.queryByTestId("zoom-value")).toBeNull()
+    expect(screen.queryByText(/%/)).toBeNull()
     expect(screen.queryByRole("button", { name: "放大画布" })).toBeNull()
     expect(screen.queryByRole("button", { name: "缩小画布" })).toBeNull()
     expect(screen.queryByRole("button", { name: "重置画布视角" })).toBeNull()

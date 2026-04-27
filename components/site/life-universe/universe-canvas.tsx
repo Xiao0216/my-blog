@@ -350,11 +350,11 @@ export function UniverseCanvas({
         </div>
       </div>
 
-      <div className="grid gap-3 md:hidden">
+      <div className="mobile-planet-list grid gap-3 md:hidden">
         {planets.map((planet) => (
           <article
             key={planet.id}
-            data-testid="mobile-planet-card"
+            data-testid="mobile-planet-item"
             data-planet-id={planet.id}
             data-related={
               !relatedScopePlanetId || planet.id === relatedScopePlanetId
