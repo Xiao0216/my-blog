@@ -156,9 +156,15 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
           />
         </mesh>
         {isActive ? (
-          <mesh scale={1.08}>
+          <mesh position={[0, 0, -0.01]} scale={1.08}>
             <planeGeometry args={[visualWidth, visualHeight]} />
-            <meshBasicMaterial color={ACTIVE_GLOW_COLOR} opacity={0.1} transparent />
+            <meshBasicMaterial
+              alphaTest={0.04}
+              color={ACTIVE_GLOW_COLOR}
+              map={illustrationMap}
+              opacity={0.18}
+              transparent
+            />
           </mesh>
         ) : null}
       </group>
