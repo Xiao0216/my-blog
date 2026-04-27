@@ -35,16 +35,24 @@ export default async function EssayDetailPage({ params }: EssayPageProps) {
 
   return (
     <article className="page-frame story-section">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <p className="story-label">
-          {entry.meta.publishedAt} · {entry.meta.readingTime}
-        </p>
-        <h1 className="text-3xl font-semibold leading-tight text-zinc-950 md:text-4xl dark:text-zinc-50">
-          {entry.meta.title}
-        </h1>
-        <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
-          {entry.meta.description}
-        </p>
+      <div className="mx-auto max-w-3xl space-y-8">
+        <header className="null-space-panel relative overflow-hidden p-6 md:p-8">
+          <div
+            className="pointer-events-none absolute -top-24 right-8 h-44 w-44 rounded-full bg-[var(--ns-particle-glow)] blur-3xl"
+            aria-hidden="true"
+          />
+          <div className="relative space-y-4">
+            <p className="story-label text-[var(--ns-accent-primary)]">
+              {entry.meta.publishedAt} · {entry.meta.readingTime}
+            </p>
+            <h1 className="text-3xl font-semibold leading-tight text-[var(--ns-text-primary)] md:text-5xl">
+              {entry.meta.title}
+            </h1>
+            <p className="text-sm leading-7 text-[var(--ns-text-tertiary)] md:text-base">
+              {entry.meta.description}
+            </p>
+          </div>
+        </header>
         <MarkdownContent content={entry.content} />
       </div>
     </article>
@@ -58,7 +66,7 @@ function MarkdownContent({ content }: { readonly content: string }) {
     .filter(Boolean)
 
   return (
-    <div className="mt-10 space-y-6 text-sm leading-7 text-zinc-700 dark:text-zinc-300">
+    <div className="null-space-panel space-y-6 p-6 text-sm leading-8 text-[var(--ns-text-secondary)] md:p-8">
       {blocks.map((block, index) => {
         const key = `${index}-${block.slice(0, 16)}`
 
@@ -66,7 +74,7 @@ function MarkdownContent({ content }: { readonly content: string }) {
           return (
             <h2
               key={key}
-              className="pt-4 text-xl font-semibold text-zinc-950 dark:text-zinc-50"
+              className="pt-4 text-xl font-semibold text-[var(--ns-text-primary)]"
             >
               {block.replace(/^##\s+/, "")}
             </h2>
@@ -77,7 +85,7 @@ function MarkdownContent({ content }: { readonly content: string }) {
           return (
             <h2
               key={key}
-              className="pt-4 text-xl font-semibold text-zinc-950 dark:text-zinc-50"
+              className="pt-4 text-xl font-semibold text-[var(--ns-text-primary)]"
             >
               {block.replace(/^#\s+/, "")}
             </h2>
@@ -88,7 +96,7 @@ function MarkdownContent({ content }: { readonly content: string }) {
           return (
             <blockquote
               key={key}
-              className="border-l border-zinc-300 pl-4 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
+              className="border-l border-[var(--ns-accent-primary)] pl-4 text-[var(--ns-text-tertiary)]"
             >
               {block.replace(/^>\s+/, "")}
             </blockquote>

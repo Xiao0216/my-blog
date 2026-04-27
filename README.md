@@ -87,14 +87,32 @@ On a minimal Linux host or CI image, also install Chromium system dependencies:
 npx playwright install-deps chromium
 ```
 
-## Docker
+## Docker / Deployment
 
 The production image uses Next.js standalone output and stores SQLite data under `/app/data/blog.sqlite`.
 
-Build and start with Compose:
+Use the deployment script instead of running `docker compose up -d --build` directly. The script refuses to deploy uncommitted changes by default, stamps the image with Git metadata, tags the image with the current commit, restarts the service, and prints the running version.
 
 ```bash
-docker compose up -d --build
+scripts/deploy.sh
+```
+
+For an emergency preview of uncommitted local changes, opt in explicitly:
+
+```bash
+ALLOW_DIRTY=1 scripts/deploy.sh
+```
+
+Optional full test run during deployment:
+
+```bash
+RUN_TESTS=1 scripts/deploy.sh
+```
+
+Check what version is currently running:
+
+```bash
+scripts/version.sh
 ```
 
 The Compose file exposes the app on `127.0.0.1:3001` and expects runtime secrets in `/etc/ai-blog/ai-blog.env`.

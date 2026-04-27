@@ -8,26 +8,24 @@ type ProjectCardProps = {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const className =
-    "mt-5 inline-flex text-sm font-medium text-zinc-950 underline-offset-4 hover:underline dark:text-zinc-50"
+    "mt-5 inline-flex text-sm font-medium text-[var(--ns-accent-primary)] underline-offset-4 hover:underline"
   const isExternalHref = /^(https?:)?\/\//i.test(project.href)
 
   return (
-    <article className="rounded-lg border border-zinc-200/70 bg-white p-5 transition-colors hover:border-zinc-400/70 dark:border-zinc-800/70 dark:bg-zinc-950 dark:hover:border-zinc-600">
-      <h2 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
+    <article className="null-space-card relative">
+      <p className="story-label text-[var(--ns-text-muted)]">Project</p>
+      <h2 className="mt-3 text-xl font-semibold text-[var(--ns-text-primary)]">
         {project.title}
       </h2>
-      <p className="mt-3 text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+      <p className="mt-3 text-sm leading-7 text-[var(--ns-text-tertiary)]">
         {project.description}
       </p>
-      <p className="mt-3 text-sm leading-7 text-zinc-700 dark:text-zinc-300">
+      <p className="mt-3 text-sm leading-7 text-[var(--ns-text-secondary)]">
         {project.note}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         {project.stack.map((item) => (
-          <span
-            key={item}
-            className="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400"
-          >
+          <span key={item} className="null-page-chip">
             {item}
           </span>
         ))}

@@ -16,21 +16,21 @@ function isDirectHref(href: string) {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/10 bg-[#050608] text-zinc-50">
+    <footer className="border-t border-[var(--ns-glass-border)] bg-[color-mix(in_srgb,var(--ns-bg-primary)_70%,transparent)] text-[var(--ns-text-primary)] backdrop-blur-xl">
       <div className="mx-auto grid w-full max-w-6xl gap-6 px-5 py-10 sm:px-6 md:grid-cols-[1.4fr_.6fr]">
         <div className="space-y-3">
-          <p className="font-mono text-sm font-medium text-zinc-50">
+          <p className="font-mono text-sm font-medium text-[var(--ns-text-primary)]">
             {profile.name}
           </p>
-          <p className="max-w-xl text-sm leading-7 text-zinc-500">
+          <p className="max-w-xl text-sm leading-7 text-[var(--ns-text-tertiary)]">
             一个把技术、文字和生活观察放在同一本私人刊物里的空间。
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 text-sm text-zinc-500">
+        <div className="flex flex-col gap-3 text-sm text-[var(--ns-text-tertiary)]">
           {siteConfig.footerLinks.map((item) => {
             const className =
-              "transition-colors hover:text-teal-100"
+              "transition-colors hover:text-[var(--ns-accent-primary)]"
 
             if (isExternalHref(item.href)) {
               return (
