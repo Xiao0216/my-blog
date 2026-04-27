@@ -906,6 +906,7 @@
     border-radius: 9999px;
     background: var(--ns-control-bg);
     color: var(--ns-text-secondary);
+    cursor: url("/cursors/cosmic-pointer.svg") 8 5, pointer;
     transition:
       background 160ms ease,
       color 160ms ease,
