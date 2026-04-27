@@ -72,11 +72,11 @@ function getPlanetRadius(body: MinimalThreeBody) {
   const baseRadius = 10 + body.size * 20
 
   if (body.renderLevel === "point") {
-    return Math.max(3, baseRadius * 0.33)
+    return Math.max(11, baseRadius * 0.58)
   }
 
   if (body.renderLevel === "simple") {
-    return baseRadius * 0.72
+    return Math.max(18, baseRadius * 0.82)
   }
 
   return baseRadius

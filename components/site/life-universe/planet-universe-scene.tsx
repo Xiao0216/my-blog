@@ -3,6 +3,7 @@
 import { Canvas } from "@react-three/fiber"
 
 import type { MinimalThreeScene } from "@/components/site/life-universe/minimal-three-scene-model"
+import { MinimalAmbientField } from "@/components/site/life-universe/minimal-ambient-field"
 import { MinimalConnections } from "@/components/site/life-universe/minimal-connections"
 import { MinimalOrbitPaths } from "@/components/site/life-universe/minimal-orbit-paths"
 import { MinimalPlanetMesh } from "@/components/site/life-universe/minimal-planet-mesh"
@@ -46,6 +47,12 @@ export function PlanetUniverseScene({
         <hemisphereLight args={["#c8d6ff", "#17110d", 0.34]} />
         <group>
           <MinimalStarField stars={scene.stars} />
+          <MinimalAmbientField
+            stars={scene.stars}
+            onEnterPlanet={onEnterPlanet}
+            onHoverPlanet={onHoverPlanet}
+            onLeavePlanet={onLeavePlanet}
+          />
           <MinimalOrbitPaths bodies={scene.bodies} />
           <MinimalConnections
             activePlanetId={activePlanetId}

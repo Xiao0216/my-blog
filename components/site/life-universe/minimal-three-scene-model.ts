@@ -10,9 +10,12 @@ export type MinimalThreeBody = PlanetUniverseBodyModel & {
 }
 
 export type MinimalStarPoint = {
+  readonly id: string
   readonly intensity: number
+  readonly kind: "fragment" | "star"
   readonly position: readonly [number, number, number]
   readonly size: number
+  readonly targetPlanetId?: string
 }
 
 export type MinimalThreeScene = {
@@ -59,7 +62,7 @@ export function buildMinimalThreeScene(
     bodies: planets.map((planet, index) =>
       buildMinimalThreeBody(planet, index, planets.length, minSize, maxSize)
     ),
-    stars: buildMinimalStarField(bodySeed, planets.length),
+    stars: buildMinimalStarField(bodySeed, planets),
   }
 }
 
@@ -104,8 +107,11 @@ function resolveRenderLevel(
   return "full"
 }
 
-function buildMinimalStarField(seed: number, totalPlanets: number): ReadonlyArray<MinimalStarPoint> {
-  const starCount = Math.max(25, Math.min(60, 24 + Math.round(totalPlanets * 1.7)))
+function buildMinimalStarField(
+  seed: number,
+  planets: ReadonlyArray<PlanetUniverseBodyModel>
+): ReadonlyArray<MinimalStarPoint> {
+  const starCount = Math.max(25, Math.min(60, 24 + Math.round(planets.length * 1.7)))
   const stars: MinimalStarPoint[] = []
 
   for (let index = 0; index < starCount; index += 1) {
@@ -113,11 +119,15 @@ function buildMinimalStarField(seed: number, totalPlanets: number): ReadonlyArra
     const x = roundToTwo(normalizeSigned((value >>> 0) % 997, 998) * 900)
     const y = roundToTwo(normalizeSigned((value >>> 10) % 991, 992) * 640)
     const z = roundToTwo(normalizeSigned((value >>> 20) % 983, 984) * 700)
+    const targetPlanet = planets.length > 0 ? planets[index % planets.length] : undefined
 
     stars.push({
+      id: `ambient-${index + 1}`,
       intensity: roundToTwo(0.4 + ((value >>> 2) % 60) / 100),
+      kind: index % 5 === 0 ? "fragment" : "star",
       position: [x, y, z],
-      size: roundToTwo(0.6 + ((value >>> 7) % 30) / 100),
+      size: roundToTwo(0.8 + ((value >>> 7) % 44) / 100),
+      targetPlanetId: targetPlanet?.id,
     })
   }
 

@@ -20,7 +20,6 @@ import { buildPlanetUniverseModel } from "@/components/site/life-universe/planet
 import { TwinOrb } from "@/components/site/life-universe/twin-orb"
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
 import { UniverseSidebar } from "@/components/site/life-universe/universe-sidebar"
-import { UniverseToolbar } from "@/components/site/life-universe/universe-toolbar"
 import { UniverseTopbar } from "@/components/site/life-universe/universe-topbar"
 import type { TwinChatResponse } from "@/lib/twin/types"
 
@@ -104,29 +103,10 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
   )
   const isMotionPaused = Boolean(hoveredPlanetId || enteredPlanetId)
 
-  function zoomIn() {
-    setZoom((current) => clampZoom(current + 10))
-  }
-
-  function zoomOut() {
-    setZoom((current) => clampZoom(current - 10))
-  }
-
   function zoomFromWheel(deltaY: number) {
     setZoom((current) =>
       clampZoom(current - deltaY / WHEEL_DELTA_PER_ZOOM_POINT)
     )
-  }
-
-  function resetCanvas() {
-    setZoom(DEFAULT_ZOOM)
-    setPan(DEFAULT_PAN)
-    setFocusedPlanetId(universe.planets[0]?.id)
-    setHoveredPlanetId(undefined)
-    setHoverPoint(undefined)
-    setRelatedScopePlanetId(undefined)
-    setEnteredPlanetId(undefined)
-    setViewState("overview")
   }
 
   function toggleTheme() {
@@ -323,15 +303,8 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
           onEnterPlanet={enterPlanet}
           onHoverPlanet={hoverPlanet}
           onLeavePlanet={leavePlanet}
-          onPanChange={setPan}
           onShowRelatedPlanet={showRelated}
           onWheelZoom={zoomFromWheel}
-        />
-        <UniverseToolbar
-          zoom={zoom}
-          onZoomIn={zoomIn}
-          onZoomOut={zoomOut}
-          onReset={resetCanvas}
         />
         <div className="pointer-events-none absolute right-9 bottom-5 z-20 hidden items-center gap-5 font-mono text-xs text-[var(--ns-text-muted)] md:flex">
           <span>{props.essays.length} 文章</span>

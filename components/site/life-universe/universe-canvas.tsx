@@ -1,4 +1,4 @@
-import type { CSSProperties, MouseEvent } from "react"
+import type { CSSProperties } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import type { MinimalThreeScene } from "@/components/site/life-universe/minimal-three-scene-model"
@@ -48,7 +48,6 @@ export function UniverseCanvas({
   onEnterPlanet,
   onHoverPlanet,
   onLeavePlanet,
-  onPanChange,
   onShowRelatedPlanet,
   onWheelZoom,
 }: {
@@ -70,7 +69,6 @@ export function UniverseCanvas({
   readonly onEnterPlanet: (planetId: string) => void
   readonly onHoverPlanet: (planetId: string, point: PlanetPoint) => void
   readonly onLeavePlanet: (planetId: string) => void
-  readonly onPanChange: (pan: CanvasPan) => void
   readonly onShowRelatedPlanet: (planetId: string) => void
   readonly onWheelZoom: (deltaY: number) => void
 }) {
@@ -84,22 +82,12 @@ export function UniverseCanvas({
     : pan
   const cameraTransform = `translate(${cameraPan.x}px, ${cameraPan.y}px) scale(${cameraScale})`
   const canvasRef = useRef<HTMLElement | null>(null)
-  const dragStartRef = useRef<
-    | {
-        readonly clientX: number
-        readonly clientY: number
-        readonly pan: CanvasPan
-      }
-    | undefined
-  >(undefined)
-  const panFrameRef = useRef<number | undefined>(undefined)
   const wheelFrameRef = useRef<number | undefined>(undefined)
   const wheelDeltaRef = useRef(0)
   const cameraGestureActiveRef = useRef(false)
   const cameraGestureTimeoutRef = useRef<
     ReturnType<typeof setTimeout> | undefined
   >(undefined)
-  const onPanChangeRef = useRef(onPanChange)
   const onWheelZoomRef = useRef(onWheelZoom)
   const onEnterPlanetRef = useRef(onEnterPlanet)
   const onSelectPlanetRef = useRef(onSelectPlanet)
@@ -152,10 +140,6 @@ export function UniverseCanvas({
   )
 
   useEffect(() => {
-    onPanChangeRef.current = onPanChange
-  }, [onPanChange])
-
-  useEffect(() => {
     onWheelZoomRef.current = onWheelZoom
   }, [onWheelZoom])
 
@@ -195,12 +179,6 @@ export function UniverseCanvas({
   useEffect(() => {
     return () => {
       if (
-        panFrameRef.current !== undefined &&
-        typeof cancelAnimationFrame !== "undefined"
-      ) {
-        cancelAnimationFrame(panFrameRef.current)
-      }
-      if (
         wheelFrameRef.current !== undefined &&
         typeof cancelAnimationFrame !== "undefined"
       ) {
@@ -211,24 +189,6 @@ export function UniverseCanvas({
       }
     }
   }, [])
-
-  function schedulePan(nextPan: CanvasPan) {
-    activateCameraGesture()
-
-    if (typeof requestAnimationFrame === "undefined") {
-      onPanChangeRef.current(nextPan)
-      return
-    }
-
-    if (panFrameRef.current !== undefined) {
-      cancelAnimationFrame(panFrameRef.current)
-    }
-
-    panFrameRef.current = requestAnimationFrame(() => {
-      panFrameRef.current = undefined
-      onPanChangeRef.current(nextPan)
-    })
-  }
 
   const handlePlanetEnter = useCallback((planetId: string) => {
     onEnterPlanetRef.current(planetId)
@@ -252,39 +212,6 @@ export function UniverseCanvas({
     onLeavePlanetRef.current(planetId)
   }, [])
 
-  function handleMouseDown(event: MouseEvent<HTMLElement>) {
-    if (isInteractiveTarget(event.target)) {
-      return
-    }
-
-    dragStartRef.current = {
-      clientX: event.clientX,
-      clientY: event.clientY,
-      pan,
-    }
-  }
-
-  function handleMouseMove(event: MouseEvent<HTMLElement>) {
-    const dragStart = dragStartRef.current
-
-    if (!dragStart) {
-      return
-    }
-
-    schedulePan({
-      x: dragStart.pan.x + event.clientX - dragStart.clientX,
-      y: dragStart.pan.y + event.clientY - dragStart.clientY,
-    })
-  }
-
-  function stopDrag() {
-    dragStartRef.current = undefined
-  }
-
-  function handleMouseLeave() {
-    stopDrag()
-  }
-
   return (
     <section
       ref={canvasRef}
@@ -293,11 +220,7 @@ export function UniverseCanvas({
       data-camera-gesture={isCameraGestureActive ? "true" : "false"}
       data-related-scope={isRelatedScopeActive ? "true" : "false"}
       data-view-state={viewState}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={stopDrag}
-      onMouseLeave={handleMouseLeave}
-      className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 cursor-grab overflow-hidden active:cursor-grabbing md:top-20 md:right-6 md:bottom-20 md:left-20"
+      className="pointer-events-auto absolute inset-x-3 top-20 bottom-24 overflow-hidden md:top-20 md:right-6 md:bottom-20 md:left-20"
     >
       <div className="absolute inset-0 rounded-[2rem] border border-[var(--ns-glass-border)] bg-[var(--ns-canvas-wash)]" />
       <div
@@ -467,21 +390,3 @@ export function UniverseCanvas({
   )
 }
 
-function isInteractiveTarget(target: EventTarget) {
-  if (!(target instanceof HTMLElement)) {
-    return false
-  }
-
-  if (target.closest('[data-universe-card-menu="true"]')) {
-    return true
-  }
-
-  if (
-    target.closest('[data-testid="universe-card"]') ||
-    target.closest('[data-testid="planet-body"]')
-  ) {
-    return false
-  }
-
-  return Boolean(target.closest("button,input,textarea,a"))
-}

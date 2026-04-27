@@ -21,6 +21,42 @@ vi.mock("@/components/site/life-universe/minimal-star-field", () => ({
   },
 }))
 
+vi.mock("@/components/site/life-universe/minimal-ambient-field", () => ({
+  MinimalAmbientField({
+    onEnterPlanet,
+    onHoverPlanet,
+    onLeavePlanet,
+    stars,
+  }: {
+    readonly stars: ReadonlyArray<{ readonly id: string; readonly targetPlanetId?: string }>
+    readonly onEnterPlanet: (planetId: string) => void
+    readonly onHoverPlanet: (planetId: string, point: { x: number; y: number }) => void
+    readonly onLeavePlanet: (planetId: string) => void
+  }) {
+    return (
+      <div data-testid="minimal-ambient-field" data-ambient-count={stars.length}>
+        {stars.map((star) =>
+          star.targetPlanetId ? (
+            <button
+              key={star.id}
+              data-testid={`minimal-ambient-${star.id}`}
+              onClick={() => onEnterPlanet(star.targetPlanetId ?? "")}
+              onPointerLeave={() => onLeavePlanet(star.targetPlanetId ?? "")}
+              onPointerMove={(event) =>
+                onHoverPlanet(star.targetPlanetId ?? "", {
+                  x: event.clientX,
+                  y: event.clientY,
+                })
+              }
+              type="button"
+            />
+          ) : null
+        )}
+      </div>
+    )
+  },
+}))
+
 vi.mock("@/components/site/life-universe/minimal-orbit-paths", () => ({
   MinimalOrbitPaths({ bodies }: { readonly bodies: ReadonlyArray<unknown> }) {
     return <div data-testid="minimal-orbit-paths" data-orbit-count={bodies.length} />
@@ -200,6 +236,10 @@ describe("PlanetUniverseScene", () => {
         "data-star-count",
         String(scene.stars.length)
       )
+      expect(screen.getByTestId("minimal-ambient-field")).toHaveAttribute(
+        "data-ambient-count",
+        String(scene.stars.length)
+      )
       expect(screen.getByTestId("minimal-orbit-paths")).toHaveAttribute(
         "data-orbit-count",
         String(scene.bodies.length)
@@ -213,9 +253,23 @@ describe("PlanetUniverseScene", () => {
       fireEvent.pointerLeave(screen.getByTestId("minimal-planet-mesh-planet-1"))
       fireEvent.doubleClick(screen.getByTestId("minimal-planet-mesh-planet-1"))
 
+      const firstAmbient = scene.stars.find((star) => star.targetPlanetId)
+
+      expect(firstAmbient).toBeDefined()
+
+      fireEvent.pointerMove(screen.getByTestId(`minimal-ambient-${firstAmbient?.id}`), {
+        clientX: 222,
+        clientY: 333,
+      })
+      fireEvent.pointerLeave(screen.getByTestId(`minimal-ambient-${firstAmbient?.id}`))
+      fireEvent.click(screen.getByTestId(`minimal-ambient-${firstAmbient?.id}`))
+
       expect(onHoverPlanet).toHaveBeenCalledWith("planet-1", { x: 123, y: 456 })
       expect(onLeavePlanet).toHaveBeenCalledWith("planet-1")
       expect(onEnterPlanet).toHaveBeenCalledWith("planet-1")
+      expect(onHoverPlanet).toHaveBeenCalledWith(firstAmbient?.targetPlanetId, { x: 222, y: 333 })
+      expect(onLeavePlanet).toHaveBeenCalledWith(firstAmbient?.targetPlanetId)
+      expect(onEnterPlanet).toHaveBeenCalledWith(firstAmbient?.targetPlanetId)
     } finally {
       consoleErrorSpy.mockRestore()
     }

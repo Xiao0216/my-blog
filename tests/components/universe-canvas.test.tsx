@@ -181,7 +181,6 @@ function buildProps(
     onHoverPlanet: () => {},
     onLeavePlanet: () => {},
     onShowRelatedPlanet: () => {},
-    onPanChange: () => {},
     onWheelZoom: () => {},
     ...overrides,
   }

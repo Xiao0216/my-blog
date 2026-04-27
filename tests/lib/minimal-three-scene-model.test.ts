@@ -72,6 +72,9 @@ describe("minimal three scene model", () => {
     expect(first.bodies[0].size).toBeGreaterThan(first.bodies[2].size)
     expect(first.stars.length).toBeGreaterThanOrEqual(25)
     expect(first.stars.length).toBeLessThanOrEqual(60)
+    expect(first.stars.every((star) => Boolean(star.id))).toBe(true)
+    expect(first.stars.every((star) => Boolean(star.targetPlanetId))).toBe(true)
+    expect(first.stars.some((star) => star.kind === "fragment")).toBe(true)
   })
 
   it("cycles restrained color schemes so adjacent cyan-like planets are not identical", () => {

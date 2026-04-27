@@ -327,9 +327,9 @@ describe("HomePageView", () => {
       "href",
       "/admin/inbox"
     )
-    expect(screen.getByRole("button", { name: "抓手模式" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "画布搜索" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "连接视图" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "抓手模式" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "画布搜索" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "连接视图" })).toBeNull()
     expect(
       screen.getByRole("button", { name: "展开数字分身" })
     ).toBeInTheDocument()
@@ -637,8 +637,6 @@ describe("HomePageView", () => {
 
     const dialog = screen.getByRole("dialog", { name: "工作 行星详情" })
     const viewport = screen.getByTestId("universe-viewport")
-    const zoomValue = screen.getByTestId("zoom-value")
-    const initialZoom = zoomValue.textContent
     const initialTransform = viewport.getAttribute("style")
 
     fireEvent.wheel(dialog, { deltaY: -120 })
@@ -646,7 +644,6 @@ describe("HomePageView", () => {
     fireEvent.mouseMove(dialog, { clientX: 136, clientY: 158 })
     fireEvent.mouseUp(dialog)
 
-    expect(zoomValue).toHaveTextContent(initialZoom ?? "")
     expect(viewport.getAttribute("style")).toBe(initialTransform)
   })
 
@@ -668,19 +665,13 @@ describe("HomePageView", () => {
     ).toBeNull()
   })
 
-  it("zooms and resets the universe canvas", () => {
+  it("does not render the bottom canvas toolbar", () => {
     render(<HomePageView {...buildProps()} />)
 
-    expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
-
-    fireEvent.click(screen.getByRole("button", { name: "放大画布" }))
-    expect(screen.getByTestId("zoom-value")).toHaveTextContent("88%")
-
-    fireEvent.click(screen.getByRole("button", { name: "缩小画布" }))
-    expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
-
-    fireEvent.click(screen.getByRole("button", { name: "重置画布视角" }))
-    expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
+    expect(screen.queryByTestId("zoom-value")).toBeNull()
+    expect(screen.queryByRole("button", { name: "放大画布" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "缩小画布" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "重置画布视角" })).toBeNull()
   })
 
   it("applies wheel zoom on animation frame instead of synchronously", async () => {
@@ -693,18 +684,24 @@ describe("HomePageView", () => {
 
     render(<HomePageView {...buildProps()} />)
 
+    const camera = screen.getByTestId("universe-camera")
+
     fireEvent.wheel(screen.getByRole("region", { name: "空境宇宙画布" }), {
       deltaY: -120,
     })
 
-    expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
+    expect(camera).toHaveStyle({
+      transform: "translate(0px, 0px) scale(1)",
+    })
 
     await act(async () => {
       frameQueue.shift()?.(16.7)
     })
 
     await waitFor(() => {
-      expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
+      expect(camera).toHaveStyle({
+        transform: "translate(0px, 0px) scale(1.1025641025641026)",
+      })
     })
   })
 
@@ -726,14 +723,18 @@ describe("HomePageView", () => {
     fireEvent.wheel(canvas, { deltaY: -90 })
 
     expect(frameQueue).toHaveLength(1)
-    expect(screen.getByTestId("zoom-value")).toHaveTextContent("78%")
+    expect(screen.getByTestId("universe-camera")).toHaveStyle({
+      transform: "translate(0px, 0px) scale(1)",
+    })
 
     await act(async () => {
       frameQueue.shift()?.(16.7)
     })
 
     await waitFor(() => {
-      expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
+      expect(screen.getByTestId("universe-camera")).toHaveStyle({
+        transform: "translate(0px, 0px) scale(1.1025641025641026)",
+      })
     })
   })
 
@@ -774,7 +775,9 @@ describe("HomePageView", () => {
 
     fireEvent.wheel(canvas, { deltaY: -120 })
     await waitFor(() => {
-      expect(screen.getByTestId("zoom-value")).toHaveTextContent("86%")
+      expect(camera).toHaveStyle({
+        transform: "translate(0px, 0px) scale(1.1025641025641026)",
+      })
     })
 
     expect(viewport).not.toHaveStyle({
@@ -785,7 +788,7 @@ describe("HomePageView", () => {
     })
   })
 
-  it("pans the universe camera when dragging from the canvas or a planet", async () => {
+  it("keeps the universe camera centered when dragging from the canvas or a planet", async () => {
     render(<HomePageView {...buildProps()} />)
 
     const canvas = screen.getByRole("region", {
@@ -797,13 +800,6 @@ describe("HomePageView", () => {
     fireEvent.mouseMove(canvas, { clientX: 136, clientY: 158 })
     fireEvent.mouseUp(canvas)
 
-    await waitFor(() => {
-      expect(camera).toHaveStyle({
-        transform: "translate(36px, 38px) scale(1)",
-      })
-    })
-
-    fireEvent.click(screen.getByRole("button", { name: "重置画布视角" }))
     expect(camera).toHaveStyle({
       transform: "translate(0px, 0px) scale(1)",
     })
@@ -813,10 +809,8 @@ describe("HomePageView", () => {
     fireEvent.mouseMove(canvas, { clientX: 236, clientY: 258 })
     fireEvent.mouseUp(canvas)
 
-    await waitFor(() => {
-      expect(camera).toHaveStyle({
-        transform: "translate(36px, 38px) scale(1)",
-      })
+    expect(camera).toHaveStyle({
+      transform: "translate(0px, 0px) scale(1)",
     })
   })
 

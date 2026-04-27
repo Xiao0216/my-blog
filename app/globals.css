@@ -74,14 +74,44 @@
 
   html {
     scroll-behavior: smooth;
+    cursor: url("/cursors/cosmic-cursor.png") 8 5, auto;
   }
 
   body {
     @apply bg-background text-foreground;
+    cursor: url("/cursors/cosmic-cursor.png") 8 5, auto;
   }
 
   a {
     @apply rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  a,
+  button,
+  [role="button"],
+  summary,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    cursor: url("/cursors/cosmic-pointer.png") 8 5, pointer;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    cursor: text;
+  }
+
+  button:disabled,
+  input:disabled,
+  textarea:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  body[data-busy="true"],
+  .cursor-busy {
+    cursor: url("/cursors/cosmic-busy.png") 8 5, progress;
   }
 }
 
@@ -621,7 +651,7 @@
     border-radius: 9999px;
     padding: 0;
     color: var(--ns-accent-primary);
-    cursor: pointer;
+    cursor: url("/cursors/cosmic-pointer.png") 8 5, pointer;
     transform-origin: center;
     transform: rotate(var(--planet-start-angle)) translateX(var(--planet-orbit-radius)) rotate(calc(var(--planet-start-angle) * -1)) translate(-50%, -50%);
     animation: planet-orbit var(--planet-orbit-duration) linear infinite;
