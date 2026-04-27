@@ -50,18 +50,13 @@ export type PlanetTone =
   | "teal"
   | "violet"
 
-export type PlanetStatus = "seedling" | "growing" | "mature" | "archived"
-
 export type NullSpaceTheme = "dark" | "light"
 
 export type PlanetContextModel = {
   readonly id: string
-  readonly category: string
   readonly title: string
   readonly excerpt: string
-  readonly date: string
   readonly tone: PlanetTone
-  readonly status: PlanetStatus
   readonly planetId?: number
 }
 

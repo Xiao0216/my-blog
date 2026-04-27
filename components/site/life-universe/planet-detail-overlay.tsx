@@ -53,7 +53,7 @@ export function PlanetDetailOverlay({
           </button>
           <div>
             <p className="font-mono text-[0.72rem] uppercase tracking-[0.16em] text-[var(--ns-text-muted)]">
-              {detail.context.category}
+              行星
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-[var(--ns-text-primary)]">
               {detail.context.title}
@@ -64,7 +64,7 @@ export function PlanetDetailOverlay({
           </div>
         </div>
         <div className="planet-detail-status">
-          <span>{statusLabel[detail.context.status]}</span>
+          <span>成熟</span>
         </div>
       </header>
 
@@ -146,10 +146,3 @@ export function PlanetDetailOverlay({
     </section>
   )
 }
-
-const statusLabel = {
-  archived: "归档",
-  growing: "生长",
-  mature: "成熟",
-  seedling: "萌芽",
-} satisfies Record<PlanetDetailModel["context"]["status"], string>

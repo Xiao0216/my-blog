@@ -220,7 +220,6 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         body: JSON.stringify({
           contextCard: activeContextPlanet
             ? {
-                category: "行星",
                 id: activeContextPlanet.id,
                 planetId: activeContextPlanet.planetId,
                 title: activeContextPlanet.name,
@@ -430,12 +429,9 @@ function buildPlanetDetail(
 function buildContextCard(planet: PlanetUniverseBodyModel): PlanetContextModel {
   return {
     id: planet.id,
-    category: "行星",
     title: planet.name,
     excerpt: planet.summary,
-    date: "2024.05.12",
     tone: planet.tone,
-    status: "mature",
     planetId: planet.planetId,
   }
 }

@@ -1085,7 +1085,6 @@ describe("HomePageView", () => {
 
     expect(body.message).toBe("总结这个行星")
     expect(body.contextCard).toEqual({
-      category: "行星",
       id: "planet-1",
       planetId: 1,
       title: "工作",
