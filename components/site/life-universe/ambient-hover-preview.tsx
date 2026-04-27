@@ -16,6 +16,7 @@ type AmbientHoverPreviewProps = {
 const PREVIEW_WIDTH = 260
 const PREVIEW_HEIGHT = 172
 const PREVIEW_MARGIN = 16
+const POINTER_GAP = 22
 const FALLBACK_VIEWPORT = {
   width: 1024,
   height: 768,
@@ -27,13 +28,19 @@ export function AmbientHoverPreview({
   onEnter,
 }: AmbientHoverPreviewProps) {
   const viewport = getViewportSize()
+  const preferredLeft = anchor.x + POINTER_GAP + PREVIEW_WIDTH > viewport.width - PREVIEW_MARGIN
+    ? anchor.x - PREVIEW_WIDTH - POINTER_GAP
+    : anchor.x + POINTER_GAP
+  const preferredTop = anchor.y + POINTER_GAP + PREVIEW_HEIGHT > viewport.height - PREVIEW_MARGIN
+    ? anchor.y - PREVIEW_HEIGHT - POINTER_GAP
+    : anchor.y + POINTER_GAP
   const left = clamp(
-    anchor.x,
+    preferredLeft,
     PREVIEW_MARGIN,
     viewport.width - PREVIEW_WIDTH - PREVIEW_MARGIN
   )
   const top = clamp(
-    anchor.y,
+    preferredTop,
     PREVIEW_MARGIN,
     viewport.height - PREVIEW_HEIGHT - PREVIEW_MARGIN
   )

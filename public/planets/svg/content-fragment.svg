@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="记忆碎片" shape-rendering="geometricPrecision">
+  <defs>
+    <linearGradient id="frag-fill" x1="30" y1="18" x2="98" y2="112">
+      <stop offset="0" stop-color="#ffe1a8"/>
+      <stop offset="0.42" stop-color="#caa06e"/>
+      <stop offset="0.72" stop-color="#8b6d55"/>
+      <stop offset="1" stop-color="#4c3d37"/>
+    </linearGradient>
+    <linearGradient id="frag-edge" x1="26" y1="20" x2="100" y2="108">
+      <stop offset="0" stop-color="#fff0c8"/>
+      <stop offset="1" stop-color="#6a4630"/>
+    </linearGradient>
+    <filter id="frag-glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="2.6" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.9 0 0.72 0 0 0.52 0 0 0.45 0 0.3 0 0 0 1 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M61 12 103 34 111 79 77 115 31 101 17 58Z" fill="url(#frag-fill)" stroke="url(#frag-edge)" stroke-width="4" stroke-linejoin="round" filter="url(#frag-glow)"/>
+  <path d="M43 32 84 41 94 76 70 96 37 86 29 57Z" fill="#f4cf94" opacity="0.28"/>
+  <path d="M42 36 31 58l8 28M84 41l10 35-24 20M31 58l63 18" fill="none" stroke="#fff1c3" stroke-width="2.2" stroke-linecap="round" opacity="0.28"/>
+  <circle cx="72" cy="48" r="4" fill="#fff2bf" opacity="0.62"/>
+</svg>

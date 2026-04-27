@@ -2,6 +2,9 @@
 
 import { useMemo } from "react"
 
+import { useLoader } from "@react-three/fiber"
+import { SRGBColorSpace, TextureLoader } from "three"
+
 import type { MinimalStarPoint } from "@/components/site/life-universe/minimal-three-scene-model"
 import type { AmbientPreviewKind } from "@/components/site/life-universe/types"
 
@@ -41,6 +44,10 @@ export function MinimalAmbientField({
   }) => void
   readonly onLeaveAmbient: (ambientId: string) => void
 }) {
+  const starMap = useLoader(TextureLoader, "/planets/svg/content-star.svg")
+  const fragmentMap = useLoader(TextureLoader, "/planets/svg/content-fragment.svg")
+  starMap.colorSpace = SRGBColorSpace
+  fragmentMap.colorSpace = SRGBColorSpace
   const interactiveStars = useMemo(
     () => stars.filter((star) => star.kind !== "background" && Boolean(star.targetPlanetId)),
     [stars]
@@ -62,9 +69,11 @@ export function MinimalAmbientField({
           return null
         }
 
-        const radius = star.kind === "fragment" ? star.size * 5.8 + 4.8 : star.size * 5.2 + 4.2
-        const hitRadius = Math.max(16, radius * 2.4)
-        const opacity = star.kind === "fragment" ? 0.72 : 0.82
+        const radius = star.kind === "fragment" ? star.size * 5.8 + 4.8 : star.size * 6.2 + 5.4
+        const hitRadius = Math.max(22, radius * 2.8)
+        const opacity = star.kind === "fragment" ? 0.82 : 0.92
+        const visualSize = radius * (star.kind === "fragment" ? 2.15 : 2.35)
+        const texture = star.kind === "fragment" ? fragmentMap : starMap
 
         return (
           <group
@@ -101,17 +110,10 @@ export function MinimalAmbientField({
               })
             }
           >
-            {star.kind === "fragment" ? (
-              <mesh rotation={[0.45, 0.2, 0.78]}>
-                <dodecahedronGeometry args={[radius, 0]} />
-                <meshStandardMaterial color="#d7b98f" emissive="#9b6f3f" emissiveIntensity={0.42} opacity={opacity} roughness={0.82} transparent />
-              </mesh>
-            ) : (
-              <mesh>
-                <sphereGeometry args={[radius, 12, 10]} />
-                <meshBasicMaterial color="#fff2cf" opacity={opacity} transparent />
-              </mesh>
-            )}
+            <mesh>
+              <planeGeometry args={[visualSize, visualSize]} />
+              <meshBasicMaterial alphaTest={0.04} map={texture} opacity={opacity} transparent />
+            </mesh>
             <mesh visible={false}>
               <sphereGeometry args={[hitRadius, 12, 8]} />
               <meshBasicMaterial transparent opacity={0} />

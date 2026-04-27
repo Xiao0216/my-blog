@@ -674,6 +674,7 @@
   .planet-hover-preview {
     position: fixed;
     z-index: 180;
+    pointer-events: none;
     display: grid;
     gap: 0.65rem;
     border: 1px solid color-mix(in srgb, var(--ns-accent-primary) 16%, var(--ns-glass-border));
@@ -716,6 +717,7 @@
 
   .planet-hover-preview button {
     display: inline-flex;
+    pointer-events: auto;
     min-height: 2.25rem;
     align-items: center;
     justify-content: center;

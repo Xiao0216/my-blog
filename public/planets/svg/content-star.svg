@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="内容星星" shape-rendering="geometricPrecision">
+  <defs>
+    <radialGradient id="star-core" cx="50%" cy="48%" r="50%">
+      <stop offset="0" stop-color="#fff9dc"/>
+      <stop offset="0.36" stop-color="#ffe59d"/>
+      <stop offset="0.68" stop-color="#f4b85f"/>
+      <stop offset="1" stop-color="#b86c32"/>
+    </radialGradient>
+    <linearGradient id="star-stroke" x1="24" y1="18" x2="104" y2="112">
+      <stop offset="0" stop-color="#fff7cf"/>
+      <stop offset="0.48" stop-color="#f4c36f"/>
+      <stop offset="1" stop-color="#6d3b24"/>
+    </linearGradient>
+    <filter id="soft-glow" x="-45%" y="-45%" width="190%" height="190%">
+      <feGaussianBlur stdDeviation="3.2" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1 0 0.78 0 0 0.62 0 0 0.42 0 0.72 0 0 0 1 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M64 8 75.7 48.8 118 64 75.7 79.2 64 120 52.3 79.2 10 64 52.3 48.8Z" fill="url(#star-core)" stroke="url(#star-stroke)" stroke-width="3.8" stroke-linejoin="round" filter="url(#soft-glow)"/>
+  <path d="M64 25.5 71.3 51.8 98 64 71.3 76.2 64 102.5 56.7 76.2 30 64 56.7 51.8Z" fill="#fff3bf" opacity="0.3"/>
+  <path d="M55 37c8.5-9.4 20.6-7.3 28.5 1.7" fill="none" stroke="#fff8d8" stroke-width="3" stroke-linecap="round" opacity="0.72"/>
+  <circle cx="88" cy="34" r="4.2" fill="#fff4bd" opacity="0.92"/>
+  <circle cx="38" cy="90" r="3.2" fill="#ffd57a" opacity="0.82"/>
+</svg>
