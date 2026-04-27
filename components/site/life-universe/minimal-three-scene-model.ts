@@ -45,6 +45,18 @@ const tonePalettes: Record<PlanetUniverseBodyModel["tone"], ReadonlyArray<Minima
   violet: ["mist"],
 }
 
+const CONTENT_FIELD_BOUNDS = {
+  x: 430,
+  y: 250,
+  z: 160,
+} as const
+
+const BACKGROUND_FIELD_BOUNDS = {
+  x: 520,
+  y: 300,
+  z: 260,
+} as const
+
 export function getMinimalColorScheme({
   tone,
   index,
@@ -154,9 +166,9 @@ function buildMinimalStarField(
 
   for (let index = 0; index < backgroundStarCount; index += 1) {
     const value = mixSeed(seed, index)
-    const x = roundToTwo(normalizeSigned((value >>> 0) % 997, 998) * 900)
-    const y = roundToTwo(normalizeSigned((value >>> 10) % 991, 992) * 640)
-    const z = roundToTwo(normalizeSigned((value >>> 20) % 983, 984) * 700)
+    const x = roundToTwo(normalizeSigned((value >>> 0) % 997, 998) * BACKGROUND_FIELD_BOUNDS.x)
+    const y = roundToTwo(normalizeSigned((value >>> 10) % 991, 992) * BACKGROUND_FIELD_BOUNDS.y)
+    const z = roundToTwo(normalizeSigned((value >>> 20) % 983, 984) * BACKGROUND_FIELD_BOUNDS.z)
 
     stars.push({
       id: `background-${index + 1}`,
@@ -180,9 +192,9 @@ function resolveContentNodePosition(
 
   for (let attempt = 0; attempt < 28; attempt += 1) {
     const value = mixSeed(seed, attempt)
-    const x = roundToTwo(normalizeSigned((value >>> 0) % 997, 998) * 900)
-    const y = roundToTwo(normalizeSigned((value >>> 10) % 991, 992) * 640)
-    const z = roundToTwo(normalizeSigned((value >>> 20) % 983, 984) * 620)
+    const x = roundToTwo(normalizeSigned((value >>> 0) % 997, 998) * CONTENT_FIELD_BOUNDS.x)
+    const y = roundToTwo(normalizeSigned((value >>> 10) % 991, 992) * CONTENT_FIELD_BOUNDS.y)
+    const z = roundToTwo(normalizeSigned((value >>> 20) % 983, 984) * CONTENT_FIELD_BOUNDS.z)
     const point: readonly [number, number, number] = [x, y, z]
 
     fallback = point

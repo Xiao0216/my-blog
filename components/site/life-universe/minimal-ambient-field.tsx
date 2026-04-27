@@ -62,9 +62,9 @@ export function MinimalAmbientField({
           return null
         }
 
-        const radius = star.kind === "fragment" ? star.size * 4.8 + 3.8 : star.size * 3.4 + 2.8
-        const hitRadius = Math.max(12, radius * 2.4)
-        const opacity = star.kind === "fragment" ? 0.34 : 0.24
+        const radius = star.kind === "fragment" ? star.size * 5.8 + 4.8 : star.size * 5.2 + 4.2
+        const hitRadius = Math.max(16, radius * 2.4)
+        const opacity = star.kind === "fragment" ? 0.72 : 0.82
 
         return (
           <group
@@ -104,12 +104,12 @@ export function MinimalAmbientField({
             {star.kind === "fragment" ? (
               <mesh rotation={[0.45, 0.2, 0.78]}>
                 <dodecahedronGeometry args={[radius, 0]} />
-                <meshStandardMaterial color="#c6aa84" emissive="#3f3326" emissiveIntensity={0.18} opacity={opacity} roughness={0.86} transparent />
+                <meshStandardMaterial color="#d7b98f" emissive="#9b6f3f" emissiveIntensity={0.42} opacity={opacity} roughness={0.82} transparent />
               </mesh>
             ) : (
               <mesh>
                 <sphereGeometry args={[radius, 12, 10]} />
-                <meshBasicMaterial color="#f1ddc0" opacity={opacity} transparent />
+                <meshBasicMaterial color="#fff2cf" opacity={opacity} transparent />
               </mesh>
             )}
             <mesh visible={false}>

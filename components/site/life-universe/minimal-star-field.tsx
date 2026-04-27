@@ -23,7 +23,7 @@ export function MinimalStarField({
 
     stars.forEach((star, index) => {
       const offset = index * 3
-      const warmth = star.kind === "background" ? 0.58 + star.intensity * 0.1 : 0.72 + star.intensity * 0.14
+      const warmth = star.kind === "background" ? 0.72 + star.intensity * 0.12 : 0.88 + star.intensity * 0.16
 
       nextPositions[offset] = star.position[0]
       nextPositions[offset + 1] = star.position[1]
@@ -33,7 +33,7 @@ export function MinimalStarField({
       nextColors[offset + 1] = warmth * 0.9
       nextColors[offset + 2] = warmth * 0.78
 
-      nextSizes[index] = star.kind === "background" ? star.size * 0.75 : star.size
+      nextSizes[index] = star.kind === "background" ? star.size * 1.05 : star.size * 1.8
     })
 
     return {
@@ -62,7 +62,7 @@ export function MinimalStarField({
           count={sizes.length}
         />
       </bufferGeometry>
-      <pointsMaterial color="#f1ddc0" opacity={0.72} size={2.2} sizeAttenuation transparent vertexColors />
+      <pointsMaterial color="#fff2cf" opacity={0.9} size={3.2} sizeAttenuation transparent vertexColors />
     </points>
   )
 }
