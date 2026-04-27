@@ -9,6 +9,9 @@ export type MinimalColorScheme = "sage" | "warm" | "mist" | "slate" | "rose"
 export type MinimalThreeBody = PlanetUniverseBodyModel & {
   readonly colorScheme: MinimalColorScheme
   readonly hasRing: boolean
+  readonly illustration: string
+  readonly illustrationAspectRatio: number
+  readonly illustrationScale: number
   readonly position: readonly [number, number, number]
   readonly renderLevel: PlanetRenderLevel
 }
@@ -57,6 +60,18 @@ const BACKGROUND_FIELD_BOUNDS = {
   z: 260,
 } as const
 
+const PLANET_ILLUSTRATIONS = [
+  { aspectRatio: 822 / 637, path: "/planets/svg/beige-saturn.svg", scale: 2.55 },
+  { aspectRatio: 1, path: "/planets/svg/pink-ring.svg", scale: 2.35 },
+  { aspectRatio: 1, path: "/planets/svg/purple-sphere.svg", scale: 2.2 },
+  { aspectRatio: 1, path: "/planets/svg/small-pink.svg", scale: 2.05 },
+  { aspectRatio: 948 / 675, path: "/planets/svg/orange-ring.svg", scale: 2.5 },
+  { aspectRatio: 1, path: "/planets/svg/mint-sphere.svg", scale: 2.2 },
+  { aspectRatio: 1, path: "/planets/svg/small-bluegreen.svg", scale: 2.05 },
+  { aspectRatio: 1, path: "/planets/svg/small-red.svg", scale: 2.05 },
+  { aspectRatio: 1, path: "/planets/svg/dark-texture.svg", scale: 2.2 },
+] as const
+
 export function getMinimalColorScheme({
   tone,
   index,
@@ -99,10 +114,15 @@ function buildMinimalThreeBody(
   const orbitRadius = planet.orbit.radius
   const zOffset = roundToTwo((normalizedSize - 0.5) * 64 + planet.orbit.delaySeconds * 6)
 
+  const illustration = PLANET_ILLUSTRATIONS[index % PLANET_ILLUSTRATIONS.length]
+
   return {
     ...planet,
     colorScheme: getMinimalColorScheme({ tone: planet.tone, index }),
     hasRing: normalizedSize >= 0.5 || planet.publicMemoryCount + planet.assistantMemoryCount > 0,
+    illustration: illustration.path,
+    illustrationAspectRatio: illustration.aspectRatio,
+    illustrationScale: illustration.scale,
     position: [
       roundToTwo(Math.cos(angleRadians) * orbitRadius),
       roundToTwo(Math.sin(angleRadians) * orbitRadius * 0.72),
