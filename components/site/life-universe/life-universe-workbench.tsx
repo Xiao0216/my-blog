@@ -331,11 +331,11 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         <PlanetDetailOverlay
           detail={detail}
           isModal={!isTwinExpanded}
-          isRelatedScopeActive={relatedScopePlanetId === detail.card.id}
-          onAskTwin={() => askTwin(detail.card.id)}
+          isRelatedScopeActive={relatedScopePlanetId === detail.context.id}
+          onAskTwin={() => askTwin(detail.context.id)}
           onClearRelated={clearRelatedScope}
           onLeave={leavePlanetDetail}
-          onShowRelated={() => showRelated(detail.card.id)}
+          onShowRelated={() => showRelated(detail.context.id)}
         />
       ) : null}
     </div>
@@ -391,7 +391,7 @@ function buildPlanetDetail(
   planet: PlanetUniverseBodyModel,
   { essays, memories, notes, projects }: HomePageViewProps
 ): PlanetDetailModel {
-  const card = buildContextCard(planet)
+  const context = buildContextCard(planet)
   const publicPlanetMemories = memories
     .filter(
       (memory) =>
@@ -405,7 +405,7 @@ function buildPlanetDetail(
     .slice(0, 4)
 
   return {
-    card,
+    context,
     counts: {
       essays: essays.length,
       memories: publicPlanetMemories.length,
@@ -417,7 +417,7 @@ function buildPlanetDetail(
         ? keyMemories
         : ["最近还没有公开记忆，但这个行星已经可以承载你的行为记录。"],
     recentChanges: [
-      `${card.title} 正在形成更清晰的结构。`,
+      `${context.title} 正在形成更清晰的结构。`,
       "新的内容会在这里沉淀成时间线。",
     ],
     relatedTitles:

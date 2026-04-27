@@ -74,7 +74,7 @@ export function UniverseCanvas({
   const [isCameraGestureActive, setIsCameraGestureActive] = useState(false)
   const cameraScale = detail ? 1.28 : zoom / BASE_ZOOM
   const enteredPlanet = detail
-    ? planets.find((planet) => planet.id === detail.card.id)
+    ? planets.find((planet) => planet.id === detail.context.id)
     : undefined
   const enteredPlanetAngle = enteredPlanet?.orbit.startAngle ?? 0
   const enteredPlanetRadians = (enteredPlanetAngle * Math.PI) / 180

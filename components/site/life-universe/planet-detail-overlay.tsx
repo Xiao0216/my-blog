@@ -33,7 +33,7 @@ export function PlanetDetailOverlay({
     <section
       role="dialog"
       aria-modal={isModal ? "true" : undefined}
-      aria-label={`${detail.card.title} 行星详情`}
+      aria-label={`${detail.context.title} 行星详情`}
       className="planet-detail-overlay"
       onWheel={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
@@ -53,18 +53,18 @@ export function PlanetDetailOverlay({
           </button>
           <div>
             <p className="font-mono text-[0.72rem] uppercase tracking-[0.16em] text-[var(--ns-text-muted)]">
-              {detail.card.category}
+              {detail.context.category}
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-[var(--ns-text-primary)]">
-              {detail.card.title}
+              {detail.context.title}
             </h2>
             <p className="mt-2 text-sm text-[var(--ns-text-tertiary)]">
-              {detail.card.excerpt}
+              {detail.context.excerpt}
             </p>
           </div>
         </div>
         <div className="planet-detail-status">
-          <span>{statusLabel[detail.card.status]}</span>
+          <span>{statusLabel[detail.context.status]}</span>
         </div>
       </header>
 
@@ -90,7 +90,7 @@ export function PlanetDetailOverlay({
       <div className="planet-detail-grid">
         <article>
           <h3>概览</h3>
-          <p>{detail.card.excerpt}</p>
+          <p>{detail.context.excerpt}</p>
         </article>
         <article>
           <h3>最近变化</h3>
@@ -152,4 +152,4 @@ const statusLabel = {
   growing: "生长",
   mature: "成熟",
   seedling: "萌芽",
-} satisfies Record<PlanetDetailModel["card"]["status"], string>
+} satisfies Record<PlanetDetailModel["context"]["status"], string>

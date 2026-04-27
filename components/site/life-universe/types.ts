@@ -68,7 +68,7 @@ export type PlanetContextModel = {
 export type UniverseViewState = "entering" | "focused" | "inside" | "leaving" | "overview"
 
 export type PlanetDetailModel = {
-  readonly card: PlanetContextModel
+  readonly context: PlanetContextModel
   readonly counts: {
     readonly essays: number
     readonly memories: number

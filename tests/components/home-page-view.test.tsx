@@ -409,7 +409,7 @@ describe("HomePageView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "生活 行星" }))
 
-    expect(screen.getByTestId("selected-card-title")).toHaveTextContent("生活")
+    expect(screen.getByTestId("selected-planet-title")).toHaveTextContent("生活")
     expect(screen.getByRole("button", { name: "生活 行星" })).toHaveAttribute(
       "data-focused",
       "true"

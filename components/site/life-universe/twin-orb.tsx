@@ -55,7 +55,7 @@ export function TwinOrb({
 
   return (
     <div className="twin-orb-shell pointer-events-none absolute">
-      <span className="sr-only" data-testid="selected-card-title">
+      <span className="sr-only" data-testid="selected-planet-title">
         {contextTitle}
       </span>
       {isExpanded ? (
