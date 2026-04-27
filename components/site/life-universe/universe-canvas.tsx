@@ -3,17 +3,21 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import type { MinimalThreeScene } from "@/components/site/life-universe/minimal-three-scene-model"
 import type {
+  AmbientHoverState,
   PlanetUniverseBodyModel,
   PlanetDetailModel,
+  UniverseContentNodeModel,
   UniverseViewState,
 } from "@/components/site/life-universe/types"
 import {
   PlanetBody,
   type PlanetPoint,
 } from "@/components/site/life-universe/planet-body"
+import { AmbientHoverPreview } from "@/components/site/life-universe/ambient-hover-preview"
 import { PlanetHoverPreview } from "@/components/site/life-universe/planet-hover-preview"
 import { PlanetUniverseScene } from "@/components/site/life-universe/planet-universe-scene"
 import {
+  buildAmbientPreview,
   buildPlanetPreview,
   getPlanetRenderLevel,
 } from "@/components/site/life-universe/planet-universe-model"
@@ -30,11 +34,13 @@ const AMBIENT_STARS = [
 
 export function UniverseCanvas({
   planets,
+  contentNodes,
   threeScene,
   focusedPlanetId,
   hoveredPlanetId,
   relatedScopePlanetId,
   hoverPoint,
+  ambientHover,
   detail,
   enteredPlanetId,
   zoom,
@@ -44,18 +50,22 @@ export function UniverseCanvas({
   onSelectPlanet,
   onAskTwinPlanet,
   onEnterPlanet,
+  onHoverAmbient,
   onHoverPlanet,
+  onLeaveAmbient,
   onLeavePlanet,
   onClearRelatedPlanets,
   onShowRelatedPlanet,
   onWheelZoom,
 }: {
   readonly planets: ReadonlyArray<PlanetUniverseBodyModel>
+  readonly contentNodes: ReadonlyArray<UniverseContentNodeModel>
   readonly threeScene: MinimalThreeScene
   readonly focusedPlanetId?: string
   readonly hoveredPlanetId?: string
   readonly relatedScopePlanetId?: string
   readonly hoverPoint?: PlanetPoint
+  readonly ambientHover?: AmbientHoverState
   readonly detail?: PlanetDetailModel
   readonly enteredPlanetId?: string
   readonly zoom: number
@@ -65,7 +75,9 @@ export function UniverseCanvas({
   readonly onSelectPlanet: (planetId: string, point: PlanetPoint) => void
   readonly onAskTwinPlanet: (planetId: string) => void
   readonly onEnterPlanet: (planetId: string) => void
+  readonly onHoverAmbient: (ambient: AmbientHoverState) => void
   readonly onHoverPlanet: (planetId: string, point: PlanetPoint) => void
+  readonly onLeaveAmbient: (ambientId: string) => void
   readonly onLeavePlanet: (planetId: string) => void
   readonly onClearRelatedPlanets: () => void
   readonly onShowRelatedPlanet: (planetId: string) => void
@@ -101,10 +113,18 @@ export function UniverseCanvas({
   const onWheelZoomRef = useRef(onWheelZoom)
   const onEnterPlanetRef = useRef(onEnterPlanet)
   const onSelectPlanetRef = useRef(onSelectPlanet)
+  const onHoverAmbientRef = useRef(onHoverAmbient)
   const onHoverPlanetRef = useRef(onHoverPlanet)
+  const onLeaveAmbientRef = useRef(onLeaveAmbient)
   const onLeavePlanetRef = useRef(onLeavePlanet)
   const isRelatedScopeActive = Boolean(relatedScopePlanetId)
   const hoveredPlanet = planets.find((planet) => planet.id === hoveredPlanetId)
+  const ambientTargetPlanet = ambientHover
+    ? planets.find((planet) => planet.id === ambientHover.targetPlanetId)
+    : undefined
+  const ambientTargetNode = ambientHover
+    ? contentNodes.find((node) => node.id === ambientHover.id)
+    : undefined
 
   const activateCameraGesture = useCallback(() => {
     if (!cameraGestureActiveRef.current) {
@@ -162,8 +182,16 @@ export function UniverseCanvas({
   }, [onSelectPlanet])
 
   useEffect(() => {
+    onHoverAmbientRef.current = onHoverAmbient
+  }, [onHoverAmbient])
+
+  useEffect(() => {
     onHoverPlanetRef.current = onHoverPlanet
   }, [onHoverPlanet])
+
+  useEffect(() => {
+    onLeaveAmbientRef.current = onLeaveAmbient
+  }, [onLeaveAmbient])
 
   useEffect(() => {
     onLeavePlanetRef.current = onLeavePlanet
@@ -210,6 +238,14 @@ export function UniverseCanvas({
     },
     []
   )
+
+  const handleAmbientHover = useCallback((ambient: AmbientHoverState) => {
+    onHoverAmbientRef.current(ambient)
+  }, [])
+
+  const handleAmbientLeave = useCallback((ambientId: string) => {
+    onLeaveAmbientRef.current(ambientId)
+  }, [])
 
   const handlePlanetHover = useCallback(
     (planetId: string, point: PlanetPoint) => {
@@ -295,7 +331,9 @@ export function UniverseCanvas({
             isMotionPaused={isMotionPaused}
             isReducedMotion={isReducedMotion}
             onEnterPlanet={handlePlanetEnter}
+            onHoverAmbient={handleAmbientHover}
             onHoverPlanet={handlePlanetHover}
+            onLeaveAmbient={handleAmbientLeave}
             onLeavePlanet={handlePlanetLeave}
           />
           <div className="planet-accessibility-controls absolute inset-0">
@@ -417,6 +455,23 @@ export function UniverseCanvas({
           anchor={hoverPoint}
           preview={buildPlanetPreview(hoveredPlanet)}
           onEnter={() => handlePlanetEnter(hoveredPlanet.id)}
+        />
+      ) : null}
+      {!hoveredPlanet && ambientHover && ambientTargetPlanet && ambientTargetNode ? (
+        <AmbientHoverPreview
+          anchor={ambientHover.point}
+          preview={buildAmbientPreview({
+            node: ambientTargetNode,
+            targetPlanet: ambientTargetPlanet,
+          })}
+          onEnter={() => {
+            if (ambientTargetNode.href) {
+              window.location.href = ambientTargetNode.href
+              return
+            }
+
+            handlePlanetEnter(ambientHover.targetPlanetId)
+          }}
         />
       ) : null}
     </section>

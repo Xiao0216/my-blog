@@ -739,6 +739,28 @@
     border-color: color-mix(in srgb, var(--ns-accent-primary) 34%, var(--ns-glass-border));
   }
 
+  .ambient-hover-preview {
+    border-color: color-mix(in srgb, var(--ns-accent-secondary) 24%, var(--ns-glass-border));
+  }
+
+  .ambient-hover-preview > :nth-child(2) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .ambient-hover-preview > :nth-child(2)::before {
+    display: inline-block;
+    width: 0.48rem;
+    height: 0.48rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--ns-accent-primary) 76%, white 12%);
+    box-shadow:
+      0 0 10px color-mix(in srgb, var(--ns-accent-primary) 60%, transparent),
+      0 0 22px color-mix(in srgb, var(--ns-accent-secondary) 28%, transparent);
+    content: "";
+  }
+
   .null-space-shell[data-motion-paused="true"] .planet-body,
   .null-space-shell[data-motion-paused="true"] .planet-sphere {
     animation-play-state: paused;

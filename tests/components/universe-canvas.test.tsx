@@ -77,13 +77,17 @@ vi.mock("@/components/site/life-universe/planet-universe-scene", () => ({
     scene,
     isReducedMotion,
     onEnterPlanet,
+    onHoverAmbient,
     onHoverPlanet,
+    onLeaveAmbient,
     onLeavePlanet,
   }: {
-    readonly scene: { readonly bodies: ReadonlyArray<{ readonly id: string }> }
+    readonly scene: { readonly bodies: ReadonlyArray<{ readonly id: string }>; readonly stars: ReadonlyArray<{ readonly id: string; readonly kind: "background" | "fragment" | "star"; readonly targetPlanetId?: string }> }
     readonly isReducedMotion: boolean
     readonly onEnterPlanet: (planetId: string) => void
+    readonly onHoverAmbient: (ambient: { readonly id: string; readonly kind: "fragment" | "star"; readonly point: PlanetPoint; readonly targetPlanetId: string }) => void
     readonly onHoverPlanet: (planetId: string, point: PlanetPoint) => void
+    readonly onLeaveAmbient: (ambientId: string) => void
     readonly onLeavePlanet: (planetId: string) => void
   }) {
     return (
@@ -108,12 +112,53 @@ vi.mock("@/components/site/life-universe/planet-universe-scene", () => ({
             type="button"
           />
         ))}
+        {scene.stars.map((star) =>
+          star.targetPlanetId ? (
+            <button
+              key={star.id}
+              data-testid={`mock-scene-ambient-${star.id}`}
+              onClick={() => onEnterPlanet(star.targetPlanetId ?? "")}
+              onPointerLeave={() => onLeaveAmbient(star.id)}
+              onPointerMove={(event) =>
+                onHoverAmbient({
+                  id: star.id,
+                  kind: star.kind === "fragment" ? "fragment" : "star",
+                  point: { x: event.clientX, y: event.clientY },
+                  targetPlanetId: star.targetPlanetId ?? "",
+                })
+              }
+              type="button"
+            />
+          ) : null
+        )}
       </div>
     )
   },
 }))
 
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
+
+const contentNodes = [
+  {
+    contentType: "essay" as const,
+    href: "/essays/work-note",
+    id: "essay-work-note",
+    importance: 8,
+    kind: "star" as const,
+    summary: "一篇具体内容摘要",
+    targetPlanetId: "planet-1",
+    title: "具体内容星星",
+  },
+  {
+    contentType: "memory" as const,
+    id: "memory-1",
+    importance: 4,
+    kind: "fragment" as const,
+    summary: "一条尚未沉淀的记忆碎片",
+    targetPlanetId: "planet-1",
+    title: "具体记忆碎片",
+  },
+]
 
 const planets: ReadonlyArray<PlanetUniverseBodyModel> = [
   {
@@ -163,7 +208,8 @@ function buildProps(
 ): ComponentProps<typeof UniverseCanvas> {
   return {
     planets,
-    threeScene: buildMinimalThreeScene(planets),
+    contentNodes,
+    threeScene: buildMinimalThreeScene(planets, contentNodes),
     focusedPlanetId: "planet-1",
     hoveredPlanetId: undefined,
     relatedScopePlanetId: undefined,
@@ -177,7 +223,9 @@ function buildProps(
     onSelectPlanet: () => {},
     onAskTwinPlanet: () => {},
     onEnterPlanet: () => {},
+    onHoverAmbient: () => {},
     onHoverPlanet: () => {},
+    onLeaveAmbient: () => {},
     onLeavePlanet: () => {},
     onClearRelatedPlanets: () => {},
     onShowRelatedPlanet: () => {},
@@ -260,6 +308,7 @@ describe("UniverseCanvas", () => {
     expect(css).not.toMatch(/\.constellation-node\s*{/)
     expect(css).toMatch(/\.planet-shade\s*{[\s\S]*?position:\s*absolute/)
     expect(css).toMatch(/\.planet-hover-preview\s*{[\s\S]*?position:\s*fixed/)
+    expect(css).toMatch(/\.ambient-hover-preview\s*{[\s\S]*?border-color:/)
     expect(css).toMatch(
       /\.null-space-shell\[data-motion-paused="true"\]\s+\.planet-body\s*,[\s\S]*?animation-play-state:\s*paused/
     )
@@ -297,7 +346,9 @@ describe("UniverseCanvas", () => {
         {...buildProps({
           onEnterPlanet: () => {},
           onAskTwinPlanet: () => {},
+          onHoverAmbient: () => {},
           onHoverPlanet: () => {},
+          onLeaveAmbient: () => {},
           onLeavePlanet: () => {},
           onSelectPlanet: () => {},
           onClearRelatedPlanets: () => {},
@@ -356,6 +407,35 @@ describe("UniverseCanvas", () => {
     )
   })
 
+  it("renders concrete content previews for scattered stars and fragments", () => {
+    const threeScene = buildMinimalThreeScene(planets, contentNodes)
+    const firstAmbient = threeScene.stars.find((star) => star.id === "essay-work-note")
+
+    expect(firstAmbient).toBeDefined()
+
+    render(
+      <UniverseCanvas
+        {...buildProps({
+          threeScene,
+          ambientHover: {
+            id: firstAmbient?.id ?? "essay-work-note",
+            kind: firstAmbient?.kind === "fragment" ? "fragment" : "star",
+            point: { x: 320, y: 220 },
+            targetPlanetId: firstAmbient?.targetPlanetId ?? "planet-1",
+          },
+          isMotionPaused: true,
+        })}
+      />
+    )
+
+    const preview = screen.getByRole("dialog", { name: "具体内容星星 提示" })
+
+    expect(preview).toHaveTextContent("具体内容星星")
+    expect(preview).toHaveTextContent("一篇具体内容摘要")
+    expect(preview).toHaveTextContent("所属 工作")
+    expect(preview).not.toHaveTextContent("工作与交付")
+  })
+
   it("passes reduced motion through to the three scene", () => {
     render(<UniverseCanvas {...buildProps({ isReducedMotion: true })} />)
 
@@ -366,14 +446,23 @@ describe("UniverseCanvas", () => {
   })
 
   it("bridges hover, leave, and enter events from the scene mock", () => {
+    const onHoverAmbient = vi.fn()
     const onHoverPlanet = vi.fn()
+    const onLeaveAmbient = vi.fn()
     const onLeavePlanet = vi.fn()
     const onEnterPlanet = vi.fn()
+    const threeScene = buildMinimalThreeScene(planets, contentNodes)
+    const firstAmbient = threeScene.stars.find((star) => star.targetPlanetId)
+
+    expect(firstAmbient).toBeDefined()
 
     render(
       <UniverseCanvas
         {...buildProps({
+          threeScene,
+          onHoverAmbient,
           onHoverPlanet,
+          onLeaveAmbient,
           onLeavePlanet,
           onEnterPlanet,
         })}
@@ -386,10 +475,24 @@ describe("UniverseCanvas", () => {
     })
     fireEvent.pointerLeave(screen.getByTestId("mock-scene-planet-planet-1"))
     fireEvent.doubleClick(screen.getByTestId("mock-scene-planet-planet-1"))
+    fireEvent.pointerMove(screen.getByTestId(`mock-scene-ambient-${firstAmbient?.id}`), {
+      clientX: 222,
+      clientY: 333,
+    })
+    fireEvent.pointerLeave(screen.getByTestId(`mock-scene-ambient-${firstAmbient?.id}`))
+    fireEvent.click(screen.getByTestId(`mock-scene-ambient-${firstAmbient?.id}`))
 
     expect(onHoverPlanet).toHaveBeenCalledWith("planet-1", { x: 123, y: 234 })
     expect(onLeavePlanet).toHaveBeenCalledWith("planet-1")
     expect(onEnterPlanet).toHaveBeenCalledWith("planet-1")
+    expect(onHoverAmbient).toHaveBeenCalledWith({
+      id: firstAmbient?.id,
+      kind: firstAmbient?.kind === "fragment" ? "fragment" : "star",
+      point: { x: 222, y: 333 },
+      targetPlanetId: firstAmbient?.targetPlanetId,
+    })
+    expect(onLeaveAmbient).toHaveBeenCalledWith(firstAmbient?.id)
+    expect(onEnterPlanet).toHaveBeenCalledWith(firstAmbient?.targetPlanetId)
   })
 
   it("keeps keyboard-only focus and selection behavior through the DOM fallback controls", () => {

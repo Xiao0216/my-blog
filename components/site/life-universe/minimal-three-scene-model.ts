@@ -1,4 +1,8 @@
-import type { PlanetUniverseBodyModel, PlanetRenderLevel } from "@/components/site/life-universe/types"
+import type {
+  PlanetUniverseBodyModel,
+  PlanetRenderLevel,
+  UniverseContentNodeModel,
+} from "@/components/site/life-universe/types"
 
 export type MinimalColorScheme = "sage" | "warm" | "mist" | "slate" | "rose"
 
@@ -10,12 +14,16 @@ export type MinimalThreeBody = PlanetUniverseBodyModel & {
 }
 
 export type MinimalStarPoint = {
+  readonly contentType?: UniverseContentNodeModel["contentType"]
+  readonly href?: string
   readonly id: string
   readonly intensity: number
-  readonly kind: "fragment" | "star"
+  readonly kind: "background" | "fragment" | "star"
   readonly position: readonly [number, number, number]
   readonly size: number
+  readonly summary?: string
   readonly targetPlanetId?: string
+  readonly title?: string
 }
 
 export type MinimalThreeScene = {
@@ -46,7 +54,8 @@ export function getMinimalColorScheme({
 }
 
 export function buildMinimalThreeScene(
-  planets: ReadonlyArray<PlanetUniverseBodyModel>
+  planets: ReadonlyArray<PlanetUniverseBodyModel>,
+  contentNodes: ReadonlyArray<UniverseContentNodeModel> = []
 ): MinimalThreeScene {
   const minSize = planets.reduce(
     (lowest, planet) => Math.min(lowest, planet.size),
@@ -62,7 +71,7 @@ export function buildMinimalThreeScene(
     bodies: planets.map((planet, index) =>
       buildMinimalThreeBody(planet, index, planets.length, minSize, maxSize)
     ),
-    stars: buildMinimalStarField(bodySeed, planets),
+    stars: buildMinimalStarField(bodySeed, planets, contentNodes),
   }
 }
 
@@ -109,29 +118,88 @@ function resolveRenderLevel(
 
 function buildMinimalStarField(
   seed: number,
-  planets: ReadonlyArray<PlanetUniverseBodyModel>
+  planets: ReadonlyArray<PlanetUniverseBodyModel>,
+  contentNodes: ReadonlyArray<UniverseContentNodeModel>
 ): ReadonlyArray<MinimalStarPoint> {
-  const starCount = Math.max(25, Math.min(60, 24 + Math.round(planets.length * 1.7)))
+  const backgroundStarCount = Math.max(18, Math.min(44, 18 + Math.round(planets.length * 1.2)))
   const stars: MinimalStarPoint[] = []
+  const occupied: Array<{ readonly x: number; readonly y: number; readonly radius: number }> = planets.map((planet) => {
+    const angleRadians = degreesToRadians(planet.orbit.startAngle)
+    return {
+      radius: Math.max(72, planet.size * 0.8),
+      x: roundToTwo(Math.cos(angleRadians) * planet.orbit.radius),
+      y: roundToTwo(Math.sin(angleRadians) * planet.orbit.radius * 0.72),
+    }
+  })
 
-  for (let index = 0; index < starCount; index += 1) {
+  for (const node of contentNodes) {
+    const nodeSeed = fnv1a(seed, node.id)
+    const position = resolveContentNodePosition(nodeSeed, node.kind, occupied)
+    const visualRadius = node.kind === "fragment" ? 30 : 40
+
+    occupied.push({ radius: visualRadius, x: position[0], y: position[1] })
+    stars.push({
+      contentType: node.contentType,
+      href: node.href,
+      id: node.id,
+      intensity: roundToTwo(0.62 + Math.min(0.32, node.importance / 30)),
+      kind: node.kind,
+      position,
+      size: roundToTwo(node.kind === "fragment" ? 0.92 + node.importance / 90 : 1.05 + node.importance / 70),
+      summary: node.summary,
+      targetPlanetId: node.targetPlanetId,
+      title: node.title,
+    })
+  }
+
+  for (let index = 0; index < backgroundStarCount; index += 1) {
     const value = mixSeed(seed, index)
     const x = roundToTwo(normalizeSigned((value >>> 0) % 997, 998) * 900)
     const y = roundToTwo(normalizeSigned((value >>> 10) % 991, 992) * 640)
     const z = roundToTwo(normalizeSigned((value >>> 20) % 983, 984) * 700)
-    const targetPlanet = planets.length > 0 ? planets[index % planets.length] : undefined
 
     stars.push({
-      id: `ambient-${index + 1}`,
-      intensity: roundToTwo(0.4 + ((value >>> 2) % 60) / 100),
-      kind: index % 5 === 0 ? "fragment" : "star",
+      id: `background-${index + 1}`,
+      intensity: roundToTwo(0.32 + ((value >>> 2) % 45) / 100),
+      kind: "background",
       position: [x, y, z],
-      size: roundToTwo(0.8 + ((value >>> 7) % 44) / 100),
-      targetPlanetId: targetPlanet?.id,
+      size: roundToTwo(0.55 + ((value >>> 7) % 32) / 100),
     })
   }
 
   return stars
+}
+
+function resolveContentNodePosition(
+  seed: number,
+  kind: UniverseContentNodeModel["kind"],
+  occupied: ReadonlyArray<{ readonly x: number; readonly y: number; readonly radius: number }>
+): readonly [number, number, number] {
+  const minDistance = kind === "fragment" ? 38 : 52
+  let fallback: readonly [number, number, number] = [0, 0, 0]
+
+  for (let attempt = 0; attempt < 28; attempt += 1) {
+    const value = mixSeed(seed, attempt)
+    const x = roundToTwo(normalizeSigned((value >>> 0) % 997, 998) * 900)
+    const y = roundToTwo(normalizeSigned((value >>> 10) % 991, 992) * 640)
+    const z = roundToTwo(normalizeSigned((value >>> 20) % 983, 984) * 620)
+    const point: readonly [number, number, number] = [x, y, z]
+
+    fallback = point
+
+    const hasCollision = occupied.some((item) => {
+      const dx = item.x - x
+      const dy = item.y - y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+      return distance < item.radius + minDistance
+    })
+
+    if (!hasCollision) {
+      return point
+    }
+  }
+
+  return fallback
 }
 
 function hashSceneSeed(planets: ReadonlyArray<PlanetUniverseBodyModel>) {

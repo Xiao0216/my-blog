@@ -4,7 +4,32 @@ import {
   buildMinimalThreeScene,
   getMinimalColorScheme,
 } from "@/components/site/life-universe/minimal-three-scene-model"
-import type { PlanetUniverseBodyModel } from "@/components/site/life-universe/types"
+import type {
+  PlanetUniverseBodyModel,
+  UniverseContentNodeModel,
+} from "@/components/site/life-universe/types"
+
+const contentNodes: UniverseContentNodeModel[] = [
+  {
+    contentType: "essay",
+    href: "/essays/frontend",
+    id: "essay-frontend",
+    importance: 8,
+    kind: "star",
+    summary: "前端工程化内容摘要。",
+    targetPlanetId: "planet-1",
+    title: "前端工程化",
+  },
+  {
+    contentType: "memory",
+    id: "memory-1",
+    importance: 4,
+    kind: "fragment",
+    summary: "一条零散记忆。",
+    targetPlanetId: "planet-2",
+    title: "零散记忆",
+  },
+]
 
 const planets: PlanetUniverseBodyModel[] = [
   {
@@ -70,11 +95,37 @@ describe("minimal three scene model", () => {
     })
     expect(first.bodies[0].position).toHaveLength(3)
     expect(first.bodies[0].size).toBeGreaterThan(first.bodies[2].size)
-    expect(first.stars.length).toBeGreaterThanOrEqual(25)
-    expect(first.stars.length).toBeLessThanOrEqual(60)
+    expect(first.stars.length).toBeGreaterThanOrEqual(18)
+    expect(first.stars.length).toBeLessThanOrEqual(44)
     expect(first.stars.every((star) => Boolean(star.id))).toBe(true)
-    expect(first.stars.every((star) => Boolean(star.targetPlanetId))).toBe(true)
-    expect(first.stars.some((star) => star.kind === "fragment")).toBe(true)
+    expect(first.stars.every((star) => star.kind === "background")).toBe(true)
+  })
+
+  it("places concrete content nodes as non-overlapping scattered stars and fragments", () => {
+    const first = buildMinimalThreeScene(planets, contentNodes)
+    const second = buildMinimalThreeScene(planets, contentNodes)
+    const contentStars = first.stars.filter((star) => star.kind !== "background")
+
+    expect(second).toEqual(first)
+    expect(contentStars).toHaveLength(2)
+    expect(contentStars[0]).toMatchObject({
+      contentType: "essay",
+      href: "/essays/frontend",
+      id: "essay-frontend",
+      kind: "star",
+      targetPlanetId: "planet-1",
+      title: "前端工程化",
+    })
+    expect(contentStars[1]).toMatchObject({
+      contentType: "memory",
+      id: "memory-1",
+      kind: "fragment",
+      targetPlanetId: "planet-2",
+      title: "零散记忆",
+    })
+    const dx = contentStars[0].position[0] - contentStars[1].position[0]
+    const dy = contentStars[0].position[1] - contentStars[1].position[1]
+    expect(Math.sqrt(dx * dx + dy * dy)).toBeGreaterThan(38)
   })
 
   it("cycles restrained color schemes so adjacent cyan-like planets are not identical", () => {

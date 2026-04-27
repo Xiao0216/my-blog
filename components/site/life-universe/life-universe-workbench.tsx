@@ -4,6 +4,7 @@ import type { FormEvent } from "react"
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 
 import type {
+  AmbientHoverState,
   ChatMessage,
   HomePageViewProps,
   NullSpaceTheme,
@@ -15,7 +16,10 @@ import type {
 import type { PlanetPoint } from "@/components/site/life-universe/planet-body"
 import { PlanetDetailOverlay } from "@/components/site/life-universe/planet-detail-overlay"
 import { buildMinimalThreeScene } from "@/components/site/life-universe/minimal-three-scene-model"
-import { buildPlanetUniverseModel } from "@/components/site/life-universe/planet-universe-model"
+import {
+  buildPlanetUniverseModel,
+  buildUniverseContentNodes,
+} from "@/components/site/life-universe/planet-universe-model"
 import { TwinOrb } from "@/components/site/life-universe/twin-orb"
 import { UniverseCanvas } from "@/components/site/life-universe/universe-canvas"
 import { UniverseSidebar } from "@/components/site/life-universe/universe-sidebar"
@@ -42,9 +46,13 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
       }),
     [props.memories, props.planets]
   )
+  const contentNodes = useMemo(
+    () => buildUniverseContentNodes(props),
+    [props]
+  )
   const threeScene = useMemo(
-    () => buildMinimalThreeScene(universe.planets),
-    [universe.planets]
+    () => buildMinimalThreeScene(universe.planets, contentNodes),
+    [contentNodes, universe.planets]
   )
   const [focusedPlanetId, setFocusedPlanetId] = useState<string | undefined>(
     universe.planets[0]?.id
@@ -53,6 +61,9 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     undefined
   )
   const [hoverPoint, setHoverPoint] = useState<PlanetPoint | undefined>(
+    undefined
+  )
+  const [ambientHover, setAmbientHover] = useState<AmbientHoverState | undefined>(
     undefined
   )
   const [relatedScopePlanetId, setRelatedScopePlanetId] = useState<
@@ -98,7 +109,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     () => (enteredPlanet ? buildPlanetDetail(enteredPlanet, props) : undefined),
     [enteredPlanet, props]
   )
-  const isMotionPaused = Boolean(hoveredPlanetId || enteredPlanetId)
+  const isMotionPaused = Boolean(hoveredPlanetId || ambientHover || enteredPlanetId)
 
   function zoomFromWheel(deltaY: number) {
     setZoom((current) =>
@@ -114,13 +125,26 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setFocusedPlanetId(planetId)
     setHoveredPlanetId(planetId)
     setHoverPoint(point)
+    setAmbientHover(undefined)
     setRelatedScopePlanetId(undefined)
+  }
+
+  function hoverAmbient(nextAmbientHover: AmbientHoverState) {
+    setFocusedPlanetId(nextAmbientHover.targetPlanetId)
+    setAmbientHover(nextAmbientHover)
+  }
+
+  function leaveAmbient(ambientId: string) {
+    setAmbientHover((current) =>
+      current?.id === ambientId ? undefined : current
+    )
   }
 
   function hoverPlanet(planetId: string, point: PlanetPoint) {
     setFocusedPlanetId(planetId)
     setHoveredPlanetId(planetId)
     setHoverPoint(point)
+    setAmbientHover(undefined)
   }
 
   function leavePlanet(planetId: string) {
@@ -134,6 +158,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setFocusedPlanetId(planetId)
     setHoveredPlanetId(undefined)
     setHoverPoint(undefined)
+    setAmbientHover(undefined)
     setRelatedScopePlanetId(undefined)
     setEnteredPlanetId(planetId)
     setViewState("inside")
@@ -187,6 +212,7 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     setEnteredPlanetId(undefined)
     setHoveredPlanetId(undefined)
     setHoverPoint(undefined)
+    setAmbientHover(undefined)
     setViewState("overview")
   }
 
@@ -286,11 +312,13 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
         <UniverseTopbar theme={theme} onToggleTheme={toggleTheme} />
         <UniverseCanvas
           planets={universe.planets}
+          contentNodes={contentNodes}
           threeScene={threeScene}
           focusedPlanetId={effectiveFocusedPlanetId}
           hoveredPlanetId={hoveredPlanetId}
           relatedScopePlanetId={relatedScopePlanetId}
           hoverPoint={hoverPoint}
+          ambientHover={ambientHover}
           detail={detail}
           enteredPlanetId={enteredPlanetId}
           zoom={zoom}
@@ -300,7 +328,9 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
           onSelectPlanet={selectPlanet}
           onAskTwinPlanet={askTwin}
           onEnterPlanet={enterPlanet}
+          onHoverAmbient={hoverAmbient}
           onHoverPlanet={hoverPlanet}
+          onLeaveAmbient={leaveAmbient}
           onLeavePlanet={leavePlanet}
           onClearRelatedPlanets={clearRelatedScope}
           onShowRelatedPlanet={showRelated}

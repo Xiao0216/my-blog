@@ -122,3 +122,38 @@ export type PlanetPreviewModel = {
   readonly summary: string
   readonly title: string
 }
+
+export type AmbientPreviewKind = "fragment" | "star"
+
+export type UniverseContentType = "essay" | "memory" | "note" | "project"
+
+export type UniverseContentNodeModel = {
+  readonly contentType: UniverseContentType
+  readonly href?: string
+  readonly id: string
+  readonly importance: number
+  readonly kind: AmbientPreviewKind
+  readonly summary: string
+  readonly targetPlanetId: string
+  readonly title: string
+}
+
+export type AmbientPreviewModel = {
+  readonly hint: string
+  readonly kind: AmbientPreviewKind
+  readonly meta: string
+  readonly summary: string
+  readonly targetPlanetId: string
+  readonly targetTitle: string
+  readonly title: string
+}
+
+export type AmbientHoverState = {
+  readonly id: string
+  readonly kind: AmbientPreviewKind
+  readonly point: {
+    readonly x: number
+    readonly y: number
+  }
+  readonly targetPlanetId: string
+}

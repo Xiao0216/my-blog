@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 
 import type { MinimalStarPoint } from "@/components/site/life-universe/minimal-three-scene-model"
+import type { AmbientPreviewKind } from "@/components/site/life-universe/types"
 
 function resolvePointerPoint(event: {
   readonly clientX?: number
@@ -27,16 +28,21 @@ function resolvePointerPoint(event: {
 export function MinimalAmbientField({
   stars,
   onEnterPlanet,
-  onHoverPlanet,
-  onLeavePlanet,
+  onHoverAmbient,
+  onLeaveAmbient,
 }: {
   readonly stars: ReadonlyArray<MinimalStarPoint>
   readonly onEnterPlanet: (planetId: string) => void
-  readonly onHoverPlanet: (planetId: string, point: { x: number; y: number }) => void
-  readonly onLeavePlanet: (planetId: string) => void
+  readonly onHoverAmbient: (ambient: {
+    readonly id: string
+    readonly kind: AmbientPreviewKind
+    readonly point: { x: number; y: number }
+    readonly targetPlanetId: string
+  }) => void
+  readonly onLeaveAmbient: (ambientId: string) => void
 }) {
   const interactiveStars = useMemo(
-    () => stars.filter((star) => Boolean(star.targetPlanetId)),
+    () => stars.filter((star) => star.kind !== "background" && Boolean(star.targetPlanetId)),
     [stars]
   )
   const testProps =
@@ -64,15 +70,36 @@ export function MinimalAmbientField({
           <group
             key={star.id}
             position={star.position}
-            onClick={() => onEnterPlanet(targetPlanetId)}
-            onDoubleClick={() => onEnterPlanet(targetPlanetId)}
-            onPointerLeave={() => onLeavePlanet(targetPlanetId)}
+            onClick={() => {
+              if (star.href && typeof window !== "undefined") {
+                window.location.href = star.href
+                return
+              }
+
+              onEnterPlanet(targetPlanetId)
+            }}
+            onDoubleClick={() => {
+              if (star.href && typeof window !== "undefined") {
+                window.location.href = star.href
+                return
+              }
+
+              onEnterPlanet(targetPlanetId)
+            }}
+            onPointerLeave={() => onLeaveAmbient(star.id)}
             onPointerMove={(event: {
               clientX?: number
               clientY?: number
               nativeEvent?: { clientX?: number; clientY?: number }
               sourceEvent?: { clientX?: number; clientY?: number }
-            }) => onHoverPlanet(targetPlanetId, resolvePointerPoint(event))}
+            }) =>
+              onHoverAmbient({
+                id: star.id,
+                kind: star.kind === "fragment" ? "fragment" : "star",
+                point: resolvePointerPoint(event),
+                targetPlanetId,
+              })
+            }
           >
             {star.kind === "fragment" ? (
               <mesh rotation={[0.45, 0.2, 0.78]}>

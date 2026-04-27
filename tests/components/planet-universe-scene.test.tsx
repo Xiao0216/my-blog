@@ -24,14 +24,14 @@ vi.mock("@/components/site/life-universe/minimal-star-field", () => ({
 vi.mock("@/components/site/life-universe/minimal-ambient-field", () => ({
   MinimalAmbientField({
     onEnterPlanet,
-    onHoverPlanet,
-    onLeavePlanet,
+    onHoverAmbient,
+    onLeaveAmbient,
     stars,
   }: {
-    readonly stars: ReadonlyArray<{ readonly id: string; readonly targetPlanetId?: string }>
+    readonly stars: ReadonlyArray<{ readonly id: string; readonly kind: "background" | "fragment" | "star"; readonly targetPlanetId?: string }>
     readonly onEnterPlanet: (planetId: string) => void
-    readonly onHoverPlanet: (planetId: string, point: { x: number; y: number }) => void
-    readonly onLeavePlanet: (planetId: string) => void
+    readonly onHoverAmbient: (ambient: { readonly id: string; readonly kind: "fragment" | "star"; readonly point: { x: number; y: number }; readonly targetPlanetId: string }) => void
+    readonly onLeaveAmbient: (ambientId: string) => void
   }) {
     return (
       <div data-testid="minimal-ambient-field" data-ambient-count={stars.length}>
@@ -41,11 +41,13 @@ vi.mock("@/components/site/life-universe/minimal-ambient-field", () => ({
               key={star.id}
               data-testid={`minimal-ambient-${star.id}`}
               onClick={() => onEnterPlanet(star.targetPlanetId ?? "")}
-              onPointerLeave={() => onLeavePlanet(star.targetPlanetId ?? "")}
+              onPointerLeave={() => onLeaveAmbient(star.id)}
               onPointerMove={(event) =>
-                onHoverPlanet(star.targetPlanetId ?? "", {
-                  x: event.clientX,
-                  y: event.clientY,
+                onHoverAmbient({
+                  id: star.id,
+                  kind: star.kind === "fragment" ? "fragment" : "star",
+                  point: { x: event.clientX, y: event.clientY },
+                  targetPlanetId: star.targetPlanetId ?? "",
                 })
               }
               type="button"
@@ -180,7 +182,9 @@ describe("PlanetUniverseScene", () => {
           focusedPlanetId="planet-1"
           isMotionPaused={false}
           isReducedMotion
+          onHoverAmbient={vi.fn()}
           onHoverPlanet={vi.fn()}
+          onLeaveAmbient={vi.fn()}
           onLeavePlanet={vi.fn()}
           onEnterPlanet={vi.fn()}
         />
@@ -210,8 +214,21 @@ describe("PlanetUniverseScene", () => {
   })
 
   it("renders the canvas, wires scene counts, and bridges planet events", () => {
-    const scene = buildMinimalThreeScene(planets)
+    const scene = buildMinimalThreeScene(planets, [
+      {
+        contentType: "essay",
+        href: "/essays/work",
+        id: "essay-work",
+        importance: 8,
+        kind: "star",
+        summary: "具体内容摘要",
+        targetPlanetId: "planet-1",
+        title: "具体内容",
+      },
+    ])
+    const onHoverAmbient = vi.fn()
     const onHoverPlanet = vi.fn()
+    const onLeaveAmbient = vi.fn()
     const onLeavePlanet = vi.fn()
     const onEnterPlanet = vi.fn()
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
@@ -224,7 +241,9 @@ describe("PlanetUniverseScene", () => {
           focusedPlanetId="planet-1"
           isMotionPaused={false}
           isReducedMotion={false}
+          onHoverAmbient={onHoverAmbient}
           onHoverPlanet={onHoverPlanet}
+          onLeaveAmbient={onLeaveAmbient}
           onLeavePlanet={onLeavePlanet}
           onEnterPlanet={onEnterPlanet}
         />
@@ -267,8 +286,13 @@ describe("PlanetUniverseScene", () => {
       expect(onHoverPlanet).toHaveBeenCalledWith("planet-1", { x: 123, y: 456 })
       expect(onLeavePlanet).toHaveBeenCalledWith("planet-1")
       expect(onEnterPlanet).toHaveBeenCalledWith("planet-1")
-      expect(onHoverPlanet).toHaveBeenCalledWith(firstAmbient?.targetPlanetId, { x: 222, y: 333 })
-      expect(onLeavePlanet).toHaveBeenCalledWith(firstAmbient?.targetPlanetId)
+      expect(onHoverAmbient).toHaveBeenCalledWith({
+        id: firstAmbient?.id,
+        kind: firstAmbient?.kind === "fragment" ? "fragment" : "star",
+        point: { x: 222, y: 333 },
+        targetPlanetId: firstAmbient?.targetPlanetId,
+      })
+      expect(onLeaveAmbient).toHaveBeenCalledWith(firstAmbient?.id)
       expect(onEnterPlanet).toHaveBeenCalledWith(firstAmbient?.targetPlanetId)
     } finally {
       consoleErrorSpy.mockRestore()

@@ -16,7 +16,9 @@ export function PlanetUniverseScene({
   isMotionPaused,
   isReducedMotion,
   onEnterPlanet,
+  onHoverAmbient,
   onHoverPlanet,
+  onLeaveAmbient,
   onLeavePlanet,
 }: {
   readonly scene: MinimalThreeScene
@@ -25,7 +27,14 @@ export function PlanetUniverseScene({
   readonly isMotionPaused: boolean
   readonly isReducedMotion: boolean
   readonly onEnterPlanet: (planetId: string) => void
+  readonly onHoverAmbient: (ambient: {
+    readonly id: string
+    readonly kind: "fragment" | "star"
+    readonly point: { x: number; y: number }
+    readonly targetPlanetId: string
+  }) => void
   readonly onHoverPlanet: (planetId: string, point: { x: number; y: number }) => void
+  readonly onLeaveAmbient: (ambientId: string) => void
   readonly onLeavePlanet: (planetId: string) => void
 }) {
   const activePlanetId = hoveredPlanetId ?? focusedPlanetId
@@ -50,8 +59,8 @@ export function PlanetUniverseScene({
           <MinimalAmbientField
             stars={scene.stars}
             onEnterPlanet={onEnterPlanet}
-            onHoverPlanet={onHoverPlanet}
-            onLeavePlanet={onLeavePlanet}
+            onHoverAmbient={onHoverAmbient}
+            onLeaveAmbient={onLeaveAmbient}
           />
           <MinimalOrbitPaths bodies={scene.bodies} />
           <MinimalConnections

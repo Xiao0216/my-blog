@@ -1,12 +1,16 @@
 import type { StoredMemory, StoredPlanet } from "@/lib/content"
 
 import type {
+  AmbientPreviewKind,
+  AmbientPreviewModel,
+  HomePageViewProps,
   PlanetOrbitModel,
   PlanetPreviewModel,
   PlanetRenderLevel,
   PlanetRotationModel,
   PlanetUniverseBodyModel,
   PlanetUniverseModel,
+  UniverseContentNodeModel,
 } from "@/components/site/life-universe/types"
 
 type BuildPlanetUniverseModelInput = {
@@ -49,6 +53,95 @@ export function buildPlanetPreview(
   }
 }
 
+export function buildAmbientPreview({
+  node,
+  targetPlanet,
+}: {
+  readonly node: UniverseContentNodeModel
+  readonly targetPlanet: PlanetUniverseBodyModel
+}): AmbientPreviewModel {
+  const isFragment = node.kind === "fragment"
+  const contentLabel = formatContentType(node.contentType)
+
+  return {
+    hint: node.href ? "点击查看内容" : "点击进入关联行星",
+    kind: node.kind,
+    meta: isFragment ? `${contentLabel}碎片 · 所属 ${targetPlanet.name}` : `${contentLabel}星星 · 所属 ${targetPlanet.name}`,
+    summary: node.summary,
+    targetPlanetId: targetPlanet.id,
+    targetTitle: targetPlanet.name,
+    title: node.title,
+  }
+}
+
+export function buildUniverseContentNodes({
+  essays,
+  memories,
+  notes,
+  planets,
+  projects,
+}: HomePageViewProps): ReadonlyArray<UniverseContentNodeModel> {
+  const publishedPlanets = planets.filter((planet) => planet.status === "published")
+  const fallbackPlanet = publishedPlanets[0]
+
+  if (!fallbackPlanet) {
+    return []
+  }
+
+  return [
+    ...essays.map((essay, index) => {
+      const planet = pickPlanetForContent({ fallbackPlanet, index, planets: publishedPlanets, text: `${essay.title} ${essay.description}` })
+      return {
+        contentType: "essay" as const,
+        href: `/essays/${essay.slug}`,
+        id: `essay-${essay.slug}`,
+        importance: 8,
+        kind: "star" as const,
+        summary: essay.description,
+        targetPlanetId: `planet-${planet.id}`,
+        title: essay.title,
+      }
+    }),
+    ...projects.map((project, index) => {
+      const planet = pickPlanetForContent({ fallbackPlanet, index: index + essays.length, planets: publishedPlanets, text: `${project.title} ${project.description} ${project.note}` })
+      return {
+        contentType: "project" as const,
+        href: "/projects",
+        id: `project-${project.slug}`,
+        importance: 9,
+        kind: "star" as const,
+        summary: project.description,
+        targetPlanetId: `planet-${planet.id}`,
+        title: project.title,
+      }
+    }),
+    ...notes.map((note, index) => {
+      const planet = pickPlanetForContent({ fallbackPlanet, index: index + essays.length + projects.length, planets: publishedPlanets, text: `${note.title} ${note.body}` })
+      return {
+        contentType: "note" as const,
+        href: "/notes",
+        id: `note-${note.slug}`,
+        importance: 6,
+        kind: "star" as const,
+        summary: note.body,
+        targetPlanetId: `planet-${planet.id}`,
+        title: note.title,
+      }
+    }),
+    ...memories
+      .filter((memory) => memory.visibility !== "private")
+      .map((memory) => ({
+        contentType: "memory" as const,
+        id: `memory-${memory.id}`,
+        importance: memory.importance,
+        kind: memory.visibility === "public" && memory.importance >= 7 ? "star" as const : "fragment" as const,
+        summary: memory.content,
+        targetPlanetId: `planet-${memory.planetId}`,
+        title: memory.title,
+      })),
+  ]
+}
+
 export function getPlanetRenderLevel({
   distanceFromFocus,
   isFocused,
@@ -71,6 +164,33 @@ export function getPlanetRenderLevel({
   }
 
   return "full"
+}
+
+function pickPlanetForContent({
+  fallbackPlanet,
+  index,
+  planets,
+  text,
+}: {
+  readonly fallbackPlanet: StoredPlanet
+  readonly index: number
+  readonly planets: ReadonlyArray<StoredPlanet>
+  readonly text: string
+}) {
+  const textLower = text.toLowerCase()
+  const matchedPlanet = planets.find((planet) => {
+    const haystack = `${planet.name} ${planet.slug} ${planet.summary} ${planet.description}`.toLowerCase()
+    return haystack.split(/\s+|，|、|。|与|和/).some((token) => token.length > 1 && textLower.includes(token))
+  })
+
+  return matchedPlanet ?? planets[index % planets.length] ?? fallbackPlanet
+}
+
+function formatContentType(contentType: UniverseContentNodeModel["contentType"]) {
+  if (contentType === "essay") return "文章"
+  if (contentType === "project") return "项目"
+  if (contentType === "note") return "笔记"
+  return "记忆"
 }
 
 function buildPlanetUniverseBodyModel(
