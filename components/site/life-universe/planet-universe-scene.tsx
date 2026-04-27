@@ -40,9 +40,10 @@ export function PlanetUniverseScene({
         dpr={[1, 1.5]}
         gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
       >
-        <ambientLight intensity={0.75} />
-        <directionalLight color="#d9d1c6" intensity={0.8} position={[180, 220, 260]} />
-        <pointLight color="#8c949f" intensity={0.4} position={[-240, -180, 180]} />
+        <ambientLight intensity={0.38} />
+        <directionalLight color="#fff3df" intensity={1.65} position={[260, 220, 360]} />
+        <pointLight color="#8c949f" intensity={0.26} position={[-260, -200, 180]} />
+        <hemisphereLight args={["#c8d6ff", "#17110d", 0.34]} />
         <group>
           <MinimalStarField stars={scene.stars} />
           <MinimalOrbitPaths bodies={scene.bodies} />
