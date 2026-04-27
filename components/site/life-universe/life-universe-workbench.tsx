@@ -4,7 +4,6 @@ import type { FormEvent } from "react"
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 
 import type {
-  CanvasPan,
   ChatMessage,
   HomePageViewProps,
   NullSpaceTheme,
@@ -27,7 +26,6 @@ const DEFAULT_ZOOM = 78
 const WHEEL_DELTA_PER_ZOOM_POINT = 15
 const MIN_ZOOM = 50
 const MAX_ZOOM = 150
-const DEFAULT_PAN: CanvasPan = { x: 0, y: 0 }
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
 
 export function LifeUniverseWorkbench(props: HomePageViewProps) {
@@ -65,7 +63,6 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
     undefined
   )
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
-  const [pan, setPan] = useState<CanvasPan>(DEFAULT_PAN)
   const [theme, setTheme] = useState<NullSpaceTheme>("dark")
   const [draftMessage, setDraftMessage] = useState("")
   const [isTwinExpanded, setIsTwinExpanded] = useState(false)
@@ -298,7 +295,6 @@ export function LifeUniverseWorkbench(props: HomePageViewProps) {
           detail={detail}
           enteredPlanetId={enteredPlanetId}
           zoom={zoom}
-          pan={pan}
           isMotionPaused={isMotionPaused}
           isReducedMotion={isReducedMotion}
           viewState={viewState}

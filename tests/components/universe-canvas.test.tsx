@@ -171,7 +171,6 @@ function buildProps(
     detail: undefined,
     enteredPlanetId: undefined,
     zoom: 78,
-    pan: { x: 0, y: 0 },
     isMotionPaused: false,
     isReducedMotion: false,
     viewState: "overview",

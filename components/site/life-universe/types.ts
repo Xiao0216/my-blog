@@ -54,11 +54,6 @@ export type PlanetStatus = "seedling" | "growing" | "mature" | "archived"
 
 export type NullSpaceTheme = "dark" | "light"
 
-export type CanvasPan = {
-  readonly x: number
-  readonly y: number
-}
-
 export type PlanetContextModel = {
   readonly id: string
   readonly category: string

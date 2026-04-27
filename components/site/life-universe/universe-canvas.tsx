@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import type { MinimalThreeScene } from "@/components/site/life-universe/minimal-three-scene-model"
 import type {
-  CanvasPan,
   PlanetUniverseBodyModel,
   PlanetDetailModel,
   UniverseViewState,
@@ -39,7 +38,6 @@ export function UniverseCanvas({
   detail,
   enteredPlanetId,
   zoom,
-  pan,
   isMotionPaused,
   isReducedMotion,
   viewState,
@@ -61,7 +59,6 @@ export function UniverseCanvas({
   readonly detail?: PlanetDetailModel
   readonly enteredPlanetId?: string
   readonly zoom: number
-  readonly pan: CanvasPan
   readonly isMotionPaused: boolean
   readonly isReducedMotion: boolean
   readonly viewState: UniverseViewState
@@ -92,7 +89,7 @@ export function UniverseCanvas({
         x: 480 - enteredPlanetCenter.x,
         y: 330 - enteredPlanetCenter.y,
       }
-    : pan
+    : { x: 0, y: 0 }
   const cameraTransform = `translate(${cameraPan.x}px, ${cameraPan.y}px) scale(${cameraScale})`
   const canvasRef = useRef<HTMLElement | null>(null)
   const wheelFrameRef = useRef<number | undefined>(undefined)
