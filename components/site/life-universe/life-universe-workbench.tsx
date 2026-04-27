@@ -432,32 +432,8 @@ function buildPlanetDetail(
 }
 
 function buildContextCard(planet: PlanetUniverseBodyModel): UniverseCardModel {
-  const angle = planet.orbit.startAngle
-  const radians = (angle * Math.PI) / 180
-  const width = planet.size
-  const height = planet.size
-
   return {
     id: planet.id,
-    kind: "planet",
-    group: planet.slug,
-    importance: Math.max(
-      1,
-      planet.publicMemoryCount + planet.assistantMemoryCount
-    ),
-    width,
-    height,
-    x: 480 + Math.cos(radians) * planet.orbit.radius - width / 2,
-    y: 330 + Math.sin(radians) * planet.orbit.radius - height / 2,
-    ring: planet.level,
-    angle,
-    posture: {
-      rotateX: 0,
-      rotateY: 0,
-      rotateZ: 0,
-      translateZ: 0,
-    },
-    layoutStatus: "placed",
     category: "行星",
     title: planet.name,
     excerpt: planet.summary,

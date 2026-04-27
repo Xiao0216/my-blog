@@ -54,62 +54,21 @@ export type UniverseCardStatus = "seedling" | "growing" | "mature" | "archived"
 
 export type NullSpaceTheme = "dark" | "light"
 
-export type UniverseCardKind =
-  | "core"
-  | "essay"
-  | "memory"
-  | "note"
-  | "planet"
-  | "project"
-
-export type UniverseLayoutInputCard = {
-  readonly id: string
-  readonly kind: UniverseCardKind
-  readonly group: string
-  readonly importance: number
-  readonly width: number
-  readonly height: number
-}
-
-export type UniverseCardPosture = {
-  readonly rotateX: number
-  readonly rotateY: number
-  readonly rotateZ: number
-  readonly translateZ: number
-}
-
-export type UniverseViewport = {
-  readonly centerX: number
-  readonly centerY: number
-  readonly width: number
-  readonly height: number
-}
-
-export type PlacedUniverseCard = UniverseLayoutInputCard & {
-  readonly x: number
-  readonly y: number
-  readonly ring: number
-  readonly angle: number
-  readonly posture: UniverseCardPosture
-  readonly layoutStatus: "placed" | "overlap-fallback"
-}
-
 export type CanvasPan = {
   readonly x: number
   readonly y: number
 }
 
 export type UniverseCardModel = {
+  readonly id: string
   readonly category: string
   readonly title: string
   readonly excerpt: string
   readonly date: string
-  readonly href?: string
   readonly tone: UniverseCardTone
   readonly status: UniverseCardStatus
-  readonly featured?: boolean
   readonly planetId?: number
-} & PlacedUniverseCard
+}
 
 export type UniverseViewState = "entering" | "focused" | "inside" | "leaving" | "overview"
 

@@ -76,10 +76,21 @@ export function UniverseCanvas({
 }) {
   const [isCameraGestureActive, setIsCameraGestureActive] = useState(false)
   const cameraScale = detail ? 1.28 : zoom / BASE_ZOOM
-  const cameraPan = detail
+  const enteredPlanet = detail
+    ? planets.find((planet) => planet.id === detail.card.id)
+    : undefined
+  const enteredPlanetAngle = enteredPlanet?.orbit.startAngle ?? 0
+  const enteredPlanetRadians = (enteredPlanetAngle * Math.PI) / 180
+  const enteredPlanetCenter = enteredPlanet
     ? {
-        x: 480 - detail.card.x - detail.card.width / 2,
-        y: 330 - detail.card.y - detail.card.height / 2,
+        x: 480 + Math.cos(enteredPlanetRadians) * enteredPlanet.orbit.radius,
+        y: 330 + Math.sin(enteredPlanetRadians) * enteredPlanet.orbit.radius,
+      }
+    : undefined
+  const cameraPan = enteredPlanetCenter
+    ? {
+        x: 480 - enteredPlanetCenter.x,
+        y: 330 - enteredPlanetCenter.y,
       }
     : pan
   const cameraTransform = `translate(${cameraPan.x}px, ${cameraPan.y}px) scale(${cameraScale})`
