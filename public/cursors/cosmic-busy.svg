@@ -1,0 +1,22 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="body" x1="8" y1="4" x2="24" y2="26" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8FF"/>
+      <stop offset="0.32" stop-color="#DDBBFF"/>
+      <stop offset="0.68" stop-color="#9D78FF"/>
+      <stop offset="1" stop-color="#2E1F75"/>
+    </linearGradient>
+    <filter id="glow" x="0" y="0" width="32" height="32" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="1.05" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.78 0 0 0 0 0.5 0 0 0 0 1 0 0 0 0.7 0"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <path d="M8 4.5 25 17.2 16.9 18.7 12.6 27.3 8 4.5Z" fill="url(#body)" fill-opacity="0.95" filter="url(#glow)"/>
+  <path d="M8 4.5 25 17.2 16.9 18.7 12.6 27.3 8 4.5Z" stroke="#F8EFFF" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M6.3 3.9C9.9 1.8 15.6 2 19.8 5" stroke="#DDBBFF" stroke-opacity="0.78" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M23.6 8.1A3.8 3.8 0 1 1 20.8 9" stroke="#F1E7FF" stroke-opacity="0.9" stroke-width="1.1" stroke-linecap="round"/>
+  <circle cx="12" cy="10" r="1" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="15.8" cy="14.4" r="0.8" fill="#B8F2FF" fill-opacity="0.88"/>
+  <path d="M13.5 26.5 9.5 30M16.5 25.2 14.5 29M18.2 23.4 19.8 26.5" stroke="#DDBBFF" stroke-opacity="0.42" stroke-width="0.8" stroke-linecap="round"/>
+</svg>
