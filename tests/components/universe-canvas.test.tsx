@@ -273,6 +273,8 @@ describe("UniverseCanvas", () => {
       /\.null-space-shell\[data-related-scope="true"\]\s*\.mobile-planet-list\s*\[data-testid="mobile-planet-item"\]\[data-related="false"\]\s*{[\s\S]*?display:\s*none/
     )
     expect(css).toMatch(/\.mobile-planet-list\s+\[data-testid="mobile-planet-item"\]\s+button\s*{/)
+    expect(css).toMatch(/min-height:\s*2\.75rem/)
+    expect(css).toMatch(/\.mobile-planet-list\s+\.mobile-planet-action-primary\s*{/)
     expect(css).toMatch(
       /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*{[\s\S]*?\.planet-body/
     )

@@ -1038,6 +1038,13 @@ describe("HomePageView", () => {
       screen.getByRole("button", { name: "移动端查看 工作 关联" })
     ).toBeInTheDocument()
 
+    expect(screen.getByRole("button", { name: "移动端进入 工作" })).toHaveClass(
+      "mobile-planet-action-primary"
+    )
+    expect(screen.getByRole("button", { name: "移动端查看 工作 关联" })).toHaveClass(
+      "col-span-2"
+    )
+
     fireEvent.click(screen.getByRole("button", { name: "移动端进入 工作" }))
 
     expect(

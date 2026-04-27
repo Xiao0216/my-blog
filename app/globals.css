@@ -800,15 +800,16 @@
 
   .mobile-planet-list [data-testid="mobile-planet-item"] button {
     display: inline-flex;
-    min-height: 2.4rem;
+    min-height: 2.75rem;
     align-items: center;
     justify-content: center;
     border: 1px solid var(--ns-glass-border);
     border-radius: 9999px;
     background: var(--ns-control-bg);
-    padding: 0.5rem 0.85rem;
+    padding: 0.62rem 0.95rem;
     color: var(--ns-text-secondary);
-    font-size: 0.78rem;
+    font-size: 0.82rem;
+    font-weight: 600;
     transition:
       background 160ms ease,
       color 160ms ease,
@@ -819,6 +820,17 @@
     background: color-mix(in srgb, var(--ns-control-bg) 88%, white 12%);
     color: var(--ns-text-primary);
     transform: translateY(-1px);
+  }
+
+  .mobile-planet-list [data-testid="mobile-planet-item"] button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ns-accent-primary);
+  }
+
+  .mobile-planet-list .mobile-planet-action-primary {
+    border-color: color-mix(in srgb, var(--ns-accent-primary) 54%, var(--ns-glass-border));
+    background: color-mix(in srgb, var(--ns-accent-primary) 18%, var(--ns-control-bg));
+    color: var(--ns-text-primary);
   }
 
   .planet-detail-overlay {

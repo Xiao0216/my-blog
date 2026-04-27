@@ -373,10 +373,11 @@ export function UniverseCanvas({
             <span className="mt-2 block text-sm leading-6 text-[var(--ns-text-tertiary)]">
               {planet.summary}
             </span>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mobile-planet-actions mt-4 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 aria-label={`移动端进入 ${planet.name}`}
+                className="mobile-planet-action-primary"
                 onClick={() => onEnterPlanet(planet.id)}
               >
                 进入
@@ -392,6 +393,7 @@ export function UniverseCanvas({
                 <button
                   type="button"
                   aria-label="移动端显示全部行星"
+                  className="col-span-2"
                   onClick={onClearRelatedPlanets}
                 >
                   全部
@@ -400,6 +402,7 @@ export function UniverseCanvas({
                 <button
                   type="button"
                   aria-label={`移动端查看 ${planet.name} 关联`}
+                  className="col-span-2"
                   onClick={() => onShowRelatedPlanet(planet.id)}
                 >
                   关联
