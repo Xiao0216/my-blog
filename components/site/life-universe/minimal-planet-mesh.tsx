@@ -3,7 +3,7 @@
 import { memo, useEffect, useMemo, useRef } from "react"
 
 import { useFrame, useLoader } from "@react-three/fiber"
-import { SRGBColorSpace, TextureLoader } from "three"
+import { AdditiveBlending, DoubleSide, TextureLoader } from "three"
 
 import type { MinimalThreeBody } from "@/components/site/life-universe/minimal-three-scene-model"
 import {
@@ -75,20 +75,22 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
     rotation: { z: number }
   } | null>(null)
   const bodyRef = useRef<{ scale: { setScalar: (value: number) => void } } | null>(null)
-  const ringRef = useRef<{ rotation: { z: number } } | null>(null)
+  const planetRef = useRef<{ rotation: { y: number } } | null>(null)
+  const cloudRef = useRef<{ rotation: { y: number } } | null>(null)
+  const ringRef = useRef<{ rotation: { x: number; z: number } } | null>(null)
   const currentOrbitAngleRef = useRef(getMinimalOrbitSeed(body))
   const currentRotationAngleRef = useRef(0)
   const currentRingRotationAngleRef = useRef(0)
 
   const radius = useMemo(() => getPlanetRadius(body), [body])
-  const illustrationMap = useLoader(TextureLoader, body.illustration)
-  illustrationMap.colorSpace = SRGBColorSpace
-  const visualHeight = radius * body.illustrationScale
-  const visualWidth = visualHeight * body.illustrationAspectRatio
+  const planetMap = useLoader(TextureLoader, body.planetAsset.texture)
+  const cloudMap = useOptionalTexture(body.planetAsset.cloudTexture)
+  const ringMap = useOptionalTexture(body.planetAsset.ringTexture)
   const orbitTilt = useMemo(() => (12 * Math.PI) / 180, [])
   const orbitSeed = useMemo(() => getMinimalOrbitSeed(body), [body])
   const isActive = isHovered || isFocused
   const isAnimationFrozen = isMotionPaused || isReducedMotion
+  const opacity = isDimmed ? 0.5 : 1
   const testProps =
     process.env.NODE_ENV === "test"
       ? {
@@ -130,7 +132,16 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
 
     bodyRef.current.scale.setScalar(quietScale)
 
+    if (planetRef.current) {
+      planetRef.current.rotation.y = currentRotationAngleRef.current
+    }
+
+    if (cloudRef.current) {
+      cloudRef.current.rotation.y = currentRotationAngleRef.current * 1.18
+    }
+
     if (ringRef.current) {
+      ringRef.current.rotation.x = Math.PI / 2.45
       ringRef.current.rotation.z = currentRingRotationAngleRef.current
     }
   })
@@ -139,6 +150,10 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
     <group
       ref={orbitRef}
       {...testProps}
+      onClick={(event: { stopPropagation?: () => void }) => {
+        event.stopPropagation?.()
+        onHoverPlanet(body.id, { x: 0, y: 0 })
+      }}
       onDoubleClick={() => onEnterPlanet(body.id)}
       onPointerLeave={() => onLeavePlanet(body.id)}
       onPointerMove={(event: { clientX?: number; clientY?: number; nativeEvent?: { clientX?: number; clientY?: number }; sourceEvent?: { clientX?: number; clientY?: number } }) =>
@@ -146,23 +161,53 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
       }
     >
       <group ref={bodyRef}>
-        <mesh>
-          <planeGeometry args={[visualWidth, visualHeight]} />
-          <meshBasicMaterial
-            alphaTest={0.04}
-            map={illustrationMap}
-            opacity={isDimmed ? 0.5 : 1}
-            transparent
-          />
-        </mesh>
+        {body.planetAsset.emissive ? (
+          <pointLight color="#ffb25a" distance={260} intensity={1.35} />
+        ) : null}
         {isActive ? (
-          <mesh position={[0, 0, -0.01]} scale={1.08}>
-            <planeGeometry args={[visualWidth, visualHeight]} />
+          <mesh scale={1.16}>
+            <sphereGeometry args={[radius, 48, 32]} />
             <meshBasicMaterial
-              alphaTest={0.04}
+              blending={AdditiveBlending}
               color={ACTIVE_GLOW_COLOR}
-              map={illustrationMap}
-              opacity={0.18}
+              opacity={0.16}
+              transparent
+            />
+          </mesh>
+        ) : null}
+        <mesh ref={planetRef}>
+          <sphereGeometry args={[radius, 48, 32]} />
+          {body.planetAsset.emissive ? (
+            <meshBasicMaterial map={planetMap} opacity={opacity} transparent />
+          ) : (
+            <meshStandardMaterial
+              map={planetMap}
+              metalness={0.04}
+              opacity={opacity}
+              roughness={0.72}
+              transparent={isDimmed}
+            />
+          )}
+        </mesh>
+        {body.planetAsset.cloudTexture ? (
+          <mesh ref={cloudRef}>
+            <sphereGeometry args={[radius * 1.018, 48, 32]} />
+            <meshStandardMaterial
+              alphaTest={0.05}
+              map={cloudMap}
+              opacity={isDimmed ? 0.2 : 0.42}
+              transparent
+            />
+          </mesh>
+        ) : null}
+        {body.planetAsset.ringTexture ? (
+          <mesh ref={ringRef}>
+            <ringGeometry args={[radius * 1.34, radius * 2.15, 96]} />
+            <meshBasicMaterial
+              alphaTest={0.03}
+              map={ringMap}
+              opacity={isDimmed ? 0.34 : 0.86}
+              side={DoubleSide}
               transparent
             />
           </mesh>
@@ -171,3 +216,7 @@ export const MinimalPlanetMesh = memo(function MinimalPlanetMesh({
     </group>
   )
 })
+
+function useOptionalTexture(path: string | undefined) {
+  return useLoader(TextureLoader, path ?? "/planets/threex/earthmap1k.jpg")
+}

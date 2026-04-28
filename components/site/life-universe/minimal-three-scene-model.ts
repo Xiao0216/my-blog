@@ -6,12 +6,20 @@ import type {
 
 export type MinimalColorScheme = "sage" | "warm" | "mist" | "slate" | "rose"
 
+export type MinimalThreePlanetAsset = {
+  readonly cloudTexture?: string
+  readonly emissive?: boolean
+  readonly ringTexture?: string
+  readonly texture: string
+}
+
 export type MinimalThreeBody = PlanetUniverseBodyModel & {
   readonly colorScheme: MinimalColorScheme
   readonly hasRing: boolean
   readonly illustration: string
   readonly illustrationAspectRatio: number
   readonly illustrationScale: number
+  readonly planetAsset: MinimalThreePlanetAsset
   readonly position: readonly [number, number, number]
   readonly renderLevel: PlanetRenderLevel
 }
@@ -72,6 +80,37 @@ const PLANET_ILLUSTRATIONS = [
   { aspectRatio: 1, path: "/planets/svg/dark-texture.svg", scale: 2.2 },
 ] as const
 
+const THREEX_PLANET_ASSETS: Record<string, MinimalThreePlanetAsset> = {
+  earth: { texture: "/planets/threex/earthmap1k.jpg" },
+  earthcloud: {
+    cloudTexture: "/planets/threex/earthcloudmaptrans.jpg",
+    texture: "/planets/threex/earthmap1k.jpg",
+  },
+  jupiter: { texture: "/planets/threex/jupitermap.jpg" },
+  mars: { texture: "/planets/threex/marsmap1k.jpg" },
+  mercury: { texture: "/planets/threex/mercurymap.jpg" },
+  moon: { texture: "/planets/threex/moonmap1k.jpg" },
+  neptune: { texture: "/planets/threex/neptunemap.jpg" },
+  pluto: { texture: "/planets/threex/plutomap1k.jpg" },
+  saturn: {
+    ringTexture: "/planets/threex/saturnringcolor.jpg",
+    texture: "/planets/threex/saturnmap.jpg",
+  },
+  saturnring: {
+    ringTexture: "/planets/threex/saturnringcolor.jpg",
+    texture: "/planets/threex/saturnmap.jpg",
+  },
+  sun: { emissive: true, texture: "/planets/threex/sunmap.jpg" },
+  uranus: { texture: "/planets/threex/uranusmap.jpg" },
+  uranusring: {
+    ringTexture: "/planets/threex/uranusringcolour.jpg",
+    texture: "/planets/threex/uranusmap.jpg",
+  },
+  venus: { texture: "/planets/threex/venusmap.jpg" },
+}
+
+const FALLBACK_PLANET_ASSET = THREEX_PLANET_ASSETS.earth
+
 export function getMinimalColorScheme({
   tone,
   index,
@@ -123,6 +162,7 @@ function buildMinimalThreeBody(
     illustration: illustration.path,
     illustrationAspectRatio: illustration.aspectRatio,
     illustrationScale: illustration.scale,
+    planetAsset: THREEX_PLANET_ASSETS[planet.slug.toLowerCase()] ?? FALLBACK_PLANET_ASSET,
     position: [
       roundToTwo(Math.cos(angleRadians) * orbitRadius),
       roundToTwo(Math.sin(angleRadians) * orbitRadius * 0.72),

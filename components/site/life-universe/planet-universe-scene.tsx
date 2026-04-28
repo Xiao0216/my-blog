@@ -8,6 +8,7 @@ import { MinimalConnections } from "@/components/site/life-universe/minimal-conn
 import { MinimalOrbitPaths } from "@/components/site/life-universe/minimal-orbit-paths"
 import { MinimalPlanetMesh } from "@/components/site/life-universe/minimal-planet-mesh"
 import { MinimalStarField } from "@/components/site/life-universe/minimal-star-field"
+import { MinimalStarfieldBackdrop } from "@/components/site/life-universe/minimal-starfield-backdrop"
 
 export function PlanetUniverseScene({
   scene,
@@ -55,6 +56,7 @@ export function PlanetUniverseScene({
         <pointLight color="#8c949f" intensity={0.26} position={[-260, -200, 180]} />
         <hemisphereLight args={["#c8d6ff", "#17110d", 0.34]} />
         <group>
+          <MinimalStarfieldBackdrop />
           <MinimalStarField stars={scene.stars} />
           <MinimalAmbientField
             stars={scene.stars}

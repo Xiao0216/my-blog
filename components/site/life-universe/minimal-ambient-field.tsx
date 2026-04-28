@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 
 import { useLoader } from "@react-three/fiber"
-import { SRGBColorSpace, TextureLoader } from "three"
+import { TextureLoader } from "three"
 
 import type { MinimalStarPoint } from "@/components/site/life-universe/minimal-three-scene-model"
 import type { AmbientPreviewKind } from "@/components/site/life-universe/types"
@@ -46,8 +46,6 @@ export function MinimalAmbientField({
 }) {
   const starMap = useLoader(TextureLoader, "/planets/svg/content-star.svg")
   const fragmentMap = useLoader(TextureLoader, "/planets/svg/content-fragment.svg")
-  starMap.colorSpace = SRGBColorSpace
-  fragmentMap.colorSpace = SRGBColorSpace
   const interactiveStars = useMemo(
     () => stars.filter((star) => star.kind !== "background" && Boolean(star.targetPlanetId)),
     [stars]
