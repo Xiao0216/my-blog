@@ -33,14 +33,20 @@ export function MinimalOrbitPaths({
         }
       : {}
   const orbitPoints = useMemo(
-    () => bodies.map((body) => buildOrbitPoints(body.orbit.radius, body.position[2])),
+    () =>
+      bodies
+        .filter((body) => body.orbit.radius > 0)
+        .map((body) => ({
+          body,
+          points: buildOrbitPoints(body.orbit.radius, body.position[2]),
+        })),
     [bodies]
   )
 
   return (
     <group {...testProps}>
-      {orbitPoints.map((points, index) => (
-        <line key={bodies[index].id}>
+      {orbitPoints.map(({ body, points }) => (
+        <line key={body.id}>
           <bufferGeometry>
             <bufferAttribute
               args={[points, 3]}

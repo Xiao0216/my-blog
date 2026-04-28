@@ -151,7 +151,7 @@ function buildMinimalThreeBody(
   const normalizedSize = normalizeSize(planet.size, minSize, maxSize)
   const angleRadians = degreesToRadians(planet.orbit.startAngle + index * 11)
   const orbitRadius = planet.orbit.radius
-  const zOffset = roundToTwo((normalizedSize - 0.5) * 64 + planet.orbit.delaySeconds * 6)
+  const zOffset = orbitRadius <= 0 ? 0 : roundToTwo((normalizedSize - 0.5) * 64 + planet.orbit.delaySeconds * 6)
 
   const illustration = PLANET_ILLUSTRATIONS[index % PLANET_ILLUSTRATIONS.length]
 

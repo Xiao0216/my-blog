@@ -93,7 +93,7 @@ export function UniverseCanvas({
   const enteredPlanetCenter = enteredPlanet
     ? {
         x: 480 + Math.cos(enteredPlanetRadians) * enteredPlanet.orbit.radius,
-        y: 330 + Math.sin(enteredPlanetRadians) * enteredPlanet.orbit.radius,
+        y: 330 + Math.sin(enteredPlanetRadians) * enteredPlanet.orbit.radius * 0.72,
       }
     : undefined
   const cameraPan = enteredPlanetCenter
@@ -361,15 +361,17 @@ export function UniverseCanvas({
                     data-related={isRelated ? "true" : "false"}
                     className="planet-orbit"
                   >
-                    <div
-                      aria-hidden="true"
-                      className="planet-orbit-path"
-                      style={
-                        {
-                          "--planet-orbit-radius": `${planet.orbit.radius}px`,
-                        } as CSSProperties
-                      }
-                    />
+                    {planet.orbit.radius > 0 ? (
+                      <div
+                        aria-hidden="true"
+                        className="planet-orbit-path"
+                        style={
+                          {
+                            "--planet-orbit-radius": `${planet.orbit.radius}px`,
+                          } as CSSProperties
+                        }
+                      />
+                    ) : null}
                     <PlanetBody
                       planet={planet}
                       isFocused={isFocused}

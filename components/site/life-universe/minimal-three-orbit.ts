@@ -5,6 +5,10 @@ export function getMinimalOrbitSeed(body: MinimalThreeBody) {
 }
 
 export function getMinimalOrbitAngularSpeed(body: MinimalThreeBody) {
+  if (body.orbit.radius <= 0) {
+    return 0
+  }
+
   return (Math.PI * 2) / Math.max(body.orbit.durationSeconds, 0.001)
 }
 
@@ -20,6 +24,10 @@ export function getMinimalOrbitPosition(
   body: MinimalThreeBody,
   angle: number
 ): [number, number, number] {
+  if (body.orbit.radius <= 0) {
+    return [0, 0, body.position[2]]
+  }
+
   return [
     Math.cos(angle) * body.orbit.radius,
     Math.sin(angle) * body.orbit.radius * 0.72,

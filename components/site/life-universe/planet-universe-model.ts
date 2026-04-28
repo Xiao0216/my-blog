@@ -223,6 +223,15 @@ function buildOrbitModel(
   publicMemoryCount: number,
   assistantMemoryCount: number
 ): PlanetOrbitModel {
+  if (planet.slug === "sun") {
+    return {
+      delaySeconds: 0,
+      durationSeconds: 1000000,
+      radius: 0,
+      startAngle: 0,
+    }
+  }
+
   const seed = hashPlanetSeed(planet.slug, planet.id)
   const size = resolvePlanetSize(planet.size)
   const memoryLoad = publicMemoryCount * 7 + assistantMemoryCount * 5
